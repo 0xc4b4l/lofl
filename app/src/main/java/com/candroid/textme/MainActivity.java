@@ -1,5 +1,6 @@
 package com.candroid.textme;
 
+import android.Manifest;
 import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.app.ListActivity;
@@ -15,9 +16,11 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.annotation.RequiresPermission;
 import android.support.annotation.UiThread;
+import android.support.annotation.WorkerThread;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.util.AttributeSet;
@@ -27,16 +30,17 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends ListActivity {
     public static final String TAG = MainActivity.class.getSimpleName();
-    public static String sUri = "content://sms/inbox";
+    public static final String sUri = "content://sms/inbox";
     private String[] mPermissions;
     private boolean mChecking = false;
-    AlertDialog mDialog;
+    private AlertDialog mDialog;
 
     @Nullable
     @Override
@@ -54,15 +58,8 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (! mChecking && ActivityCompat.checkSelfPermission(this, permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+        if (!mChecking && ContextCompat.checkSelfPermission(this, permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{permission.READ_SMS}, 1);
         }
         readAllMessages();
     }
@@ -94,22 +91,25 @@ public class MainActivity extends ListActivity {
         mChecking = false;
     }
 
-    @Override
-    protected void onStart() {
-
-        super.onStart();
-    }
-
-
+    // TODO: 10/28/18 rationales for permissions
     @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case 100:
+                break;
+            case 1:
+                break;
+            default:
+                break;
+        }
     }
 
     @Override
     public void onBackPressed() {
+        finishAndRemoveTask();
         super.onBackPressed();
     }
 
@@ -117,19 +117,28 @@ public class MainActivity extends ListActivity {
     @RequiresPermission(permission.READ_PHONE_NUMBERS)
     void handleSms(String response, String received) {
         TelephonyManager tMgr = (TelephonyManager) getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
-        String phoneNumber = null;
+        String fromAddress = null;
         if (tMgr != null) {
             try {
-                phoneNumber = tMgr.getLine1Number();
+                fromAddress = tMgr.getLine1Number();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            String destinationNumber = received.substring(0, 12);
+            String body = received.substring(received.lastIndexOf("\n"));
+            String toAddress = received.substring(0, 12);
             SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage(destinationNumber, phoneNumber, received.substring(received.lastIndexOf("\n")), null, null);
+            smsManager.sendTextMessage(toAddress, "+".concat(fromAddress), body.trim(), null, null);
+            Toast.makeText(this, "message sent", Toast.LENGTH_SHORT ).show();
+            mDialog.dismiss();
         }
     }
 
+    @Override
+    public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
+        return null;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @RequiresPermission(permission.READ_PHONE_NUMBERS)
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
@@ -139,12 +148,19 @@ public class MainActivity extends ListActivity {
         EditText editText = new EditText(this);
         editText.setId(android.R.id.shareText);
         editText.setMinEms(12);
+        editText.setFocusable(true);
+        editText.setFocusedByDefault(true);
         editText.setGravity(Gravity.CENTER_HORIZONTAL);
         layout.addView(editText);
         builder.setView(layout);
         builder.setPositiveButton("reply", (dialog, which) -> {
             String response = editText.getText().toString();
             String received = getListAdapter().getItem(position).toString();
+            if ( !mChecking && ContextCompat.checkSelfPermission(this, permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED) {
+                String[] perm = new String[]{};
+                perm[0] = Manifest.permission.READ_PHONE_NUMBERS;
+                ActivityCompat.requestPermissions(this, perm, 1);
+            }
             handleSms(response, received);
             editText.endBatchEdit();
             editText.cancelPendingInputEvents();
@@ -154,8 +170,10 @@ public class MainActivity extends ListActivity {
         });
         mDialog = builder.create();
         mDialog.show();
+        mDialog.findViewById(android.R.id.shareText).setFocusable(true);
     }
-     @RequiresPermission(permission.READ_SMS)
+
+    @RequiresPermission(permission.READ_SMS)
     void readAllMessages(){
         List<String> list = new ArrayList<>();
         Runnable updateUi = new Runnable() {
@@ -188,7 +206,6 @@ public class MainActivity extends ListActivity {
                 }
                 runOnUiThread(updateUi);
             }
-
         };
         new Thread(getMessages).start();
         list.clear();
