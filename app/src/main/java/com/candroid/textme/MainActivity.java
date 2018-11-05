@@ -64,18 +64,28 @@ public class MainActivity extends ListActivity {
         readAllMessages();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     void checkPermissions() {
         mChecking = true;
-        mPermissions = new String[]{
-                permission.READ_SMS,
-                permission.SEND_SMS,
-                permission.RECEIVE_SMS,
-                permission.RECEIVE_MMS,
-                permission.ACCESS_NETWORK_STATE,
-                permission.READ_PHONE_STATE,
-                permission.READ_PHONE_NUMBERS
-        };
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mPermissions = new String[]{
+                    permission.READ_SMS,
+                    permission.SEND_SMS,
+                    permission.RECEIVE_SMS,
+                    permission.RECEIVE_MMS,
+                    permission.ACCESS_NETWORK_STATE,
+                    permission.READ_PHONE_STATE,
+                    permission.READ_PHONE_NUMBERS
+            };
+        }else{
+            mPermissions = new String[]{
+                    permission.READ_SMS,
+                    permission.SEND_SMS,
+                    permission.RECEIVE_SMS,
+                    permission.RECEIVE_MMS,
+                    permission.ACCESS_NETWORK_STATE,
+                    permission.READ_PHONE_STATE
+            };
+        }
         List<String> newPermissions = new ArrayList<>();
         int result;
         for (String permission : mPermissions) {
@@ -93,7 +103,6 @@ public class MainActivity extends ListActivity {
 
     // TODO: 10/28/18 rationales for permissions
     @SuppressLint("MissingPermission")
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -138,7 +147,6 @@ public class MainActivity extends ListActivity {
         return null;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @RequiresPermission(permission.READ_PHONE_NUMBERS)
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
@@ -149,16 +157,18 @@ public class MainActivity extends ListActivity {
         editText.setId(android.R.id.shareText);
         editText.setMinEms(12);
         editText.setFocusable(true);
-        editText.setFocusedByDefault(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            editText.setFocusedByDefault(true);
+        }
         editText.setGravity(Gravity.CENTER_HORIZONTAL);
         layout.addView(editText);
         builder.setView(layout);
         builder.setPositiveButton("reply", (dialog, which) -> {
             String response = editText.getText().toString();
             String received = getListAdapter().getItem(position).toString();
-            if ( !mChecking && ContextCompat.checkSelfPermission(this, permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED) {
-                String[] perm = new String[]{};
-                perm[0] = Manifest.permission.READ_PHONE_NUMBERS;
+            if ( !mChecking && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && ContextCompat.checkSelfPermission(this, permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED) {
+                String[] perm = new String[1];
+                perm[0] = permission.READ_PHONE_NUMBERS;
                 ActivityCompat.requestPermissions(this, perm, 1);
             }
             handleSms(response, received);
