@@ -3,4 +3,8 @@
     <string name="permission_read_sms_rationale">please allow access to your SMS inbox.</string>
     <string name="permission_send_sms_rationale">please allow sending of sms</string>
     <string name="permission_network_state_rationale">please allow access to network state</string>
+    <string name="send">send</string>
+    <string name="sms_reply_field">smsReplyField</string>
+    <string name="sms_reply_field_hint">reply...</string>
+    <string name="reply">reply</string>
 </resources>
