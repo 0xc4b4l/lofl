@@ -1,39 +1,34 @@
 package com.candroid.textme;
 
-import android.Manifest;
 import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.app.ListActivity;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.provider.Telephony;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.annotation.RequiresPermission;
-import android.support.annotation.UiThread;
-import android.support.annotation.WorkerThread;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.telephony.SmsManager;
-import android.telephony.TelephonyManager;
-import android.util.AttributeSet;
+import android.text.format.DateUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MainActivity extends ListActivity {
     public static final String TAG = MainActivity.class.getSimpleName();
@@ -42,17 +37,11 @@ public class MainActivity extends ListActivity {
     private boolean mChecking = false;
     private AlertDialog mDialog;
 
-    @Nullable
-    @Override
-    public View onCreateView(String name, Context context, AttributeSet attrs) {
-        return null;
-    }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onStart() {
         checkPermissions();
-        super.onCreate(savedInstanceState);
+        super.onStart();
     }
 
     @Override
@@ -123,40 +112,26 @@ public class MainActivity extends ListActivity {
     }
 
     @SuppressLint("MissingPermission")
-    @RequiresPermission(permission.READ_PHONE_NUMBERS)
     void handleSms(String response, String received) {
-        TelephonyManager tMgr = (TelephonyManager) getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
-        String fromAddress = null;
-        if (tMgr != null) {
-            try {
-                fromAddress = tMgr.getLine1Number();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            String body = received.substring(received.lastIndexOf("\n"));
-            String toAddress = received.substring(0, 12);
-            SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage(toAddress, "+".concat(fromAddress), body.trim(), null, null);
-            Toast.makeText(this, "message sent", Toast.LENGTH_SHORT ).show();
-            mDialog.dismiss();
-        }
+
+        SmsManager smsManager = SmsManager.getDefault();
+        smsManager.sendTextMessage("+1".concat(received.substring(0, received.indexOf("\n"))), null, response.trim(), null, null);
+        Toast.makeText(this, "message sent", Toast.LENGTH_SHORT ).show();
+        final Runnable runnable = () -> mDialog.dismiss();
+        runOnUiThread(runnable);
     }
 
-    @Override
-    public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
-        return null;
-    }
-
-    @RequiresPermission(permission.READ_PHONE_NUMBERS)
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         mDialog = null;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         RelativeLayout layout = new RelativeLayout(this);
         EditText editText = new EditText(this);
+        editText.setMinEms(24);
+        editText.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
+        editText.setFocusedByDefault(true);
         editText.setId(android.R.id.shareText);
-        editText.setMinEms(12);
-        editText.setFocusable(true);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             editText.setFocusedByDefault(true);
         }
@@ -172,10 +147,6 @@ public class MainActivity extends ListActivity {
                 ActivityCompat.requestPermissions(this, perm, 1);
             }
             handleSms(response, received);
-            editText.endBatchEdit();
-            editText.cancelPendingInputEvents();
-            editText.clearFocus();
-            editText.removeTextChangedListener(null);
             dialog.dismiss();
         });
         mDialog = builder.create();
@@ -185,43 +156,38 @@ public class MainActivity extends ListActivity {
 
     @RequiresPermission(permission.READ_SMS)
     void readAllMessages(){
-        List<String> list = new ArrayList<>();
-        Runnable updateUi = new Runnable() {
-            @Override
-            public void run() {
-                updateUi(list);
-            }
-        };
-        Runnable getMessages = new Runnable() {
-            @Override
-            public void run() {
-
-                StringBuilder builder = new StringBuilder();
-                Cursor cursor = getContentResolver().query(Uri.parse(sUri), null, null, null, null);
-                if (cursor.moveToFirst()) {
-                    String message = "";
-                    do {
-                        builder.append(cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.ADDRESS)));
+        final List<String> list = new ArrayList<>();
+        final Runnable updateUi = () -> updateUi(list);
+        final Runnable getMessages = () -> {
+            final Set<String> replys = new HashSet<>();
+            final StringBuilder builder = new StringBuilder();
+            final Cursor cursor = getContentResolver().query(Uri.parse(sUri), null, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    final String address = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.ADDRESS));
+                    if(replys.add(address)){
+                        if(address.startsWith("+")){
+                            builder.append(address.substring(2));
+                        }else{
+                            builder.append(address);
+                        }
                         builder.append("\n");
-                        builder.append(cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.PERSON)));
-                        builder.append("\n");
-                        builder.append(cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.DATE_SENT)));
+                        final long time = Long.parseLong(String.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.DATE_SENT))));
+                        builder.append(DateUtils.getRelativeTimeSpanString(time));
                         builder.append("\n");
                         builder.append(cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.BODY)));
                         list.add(String.valueOf(builder));
-                        builder.delete(0, builder.length());
-                    } while (cursor.moveToNext());
-                    cursor.close();
+                    }
                     builder.delete(0, builder.length());
-                }
-                runOnUiThread(updateUi);
+                } while (cursor.moveToNext());
+                cursor.close();
             }
+            runOnUiThread(updateUi);
         };
         new Thread(getMessages).start();
         list.clear();
     }
 
-    @UiThread
     void updateUi(List<String> list) {
         ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, list);
         setListAdapter(arrayAdapter);
@@ -229,26 +195,25 @@ public class MainActivity extends ListActivity {
 
     @Override
     protected void onPause() {
+        super.onPause();
         if(mDialog != null){
             mDialog.cancel();
             mDialog = null;
         }
-        super.onPause();
     }
 
     @Override
     protected void onStop() {
-        mPermissions = null;
         super.onStop();
-        getListView().clearFocus();
+        mPermissions = null;
         getListView().removeAllViewsInLayout();
         getListView().setAdapter(null);
-        finishAffinity();
+        finishAndRemoveTask();
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         finishAndRemoveTask();
+        super.onDestroy();
     }
 }
