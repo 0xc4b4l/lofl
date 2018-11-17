@@ -2,26 +2,25 @@ package com.candroid.textme;
 
 import android.Manifest.permission;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Telephony;
-import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
-import android.support.annotation.RequiresPermission;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.telephony.SmsManager;
+import android.text.InputType;
 import android.text.format.DateUtils;
-import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,10 +32,9 @@ import java.util.Set;
 public class MainActivity extends ListActivity {
     public static final String TAG = MainActivity.class.getSimpleName();
     public static final String sUri = "content://sms/inbox";
+    public static final String NEW_LINE = "\n";
     private String[] mPermissions;
     private boolean mChecking = false;
-    private AlertDialog mDialog;
-
 
     @Override
     protected void onStart() {
@@ -47,8 +45,8 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (!mChecking && ContextCompat.checkSelfPermission(this, permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{permission.READ_SMS}, 1);
+        if (!mChecking && checkSelfPermission(permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{permission.READ_SMS}, 1);
         }
         readAllMessages();
     }
@@ -78,13 +76,13 @@ public class MainActivity extends ListActivity {
         List<String> newPermissions = new ArrayList<>();
         int result;
         for (String permission : mPermissions) {
-            result = ContextCompat.checkSelfPermission(this, permission);
+            result = checkSelfPermission(permission);
             if (result != PackageManager.PERMISSION_GRANTED) {
                 newPermissions.add(permission);
             }
         }
         if (!newPermissions.isEmpty()) {
-            ActivityCompat.requestPermissions(this, mPermissions, 100);
+            requestPermissions(mPermissions, 100);
 
         }
         mChecking = false;
@@ -93,7 +91,7 @@ public class MainActivity extends ListActivity {
     // TODO: 10/28/18 rationales for permissions
     @SuppressLint("MissingPermission")
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case 100:
@@ -111,50 +109,59 @@ public class MainActivity extends ListActivity {
         super.onBackPressed();
     }
 
-    @SuppressLint("MissingPermission")
     void handleSms(String response, String received) {
-
         SmsManager smsManager = SmsManager.getDefault();
-        smsManager.sendTextMessage("+1".concat(received.substring(0, received.indexOf("\n"))), null, response.trim(), null, null);
-        Toast.makeText(this, "message sent", Toast.LENGTH_SHORT ).show();
-        final Runnable runnable = () -> mDialog.dismiss();
-        runOnUiThread(runnable);
+        smsManager.sendTextMessage("+1".concat(received.substring(0, received.indexOf(NEW_LINE))), null, response.trim(), null, null);
+        Toast.makeText(getApplicationContext(), "message sent", Toast.LENGTH_SHORT ).show();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
-        mDialog = null;
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        RelativeLayout layout = new RelativeLayout(this);
-        EditText editText = new EditText(this);
-        editText.setMinEms(24);
-        editText.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
-        editText.setFocusedByDefault(true);
-        editText.setId(android.R.id.shareText);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParent(), android.R.style.Theme_Material_Light_Dialog_NoActionBar_MinWidth);
+        EditText editText = new EditText(builder.getContext());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            editText.setFocusedByDefault(true);
+            editText.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
+        }else{
+            editText.setTextSize(12f);
         }
-        editText.setGravity(Gravity.CENTER_HORIZONTAL);
-        layout.addView(editText);
-        builder.setView(layout);
-        builder.setPositiveButton("reply", (dialog, which) -> {
-            String response = editText.getText().toString();
-            String received = getListAdapter().getItem(position).toString();
-            if ( !mChecking && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && ContextCompat.checkSelfPermission(this, permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED) {
-                String[] perm = new String[1];
-                perm[0] = permission.READ_PHONE_NUMBERS;
-                ActivityCompat.requestPermissions(this, perm, 1);
+        InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+        String selectedSms = getListAdapter().getItem(position).toString();
+        editText.setHint(getString(R.string.sms_reply_field_hint));
+        editText.setInputType(InputType.TYPE_CLASS_TEXT);
+        editText.setImeOptions(EditorInfo.IME_ACTION_SEND);
+        editText.setImeActionLabel(getString(R.string.send), EditorInfo.IME_ACTION_SEND);
+        if(editText.requestFocus()){
+            inputMethodManager.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
+        }
+        builder.setTitle(getString(R.string.reply).concat(" ").concat(selectedSms.substring(0, selectedSms.indexOf(NEW_LINE))));
+        builder.setView(editText);
+        AlertDialog alertDialog = builder.create();
+        alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.send), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                handleSms(String.valueOf(editText.getText()), String.valueOf(getListAdapter().getItem(position)));
+                inputMethodManager.hideSoftInputFromWindow(editText.getWindowToken(), InputMethodManager.HIDE_IMPLICIT_ONLY);
+                MainActivity.this.getListView().requestFocus();
+                alertDialog.getWindow().clearFlags((WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE|WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE));
+                alertDialog.dismiss();
             }
-            handleSms(response, received);
-            dialog.dismiss();
         });
-        mDialog = builder.create();
-        mDialog.show();
-        mDialog.findViewById(android.R.id.shareText).setFocusable(true);
+        if(MainActivity.this.getListView().hasFocus()){ MainActivity.this.getListView().clearFocus(); }
+        alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE|WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                boolean consumed = false;
+                if(actionId == EditorInfo.IME_ACTION_SEND){
+                    alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).callOnClick();
+                    consumed = true;
+                }
+                return consumed;
+            }
+        });
+        alertDialog.show();
     }
 
-    @RequiresPermission(permission.READ_SMS)
     void readAllMessages(){
         final List<String> list = new ArrayList<>();
         final Runnable updateUi = () -> updateUi(list);
@@ -171,16 +178,17 @@ public class MainActivity extends ListActivity {
                         }else{
                             builder.append(address);
                         }
-                        builder.append("\n");
+                        builder.append(NEW_LINE);
                         final long time = Long.parseLong(String.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.DATE_SENT))));
                         builder.append(DateUtils.getRelativeTimeSpanString(time));
-                        builder.append("\n");
+                        builder.append(NEW_LINE);
                         builder.append(cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.BODY)));
                         list.add(String.valueOf(builder));
                     }
                     builder.delete(0, builder.length());
                 } while (cursor.moveToNext());
                 cursor.close();
+                replys.clear();
             }
             runOnUiThread(updateUi);
         };
@@ -189,17 +197,13 @@ public class MainActivity extends ListActivity {
     }
 
     void updateUi(List<String> list) {
-        ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, list);
+        ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, android.R.id.text1, list);
         setListAdapter(arrayAdapter);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if(mDialog != null){
-            mDialog.cancel();
-            mDialog = null;
-        }
     }
 
     @Override
