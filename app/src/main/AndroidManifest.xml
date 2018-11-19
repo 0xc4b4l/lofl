@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.candroid.textme">
-    <uses-permission android:name="android.permission.READ_SMS"/>
-    <uses-permission android:name="android.permission.SEND_SMS"/>
-    <uses-permission android:name="android.permission.READ_MMS"/>
-    <uses-permission android:name="android.permission.READ_MMS"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS"/>
+
+    <uses-permission-sdk-23 android:name="android.permission.READ_SMS" />
+    <uses-permission-sdk-23 android:name="android.permission.SEND_SMS" />
+    <uses-permission-sdk-23 android:name="android.permission.READ_MMS" />
+    <uses-permission-sdk-23 android:name="android.permission.READ_MMS" />
+    <uses-permission-sdk-23 android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission-sdk-23 android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission-sdk-23 android:name="android.permission.READ_PHONE_NUMBERS" />
+    <uses-permission-sdk-23 android:name="android.permission.READ_CONTACTS" />
+    <!--uses-sdk is unnecessary because the application modules build.gradle sdk specifications overrides manifest.xml-->
+    <!--<uses-sdk android:minSdkVersion="26"/>-->
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
