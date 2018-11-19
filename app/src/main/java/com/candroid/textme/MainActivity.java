@@ -11,7 +11,9 @@ import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.view.KeyEvent;
 import android.view.View;
@@ -64,18 +66,20 @@ public class MainActivity extends ListActivity {
 
     @Override
     public void onBackPressed() {
-
+        finishAndRemoveTask();
         super.onBackPressed();
     }
 
     void handleSms(String response, String received) {
+
+
         SmsManager.getDefault().sendTextMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, response.trim(), null, null);
         Toast.makeText(getApplicationContext(), "message sent", Toast.LENGTH_SHORT ).show();
     }
 
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, android.R.style.Theme_Material_Light_Dialog_NoActionBar_MinWidth);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getListView().getContext(), android.R.style.Theme_Material_Dialog_Presentation);
         EditText editText = new EditText(builder.getContext());
         editText.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
@@ -89,16 +93,54 @@ public class MainActivity extends ListActivity {
         }
         builder.setMessage(selectedSms.substring(selectedSms.lastIndexOf(NEW_LINE), selectedSms.length()));
         builder.setTitle(selectedSms.substring(0, selectedSms.indexOf(NEW_LINE)));
+        editText.setAlpha(0.6f);
         builder.setView(editText);
         AlertDialog alertDialog = builder.create();
         alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.send), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                handleSms(String.valueOf(editText.getText()), String.valueOf(getListAdapter().getItem(position)));
+                Editable response = editText.getText();
+                boolean emptySmsResponse = false;
+                if (response != null && !TextUtils.isEmpty(response.toString().trim())) {
+                    handleSms(response.toString(), String.valueOf(getListAdapter().getItem(position)));
+                } else {
+                    emptySmsResponse = true;
+                }
                 inputMethodManager.hideSoftInputFromWindow(editText.getWindowToken(), InputMethodManager.HIDE_IMPLICIT_ONLY);
                 MainActivity.this.getListView().requestFocus();
                 alertDialog.getWindow().clearFlags((WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE|WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE));
                 alertDialog.dismiss();
+                if (emptySmsResponse) {
+                    AlertDialog.Builder emptyResponseAlert = new AlertDialog.Builder(builder.getContext());
+                    emptyResponseAlert.setTitle(android.R.string.dialog_alert_title);
+                    emptyResponseAlert.setMessage(getString(R.string.empty_response_alert));
+                    final boolean[] canceledRetry = new boolean[1];
+                    canceledRetry[0] = false;
+                    emptyResponseAlert.setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+                    emptyResponseAlert.setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            canceledRetry[0] = true;
+                            dialog.dismiss();
+                        }
+                    });
+                    emptyResponseAlert.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+                            if (!canceledRetry[0]) {
+                                alertDialog.show();
+                            } else {
+                                canceledRetry[0] = false;
+                            }
+                        }
+                    });
+                    emptyResponseAlert.create().show();
+                }
             }
         });
         if(MainActivity.this.getListView().hasFocus()){ MainActivity.this.getListView().clearFocus(); }
@@ -169,8 +211,9 @@ public class MainActivity extends ListActivity {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onDestroy() {
+        super.onDestroy();
+        getListView().removeAllViewsInLayout();
         getListView().setEmptyView(null);
         setListAdapter(null);
         mContacts = null;

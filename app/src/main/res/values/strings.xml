@@ -8,4 +8,5 @@
     <string name="sms_reply_field_hint">reply...</string>
     <string name="reply">reply</string>
     <string name="unknown">unknown</string>
+    <string name="empty_response_alert">the response is empty. Please enter something before sending.</string>
 </resources>
