@@ -1,10 +1,16 @@
 package com.candroid.textme;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -39,8 +45,22 @@ public class MainActivity extends ListActivity {
     public static final String NEW_LINE = "\n";
     private static final int SMS_PERMISSIONS_REQ_CODE = 101;
     private static final int READ_CONTACTS_PERMISSION_REQ_CODE = 201;
+    public static final int PHONE_STATE_PERMISSION_REQ_CODE = 301;
+    public static final String SENT_SMS_FLAG = "SENT_SMS";
+    public static final String DELIVER_SMS_FLAG = "DELIVER_SMS";
     private boolean mChecking = false;
     private Map<String, String> mContacts;
+    private BroadcastReceiver mSentReceiver;
+    private PendingIntent mSentIntent;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        initializeBroadcastReceivers();
+        registerReceiver(mSentReceiver, new IntentFilter(SENT_SMS_FLAG));
+        mSentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
+    }
+
 
     @Override
     protected void onResume() {
@@ -59,10 +79,14 @@ public class MainActivity extends ListActivity {
             case READ_CONTACTS_PERMISSION_REQ_CODE:
                 readAllMessages();
                 break;
+            case PHONE_STATE_PERMISSION_REQ_CODE:
+                readAllMessages();
+                break;
             default:
                 break;
         }
     }
+
 
     @Override
     public void onBackPressed() {
@@ -71,10 +95,7 @@ public class MainActivity extends ListActivity {
     }
 
     void handleSms(String response, String received) {
-
-
-        SmsManager.getDefault().sendTextMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, response.trim(), null, null);
-        Toast.makeText(getApplicationContext(), "message sent", Toast.LENGTH_SHORT ).show();
+        SmsManager.getDefault().sendTextMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, response.trim(), mSentIntent, null);
     }
 
     @Override
@@ -159,15 +180,15 @@ public class MainActivity extends ListActivity {
         alertDialog.show();
     }
 
-    void readAllMessages() {
+    Object readAllMessages() {
         if (!(checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED)) {
             requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS}, SMS_PERMISSIONS_REQ_CODE);
-            return;
-        } else {
+            return null;
+        }
             if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE}, 201);
-                return;
-            } else {
+                return null;
+            }
                 mContacts = new HashMap<String, String>(50);
                 final List<String> list = new ArrayList<>();
                 final Runnable updateUi = () -> updateUi(list);
@@ -201,8 +222,7 @@ public class MainActivity extends ListActivity {
                 };
                 new Thread(getMessages).start();
                 list.clear();
-            }
-        }
+        return null;
     }
 
     void updateUi(List<String> list) {
@@ -210,12 +230,15 @@ public class MainActivity extends ListActivity {
         setListAdapter(arrayAdapter);
     }
 
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         getListView().removeAllViewsInLayout();
         getListView().setEmptyView(null);
         setListAdapter(null);
+        mSentIntent = null;
+        mSentReceiver = null;
         mContacts = null;
         finishAfterTransition();
     }
@@ -235,5 +258,22 @@ public class MainActivity extends ListActivity {
         }
         cursor.close();
         return String.valueOf(name);
+    }
+
+    private void initializeBroadcastReceivers() {
+        mSentReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent in) {
+                switch (getResultCode()) {
+                    case Activity.RESULT_OK:
+                        //sent SMS message successfully;
+                        Toast.makeText(context, "sms sent", Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                        Toast.makeText(context, "sms failed", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+        };
     }
 }
