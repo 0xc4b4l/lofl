@@ -14,6 +14,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
@@ -53,18 +54,13 @@ public class MainActivity extends ListActivity {
     private PendingIntent mSentIntent, mDeliveredIntent;
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         initializeBroadcastReceivers();
         registerReceiver(mSentReceiver, new IntentFilter(SENT_SMS_FLAG));
         registerReceiver(mDeliveredReceiver, new IntentFilter(DELIVER_SMS_FLAG));
         mSentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
         mDeliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), 0);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
         readAllMessages();
     }
 
@@ -83,7 +79,6 @@ public class MainActivity extends ListActivity {
                 break;
         }
     }
-
 
     @Override
     public void onBackPressed() {
@@ -177,7 +172,7 @@ public class MainActivity extends ListActivity {
         alertDialog.show();
     }
 
-    Object readAllMessages() {
+    private Object readAllMessages() {
         if (!(checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED)) {
             requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS}, SMS_PERMISSIONS_REQ_CODE);
             return null;
@@ -268,10 +263,10 @@ public class MainActivity extends ListActivity {
                 switch (getResultCode()) {
                     case Activity.RESULT_OK:
                         //sent SMS message successfully;
-                        Toast.makeText(context, "sms sent", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context.getApplicationContext(), "sms sent", Toast.LENGTH_SHORT).show();
                         break;
                     default:
-                        Toast.makeText(context, "sms failed", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context.getApplicationContext(), "sms failed", Toast.LENGTH_SHORT).show();
                         break;
                 }
             }
@@ -279,7 +274,7 @@ public class MainActivity extends ListActivity {
         mDeliveredReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent in) {
-                Toast.makeText(context, "sms delivered" + getResultCode(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context.getApplicationContext(), "sms delivered" + getResultCode(), Toast.LENGTH_SHORT).show();
             }
         };
     }
