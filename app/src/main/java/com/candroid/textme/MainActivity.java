@@ -45,22 +45,22 @@ public class MainActivity extends ListActivity {
     public static final String NEW_LINE = "\n";
     private static final int SMS_PERMISSIONS_REQ_CODE = 101;
     private static final int READ_CONTACTS_PERMISSION_REQ_CODE = 201;
-    public static final int PHONE_STATE_PERMISSION_REQ_CODE = 301;
     public static final String SENT_SMS_FLAG = "SENT_SMS";
     public static final String DELIVER_SMS_FLAG = "DELIVER_SMS";
     private boolean mChecking = false;
     private Map<String, String> mContacts;
-    private BroadcastReceiver mSentReceiver;
-    private PendingIntent mSentIntent;
+    private BroadcastReceiver mSentReceiver, mDeliveredReceiver;
+    private PendingIntent mSentIntent, mDeliveredIntent;
 
     @Override
     protected void onStart() {
         super.onStart();
         initializeBroadcastReceivers();
         registerReceiver(mSentReceiver, new IntentFilter(SENT_SMS_FLAG));
+        registerReceiver(mDeliveredReceiver, new IntentFilter(DELIVER_SMS_FLAG));
         mSentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
+        mDeliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), 0);
     }
-
 
     @Override
     protected void onResume() {
@@ -79,9 +79,6 @@ public class MainActivity extends ListActivity {
             case READ_CONTACTS_PERMISSION_REQ_CODE:
                 readAllMessages();
                 break;
-            case PHONE_STATE_PERMISSION_REQ_CODE:
-                readAllMessages();
-                break;
             default:
                 break;
         }
@@ -95,7 +92,7 @@ public class MainActivity extends ListActivity {
     }
 
     void handleSms(String response, String received) {
-        SmsManager.getDefault().sendTextMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, response.trim(), mSentIntent, null);
+        SmsManager.getDefault().sendTextMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, response.trim(), mSentIntent, mDeliveredIntent);
     }
 
     @Override
@@ -237,8 +234,12 @@ public class MainActivity extends ListActivity {
         getListView().removeAllViewsInLayout();
         getListView().setEmptyView(null);
         setListAdapter(null);
+        unregisterReceiver(mSentReceiver);
+        unregisterReceiver(mDeliveredReceiver);
         mSentIntent = null;
+        mDeliveredIntent = null;
         mSentReceiver = null;
+        mDeliveredReceiver = null;
         mContacts = null;
         finishAfterTransition();
     }
@@ -273,6 +274,12 @@ public class MainActivity extends ListActivity {
                         Toast.makeText(context, "sms failed", Toast.LENGTH_SHORT).show();
                         break;
                 }
+            }
+        };
+        mDeliveredReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent in) {
+                Toast.makeText(context, "sms delivered" + getResultCode(), Toast.LENGTH_SHORT).show();
             }
         };
     }
