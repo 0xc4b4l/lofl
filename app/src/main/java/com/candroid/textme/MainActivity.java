@@ -17,7 +17,6 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
@@ -44,18 +43,107 @@ import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends ListActivity {
-    public static final String TAG = MainActivity.class.getSimpleName();
-    public static final String NEW_LINE = "\n";
+    protected static final String NEW_LINE = "\n";
+    private static final String TAG = MainActivity.class.getSimpleName();
     private static final int SMS_PERMISSIONS_REQ_CODE = 101;
     private static final int READ_CONTACTS_PERMISSION_REQ_CODE = 201;
-    public static final String SENT_SMS_FLAG = "SMS_SENT";
-    public static final String DELIVER_SMS_FLAG = "SMS_DELIVERED";
+    private static final String SENT_SMS_FLAG = "SMS_SENT";
+    private static final String DELIVER_SMS_FLAG = "SMS_DELIVERED";
     private Map<String, String> mContacts;
     private BroadcastReceiver mSentReceiver, mDeliveredReceiver, mReceivedReceiver;
-    private PendingIntent mSentIntent, mDeliveredIntent;
 
-    void handleSms(String response, String received) {
-        SmsManager.getDefault().sendTextMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, response.trim(), mSentIntent, mDeliveredIntent);
+    /*remove country code from telephone address - example:+1*/
+    private static String removeCountryCode(String address) {
+        if (address.length() > 11 && address.contains("+") && address.indexOf("+") == 0) {
+            if (address.length() >= 12) {
+                address = address.substring(address.indexOf("+") + 2);
+            } else {
+                address = address.substring(address.indexOf("+") + 1);
+            }
+        }
+        return address.trim();
+    }
+
+    /*returns sms formatted string representation of received sms message*/
+    private static String buildMessage(String fullName, String body, long time) {
+        CharSequence timeSpan = DateUtils.getRelativeTimeSpanString(time);
+        StringBuilder builder = new StringBuilder();
+        fullName = removeCountryCode(fullName);
+        builder.append(fullName);
+        builder.append(NEW_LINE);
+        builder.append(timeSpan);
+        builder.append(NEW_LINE);
+        builder.append(body);
+        return String.valueOf(builder);
+    }
+
+    /*create notifcation for received sms message*/
+    protected static void notify(Context context, Intent intent, String address, long time, String body) {
+        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+        NotificationChannel notificationChannel = new NotificationChannel("this", "this", importance);
+        notificationChannel.setDescription("this");
+        Notification.MessagingStyle.Message msg =
+                new Notification.MessagingStyle.Message(String.valueOf(body), time, String.valueOf(address));
+        Intent clickIntent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, clickIntent, 0);
+        Notification notification = new Notification.Builder(context, "this")
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setStyle(new Notification.MessagingStyle("this")
+                        .addMessage(msg)).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_SECRET).build();
+        if (notificationManager != null) {
+            notificationManager.createNotificationChannel(notificationChannel);
+            notificationManager.notify(SmsReceivedReceiver.sId++, notification);
+        }
+    }
+
+    /*initialize everything that is deinitialized in onstop*/
+    @Override
+    protected void onStart() {
+        super.onStart();
+        initializeBroadcastReceivers();
+        readAllMessages();
+    }
+
+    /*initialize everything that is deinitialized in onPause*/
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mReceivedReceiver == null) {
+            initializeBroadcastReceivers();
+            readAllMessages();
+        }
+    }
+
+    /*deinitialize everything that is initialized in onResume*/
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(mReceivedReceiver);
+        unregisterReceiver(mSentReceiver);
+        unregisterReceiver(mDeliveredReceiver);
+        mReceivedReceiver = null;
+        mSentReceiver = null;
+        mSentReceiver = null;
+        mDeliveredReceiver = null;
+    }
+
+    /*deinitialize everything that is initialized in onStart*/
+    @Override
+    protected void onStop() {
+        super.onStop();
+        getListView().removeAllViewsInLayout();
+        getListView().setEmptyView(null);
+        setListAdapter(null);
+        mContacts = null;
+    }
+
+    /*deinitialize everything that is initialized in onCreate*/
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        finishAndRemoveTask();
     }
 
     @Override
@@ -83,7 +171,7 @@ public class MainActivity extends ListActivity {
                 Editable response = editText.getText();
                 boolean emptySmsResponse = false;
                 if (response != null && !TextUtils.isEmpty(response.toString().trim())) {
-                    handleSms(response.toString(), String.valueOf(getListAdapter().getItem(position)));
+                    sendSms(response.toString(), String.valueOf(getListAdapter().getItem(position)));
                 } else {
                     emptySmsResponse = true;
                 }
@@ -140,17 +228,6 @@ public class MainActivity extends ListActivity {
         alertDialog.show();
     }
 
-    private static String removeCountryCode(String address) {
-        if (address.length() > 11 && address.contains("+") && address.indexOf("+") == 0) {
-            if (address.length() >= 12) {
-                address = address.substring(address.indexOf("+") + 2);
-            } else {
-                address = address.substring(address.indexOf("+") + 1);
-            }
-        }
-        return address.trim();
-    }
-
     /*reverse lookup contact name using phone number*/
     protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
         StringBuilder name = new StringBuilder();
@@ -181,6 +258,51 @@ public class MainActivity extends ListActivity {
         }
     }
 
+    /*create broadcast receivers for an sms messages statuses.
+     * sent, received, and delivered*/
+    private void initializeBroadcastReceivers() {
+        mSentReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent in) {
+                switch (getResultCode()) {
+                    case Activity.RESULT_OK:
+                        //sent SMS message successfully;
+                        Toast.makeText(getBaseContext(), "sms sent", Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                        Toast.makeText(getBaseContext(), "sms failed", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+        };
+        mReceivedReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                readAllMessages();
+                Toast.makeText(context, "sms received", Toast.LENGTH_SHORT).show();
+            }
+        };
+        mDeliveredReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent in) {
+                switch (getResultCode()) {
+                    case Activity.RESULT_OK:
+                        Toast.makeText(getBaseContext(), "sms delivered", Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                        Toast.makeText(getBaseContext(), "sms failed to deliver", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+        };
+        IntentFilter filter = new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION);
+        filter.setPriority(999);
+        registerReceiver(mReceivedReceiver, filter);
+        registerReceiver(mSentReceiver, new IntentFilter(SENT_SMS_FLAG));
+        registerReceiver(mDeliveredReceiver, new IntentFilter(DELIVER_SMS_FLAG));
+    }
+
+    /*parse sms messages in devices default sms inbox location*/
     private Object readAllMessages() {
         if ((checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED)) {
             requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS}, SMS_PERMISSIONS_REQ_CODE);
@@ -224,114 +346,15 @@ public class MainActivity extends ListActivity {
         return null;
     }
 
-    void updateUi(List<String> list) {
+    private void updateUi(List<String> list) {
         ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, android.R.id.text1, list);
         setListAdapter(arrayAdapter);
-
-
     }
 
-    /*returns sms formatted string representation of received sms message*/
-    protected static String buildMessage(String fullName, String body, long time) {
-        CharSequence timeSpan = DateUtils.getRelativeTimeSpanString(time);
-        StringBuilder builder = new StringBuilder();
-        fullName = removeCountryCode(fullName);
-        builder.append(fullName);
-        builder.append(NEW_LINE);
-        builder.append(timeSpan);
-        builder.append(NEW_LINE);
-        builder.append(body);
-        return String.valueOf(builder);
-    }
-
-    protected static void notify(Context context, Intent intent, String address, long time, String body) {
-        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-        int importance = NotificationManager.IMPORTANCE_DEFAULT;
-        NotificationChannel notificationChannel = new NotificationChannel("this", "this", importance);
-        notificationChannel.setDescription("this");
-        Notification.MessagingStyle.Message msg =
-                new Notification.MessagingStyle.Message(String.valueOf(body), time, String.valueOf(address));
-        Intent clickIntent = new Intent(context, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, clickIntent, 0);
-        Notification notification = new Notification.Builder(context, "this")
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setStyle(new Notification.MessagingStyle("this")
-                        .addMessage(msg)).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_SECRET).build();
-        if (notificationManager != null) {
-            notificationManager.createNotificationChannel(notificationChannel);
-            notificationManager.notify(SmsReceivedReceiver.sId++, notification);
-        }
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        initializeBroadcastReceivers();
-        registerReceiver(mSentReceiver, new IntentFilter(SENT_SMS_FLAG));
-        registerReceiver(mDeliveredReceiver, new IntentFilter(DELIVER_SMS_FLAG));
-        mSentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), PendingIntent.FLAG_UPDATE_CURRENT);
-        mDeliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), PendingIntent.FLAG_UPDATE_CURRENT);
-        readAllMessages();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        getListView().removeAllViewsInLayout();
-        getListView().setEmptyView(null);
-        setListAdapter(null);
-        unregisterReceiver(mReceivedReceiver);
-        unregisterReceiver(mSentReceiver);
-        unregisterReceiver(mDeliveredReceiver);
-        mReceivedReceiver = null;
-        mSentReceiver = null;
-        mSentIntent = null;
-        mDeliveredIntent = null;
-        mSentReceiver = null;
-        mDeliveredReceiver = null;
-        mContacts = null;
-        finishAndRemoveTask();
-    }
-
-    private void initializeBroadcastReceivers() {
-        mSentReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent in) {
-                switch (getResultCode()) {
-                    case Activity.RESULT_OK:
-                        //sent SMS message successfully;
-                        Toast.makeText(getBaseContext(), "sms sent", Toast.LENGTH_SHORT).show();
-                        break;
-                    default:
-                        Toast.makeText(getBaseContext(), "sms failed", Toast.LENGTH_SHORT).show();
-                        break;
-                }
-            }
-        };
-
-        mReceivedReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                readAllMessages();
-                Toast.makeText(context, "sms received", Toast.LENGTH_SHORT).show();
-            }
-        };
-        IntentFilter filter = new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION);
-        filter.setPriority(1000);
-        registerReceiver(mReceivedReceiver, filter);
-        mDeliveredReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent in) {
-                switch (getResultCode()) {
-                    case Activity.RESULT_OK:
-                        Toast.makeText(getBaseContext(), "sms delivered", Toast.LENGTH_SHORT).show();
-                        break;
-                    default:
-                        Toast.makeText(getBaseContext(), "sms failed to deliver", Toast.LENGTH_SHORT).show();
-                        break;
-                }
-            }
-        };
+    /*send sms message as type String*/
+    private void sendSms(String response, String received) {
+        PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
+        PendingIntent deliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), 0);
+        SmsManager.getDefault().sendTextMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, response.trim(), sentIntent, deliveredIntent);
     }
 }
