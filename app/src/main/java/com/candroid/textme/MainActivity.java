@@ -4,6 +4,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -45,43 +48,13 @@ public class MainActivity extends ListActivity {
     public static final String NEW_LINE = "\n";
     private static final int SMS_PERMISSIONS_REQ_CODE = 101;
     private static final int READ_CONTACTS_PERMISSION_REQ_CODE = 201;
-    public static final String SENT_SMS_FLAG = "SENT_SMS";
-    public static final String DELIVER_SMS_FLAG = "DELIVER_SMS";
-    public static final String RECEIVED_SMS_FLAG = "android.provider.Telephony.SMS_RECEIVED";
-    private static final int RECEIVE_SMS_PERMISSION_REQ_CODE = 301;
+    public static final String SENT_SMS_FLAG = "SMS_SENT";
+    public static final String DELIVER_SMS_FLAG = "SMS_DELIVERED";
     private Map<String, String> mContacts;
     private BroadcastReceiver mSentReceiver, mDeliveredReceiver;
     private SmsReceivedReceiver mReceivedReceiver;
     private PendingIntent mSentIntent, mDeliveredIntent;
     private Listener mListener;
-    private static int sCount;
-
-    /*reverse lookup contact name using phone number*/
-    protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
-        StringBuilder name = new StringBuilder();
-        Uri lookupUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(address));
-        Cursor cursor = contentResolver.query(lookupUri, new String[]{ContactsContract.Data.DISPLAY_NAME_PRIMARY, ContactsContract.Data.PHOTO_THUMBNAIL_URI}, null, null, null);
-        if (cursor != null && cursor.moveToFirst()) {
-            name.append(cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Data.DISPLAY_NAME_PRIMARY)));
-        } else {
-            name.append(address.substring(address.indexOf('+') + 2, address.length()));
-        }
-        cursor.close();
-        return String.valueOf(name);
-    }
-
-    /*returns sms formatted string representation of received sms message*/
-    protected static String buildMessage(String fullName, String body, long time) {
-        CharSequence timeSpan = DateUtils.getRelativeTimeSpanString(time);
-        StringBuilder builder = new StringBuilder();
-        fullName = removeCountryCode(fullName);
-        builder.append(fullName);
-        builder.append(NEW_LINE);
-        builder.append(timeSpan);
-        builder.append(NEW_LINE);
-        builder.append(body);
-        return String.valueOf(builder);
-    }
 
     void handleSms(String response, String received) {
         SmsManager.getDefault().sendTextMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, response.trim(), mSentIntent, mDeliveredIntent);
@@ -180,24 +153,18 @@ public class MainActivity extends ListActivity {
         return address.trim();
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mListener = new Listener() {
-            @Override
-            public void onTextReceived(String text) {
-                readAllMessages();
-            }
-        };
-        initializeBroadcastReceivers();
-        registerReceiver(mSentReceiver, new IntentFilter(SENT_SMS_FLAG));
-        registerReceiver(mDeliveredReceiver, new IntentFilter(DELIVER_SMS_FLAG));
-        IntentFilter filter = new IntentFilter(RECEIVED_SMS_FLAG);
-        filter.setPriority(999);
-        registerReceiver(mReceivedReceiver, filter);
-        mSentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
-        mDeliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), 0);
-        readAllMessages();
+    /*reverse lookup contact name using phone number*/
+    protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
+        StringBuilder name = new StringBuilder();
+        Uri lookupUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(address));
+        Cursor cursor = contentResolver.query(lookupUri, new String[]{ContactsContract.Data.DISPLAY_NAME_PRIMARY, ContactsContract.Data.PHOTO_THUMBNAIL_URI}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            name.append(cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Data.DISPLAY_NAME_PRIMARY)));
+        } else {
+            name.append(address.substring(address.indexOf('+') + 2, address.length()));
+        }
+        cursor.close();
+        return String.valueOf(name);
     }
 
     // TODO: 10/28/18 rationales for permissions
@@ -211,8 +178,6 @@ public class MainActivity extends ListActivity {
             case READ_CONTACTS_PERMISSION_REQ_CODE:
                 readAllMessages();
                 break;
-            case RECEIVE_SMS_PERMISSION_REQ_CODE:
-                readAllMessages();
             default:
                 break;
         }
@@ -268,6 +233,56 @@ public class MainActivity extends ListActivity {
 
     }
 
+    /*returns sms formatted string representation of received sms message*/
+    protected static String buildMessage(String fullName, String body, long time) {
+        CharSequence timeSpan = DateUtils.getRelativeTimeSpanString(time);
+        StringBuilder builder = new StringBuilder();
+        fullName = removeCountryCode(fullName);
+        builder.append(fullName);
+        builder.append(NEW_LINE);
+        builder.append(timeSpan);
+        builder.append(NEW_LINE);
+        builder.append(body);
+        return String.valueOf(builder);
+    }
+
+    protected static void notify(Context context, Intent intent, String address, long time, String body) {
+        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+        NotificationChannel notificationChannel = new NotificationChannel("this", "this", importance);
+        notificationChannel.setDescription("this");
+        Notification.MessagingStyle.Message msg =
+                new Notification.MessagingStyle.Message(String.valueOf(body), time, String.valueOf(address));
+        Intent clickIntent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, clickIntent, 0);
+        Notification notification = new Notification.Builder(context, "this")
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setStyle(new Notification.MessagingStyle("this")
+                        .addMessage(msg)).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_SECRET).build();
+        if (notificationManager != null) {
+            notificationManager.createNotificationChannel(notificationChannel);
+            notificationManager.notify(SmsReceivedReceiver.sId++, notification);
+        }
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mListener = new Listener() {
+            @Override
+            public void onTextReceived(String text) {
+                readAllMessages();
+            }
+        };
+        initializeBroadcastReceivers();
+        registerReceiver(mSentReceiver, new IntentFilter(SENT_SMS_FLAG));
+        registerReceiver(mDeliveredReceiver, new IntentFilter(DELIVER_SMS_FLAG));
+        mSentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), PendingIntent.FLAG_UPDATE_CURRENT);
+        mDeliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), PendingIntent.FLAG_UPDATE_CURRENT);
+        readAllMessages();
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -276,7 +291,7 @@ public class MainActivity extends ListActivity {
         setListAdapter(null);
         mListener = null;
         mReceivedReceiver.setListener(mListener);
-        unregisterReceiver(mReceivedReceiver);
+        mReceivedReceiver = null;
         unregisterReceiver(mSentReceiver);
         unregisterReceiver(mDeliveredReceiver);
         mSentIntent = null;
@@ -294,10 +309,10 @@ public class MainActivity extends ListActivity {
                 switch (getResultCode()) {
                     case Activity.RESULT_OK:
                         //sent SMS message successfully;
-                        Toast.makeText(context.getApplicationContext(), "sms sent", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), "sms sent", Toast.LENGTH_SHORT).show();
                         break;
                     default:
-                        Toast.makeText(context.getApplicationContext(), "sms failed", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), "sms failed", Toast.LENGTH_SHORT).show();
                         break;
                 }
             }
@@ -308,7 +323,14 @@ public class MainActivity extends ListActivity {
         mDeliveredReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent in) {
-                Toast.makeText(context.getApplicationContext(), "sms delivered" + getResultCode(), Toast.LENGTH_SHORT).show();
+                switch (getResultCode()) {
+                    case Activity.RESULT_OK:
+                        Toast.makeText(getBaseContext(), "sms delivered", Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                        Toast.makeText(getBaseContext(), "sms failed to deliver", Toast.LENGTH_SHORT).show();
+                        break;
+                }
             }
         };
     }
