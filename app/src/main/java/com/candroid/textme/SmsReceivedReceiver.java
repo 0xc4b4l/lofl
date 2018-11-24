@@ -7,12 +7,8 @@ import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.text.format.DateUtils;
 
-interface Listener {
-    void onTextReceived(String text);
-}
 
 public class SmsReceivedReceiver extends BroadcastReceiver {
-    private Listener listener;
     protected static int sId;
 
     @Override
@@ -22,12 +18,5 @@ public class SmsReceivedReceiver extends BroadcastReceiver {
         long time = smsMessage[0].getTimestampMillis();
         String body = smsMessage[0].getMessageBody();
         MainActivity.notify(context, intent, address, time, String.valueOf(DateUtils.getRelativeTimeSpanString(time)).concat(MainActivity.NEW_LINE).concat(body));
-        if (listener != null) {
-            listener.onTextReceived(MainActivity.buildMessage(address, body, time));
-        }
-    }
-
-    protected void setListener(Listener listener) {
-        this.listener = listener;
     }
 }
