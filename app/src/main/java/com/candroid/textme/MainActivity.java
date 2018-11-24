@@ -51,10 +51,8 @@ public class MainActivity extends ListActivity {
     public static final String SENT_SMS_FLAG = "SMS_SENT";
     public static final String DELIVER_SMS_FLAG = "SMS_DELIVERED";
     private Map<String, String> mContacts;
-    private BroadcastReceiver mSentReceiver, mDeliveredReceiver;
-    private SmsReceivedReceiver mReceivedReceiver;
+    private BroadcastReceiver mSentReceiver, mDeliveredReceiver, mReceivedReceiver;
     private PendingIntent mSentIntent, mDeliveredIntent;
-    private Listener mListener;
 
     void handleSms(String response, String received) {
         SmsManager.getDefault().sendTextMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, response.trim(), mSentIntent, mDeliveredIntent);
@@ -269,12 +267,6 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mListener = new Listener() {
-            @Override
-            public void onTextReceived(String text) {
-                readAllMessages();
-            }
-        };
         initializeBroadcastReceivers();
         registerReceiver(mSentReceiver, new IntentFilter(SENT_SMS_FLAG));
         registerReceiver(mDeliveredReceiver, new IntentFilter(DELIVER_SMS_FLAG));
@@ -289,11 +281,11 @@ public class MainActivity extends ListActivity {
         getListView().removeAllViewsInLayout();
         getListView().setEmptyView(null);
         setListAdapter(null);
-        mListener = null;
-        mReceivedReceiver.setListener(mListener);
-        mReceivedReceiver = null;
+        unregisterReceiver(mReceivedReceiver);
         unregisterReceiver(mSentReceiver);
         unregisterReceiver(mDeliveredReceiver);
+        mReceivedReceiver = null;
+        mSentReceiver = null;
         mSentIntent = null;
         mDeliveredIntent = null;
         mSentReceiver = null;
@@ -318,8 +310,16 @@ public class MainActivity extends ListActivity {
             }
         };
 
-        mReceivedReceiver = new SmsReceivedReceiver();
-        mReceivedReceiver.setListener(mListener);
+        mReceivedReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                readAllMessages();
+                Toast.makeText(context, "sms received", Toast.LENGTH_SHORT).show();
+            }
+        };
+        IntentFilter filter = new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION);
+        filter.setPriority(1000);
+        registerReceiver(mReceivedReceiver, filter);
         mDeliveredReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent in) {
