@@ -54,12 +54,13 @@ public class MainActivity extends ListActivity {
     private SmsReceivedReceiver mReceivedReceiver;
     private PendingIntent mSentIntent, mDeliveredIntent;
     private Listener mListener;
+    private static int sCount;
 
     /*reverse lookup contact name using phone number*/
     protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
         StringBuilder name = new StringBuilder();
         Uri lookupUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(address));
-        Cursor cursor = contentResolver.query(lookupUri, new String[]{ContactsContract.Data.DISPLAY_NAME_PRIMARY}, null, null, null);
+        Cursor cursor = contentResolver.query(lookupUri, new String[]{ContactsContract.Data.DISPLAY_NAME_PRIMARY, ContactsContract.Data.PHOTO_THUMBNAIL_URI}, null, null, null);
         if (cursor != null && cursor.moveToFirst()) {
             name.append(cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Data.DISPLAY_NAME_PRIMARY)));
         } else {
@@ -243,7 +244,7 @@ public class MainActivity extends ListActivity {
                     String address = cursor.getString(inboxAddressColumn);
                     if (replys.add(address)) {
                         String fullName = reverseLookupNameByPhoneNumber(address, contentResolver);
-                        if (!mContacts.containsKey(fullName)) {
+                        if (fullName != null && !mContacts.containsKey(fullName)) {
                             mContacts.put(String.valueOf(fullName), address);
                         }
                         String message = buildMessage(fullName, cursor.getString(inboxBodyColumn), Long.valueOf(String.valueOf(cursor.getString(inboxTimeColumn))));
@@ -263,6 +264,7 @@ public class MainActivity extends ListActivity {
     void updateUi(List<String> list) {
         ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, android.R.id.text1, list);
         setListAdapter(arrayAdapter);
+
 
     }
 
