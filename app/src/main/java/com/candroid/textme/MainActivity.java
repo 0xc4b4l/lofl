@@ -42,48 +42,44 @@ import java.util.Set;
 
 public class MainActivity extends ListActivity {
     public static final String TAG = MainActivity.class.getSimpleName();
-    public static final String INBOX_URI = "content://sms/inbox";
     public static final String NEW_LINE = "\n";
     private static final int SMS_PERMISSIONS_REQ_CODE = 101;
     private static final int READ_CONTACTS_PERMISSION_REQ_CODE = 201;
     public static final String SENT_SMS_FLAG = "SENT_SMS";
     public static final String DELIVER_SMS_FLAG = "DELIVER_SMS";
-    private boolean mChecking = false;
+    public static final String RECEIVED_SMS_FLAG = "android.provider.Telephony.SMS_RECEIVED";
+    private static final int RECEIVE_SMS_PERMISSION_REQ_CODE = 301;
     private Map<String, String> mContacts;
     private BroadcastReceiver mSentReceiver, mDeliveredReceiver;
+    private SmsReceivedReceiver mReceivedReceiver;
     private PendingIntent mSentIntent, mDeliveredIntent;
+    private Listener mListener;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        initializeBroadcastReceivers();
-        registerReceiver(mSentReceiver, new IntentFilter(SENT_SMS_FLAG));
-        registerReceiver(mDeliveredReceiver, new IntentFilter(DELIVER_SMS_FLAG));
-        mSentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
-        mDeliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), 0);
-        readAllMessages();
-    }
-
-    // TODO: 10/28/18 rationales for permissions
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case SMS_PERMISSIONS_REQ_CODE:
-                readAllMessages();
-                break;
-            case READ_CONTACTS_PERMISSION_REQ_CODE:
-                readAllMessages();
-                break;
-            default:
-                break;
+    /*reverse lookup contact name using phone number*/
+    protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
+        StringBuilder name = new StringBuilder();
+        Uri lookupUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(address));
+        Cursor cursor = contentResolver.query(lookupUri, new String[]{ContactsContract.Data.DISPLAY_NAME_PRIMARY}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            name.append(cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Data.DISPLAY_NAME_PRIMARY)));
+        } else {
+            name.append(address.substring(address.indexOf('+') + 2, address.length()));
         }
+        cursor.close();
+        return String.valueOf(name);
     }
 
-    @Override
-    public void onBackPressed() {
-        finishAndRemoveTask();
-        super.onBackPressed();
+    /*returns sms formatted string representation of received sms message*/
+    protected static String buildMessage(String fullName, String body, long time) {
+        CharSequence timeSpan = DateUtils.getRelativeTimeSpanString(time);
+        StringBuilder builder = new StringBuilder();
+        fullName = removeCountryCode(fullName);
+        builder.append(fullName);
+        builder.append(NEW_LINE);
+        builder.append(timeSpan);
+        builder.append(NEW_LINE);
+        builder.append(body);
+        return String.valueOf(builder);
     }
 
     void handleSms(String response, String received) {
@@ -172,56 +168,103 @@ public class MainActivity extends ListActivity {
         alertDialog.show();
     }
 
+    private static String removeCountryCode(String address) {
+        if (address.length() > 11 && address.contains("+") && address.indexOf("+") == 0) {
+            if (address.length() >= 12) {
+                address = address.substring(address.indexOf("+") + 2);
+            } else {
+                address = address.substring(address.indexOf("+") + 1);
+            }
+        }
+        return address.trim();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mListener = new Listener() {
+            @Override
+            public void onTextReceived(String text) {
+                readAllMessages();
+            }
+        };
+        initializeBroadcastReceivers();
+        registerReceiver(mSentReceiver, new IntentFilter(SENT_SMS_FLAG));
+        registerReceiver(mDeliveredReceiver, new IntentFilter(DELIVER_SMS_FLAG));
+        IntentFilter filter = new IntentFilter(RECEIVED_SMS_FLAG);
+        filter.setPriority(999);
+        registerReceiver(mReceivedReceiver, filter);
+        mSentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
+        mDeliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), 0);
+        readAllMessages();
+    }
+
+    // TODO: 10/28/18 rationales for permissions
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case SMS_PERMISSIONS_REQ_CODE:
+                readAllMessages();
+                break;
+            case READ_CONTACTS_PERMISSION_REQ_CODE:
+                readAllMessages();
+                break;
+            case RECEIVE_SMS_PERMISSION_REQ_CODE:
+                readAllMessages();
+            default:
+                break;
+        }
+    }
+
     private Object readAllMessages() {
-        if (!(checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED)) {
-            requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS}, SMS_PERMISSIONS_REQ_CODE);
+        if ((checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED)) {
+            requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS}, SMS_PERMISSIONS_REQ_CODE);
             return null;
         }
-            if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE}, 201);
-                return null;
-            }
-                mContacts = new HashMap<String, String>(50);
-                final List<String> list = new ArrayList<>();
-                final Runnable updateUi = () -> updateUi(list);
-                final Runnable getMessages = () -> {
-                    final Set<String> replys = new HashSet<>();
-                    final StringBuilder builder = new StringBuilder();
-                    String[] projections = new String[]{Telephony.Sms.Inbox.ADDRESS, Telephony.Sms.Inbox.DATE_SENT, Telephony.Sms.Inbox.BODY};
-                    ContentResolver contentResolver = MainActivity.this.getContentResolver();
-                    final Cursor cursor = contentResolver.query(Telephony.Sms.Inbox.CONTENT_URI, projections, null, null, null);
-                    long time = 0;
-                    if (cursor != null && cursor.moveToFirst()) {
-                        do {
-                            final String address = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.ADDRESS));
-                            if (replys.add(address)) {
-                                String fullName = reverseLookupNameByPhoneNumber(address);
-                                time = Long.valueOf(String.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.DATE_SENT))));
-                                CharSequence timeSpan = DateUtils.getRelativeTimeSpanString(time);
-                                builder.append(fullName);
-                                builder.append(NEW_LINE);
-                                builder.append(timeSpan);
-                                builder.append(NEW_LINE);
-                                builder.append(cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.BODY)));
-                                list.add(String.valueOf(builder));
-                            }
-                            builder.delete(0, builder.length());
-                        } while (cursor.moveToNext());
-                        cursor.close();
-                        replys.clear();
+        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE}, 201);
+            return null;
+        }
+        mContacts = new HashMap<String, String>(50);
+        final List<String> list = new ArrayList<>();
+        final Runnable updateUi = () -> updateUi(list);
+        final Runnable getMessages = () -> {
+            final Set<String> replys = new HashSet<>();
+            String[] projections = new String[]{Telephony.Sms.Inbox.ADDRESS, Telephony.Sms.Inbox.DATE_SENT, Telephony.Sms.Inbox.BODY};
+            ContentResolver contentResolver = MainActivity.this.getContentResolver();
+            final Cursor cursor = contentResolver.query(Telephony.Sms.Inbox.CONTENT_URI, projections, null, null, null);
+            int inboxBodyColumn = cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.BODY);
+            int inboxTimeColumn = cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.DATE_SENT);
+            int inboxAddressColumn = cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.ADDRESS);
+            long time = 0;
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    String address = cursor.getString(inboxAddressColumn);
+                    if (replys.add(address)) {
+                        String fullName = reverseLookupNameByPhoneNumber(address, contentResolver);
+                        if (!mContacts.containsKey(fullName)) {
+                            mContacts.put(String.valueOf(fullName), address);
+                        }
+                        String message = buildMessage(fullName, cursor.getString(inboxBodyColumn), Long.valueOf(String.valueOf(cursor.getString(inboxTimeColumn))));
+                        list.add(message);
                     }
-                    runOnUiThread(updateUi);
-                };
-                new Thread(getMessages).start();
-                list.clear();
+                } while (cursor.moveToNext());
+                cursor.close();
+                replys.clear();
+            }
+            runOnUiThread(updateUi);
+        };
+        new Thread(getMessages).start();
+        list.clear();
         return null;
     }
 
     void updateUi(List<String> list) {
         ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, android.R.id.text1, list);
         setListAdapter(arrayAdapter);
-    }
 
+    }
 
     @Override
     protected void onDestroy() {
@@ -229,6 +272,9 @@ public class MainActivity extends ListActivity {
         getListView().removeAllViewsInLayout();
         getListView().setEmptyView(null);
         setListAdapter(null);
+        mListener = null;
+        mReceivedReceiver.setListener(mListener);
+        unregisterReceiver(mReceivedReceiver);
         unregisterReceiver(mSentReceiver);
         unregisterReceiver(mDeliveredReceiver);
         mSentIntent = null;
@@ -236,24 +282,7 @@ public class MainActivity extends ListActivity {
         mSentReceiver = null;
         mDeliveredReceiver = null;
         mContacts = null;
-        finishAfterTransition();
-    }
-
-    /*reverse lookup contact name using phone number*/
-    private String reverseLookupNameByPhoneNumber(String address) {
-        StringBuilder name = new StringBuilder();
-        Uri lookupUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(address));
-        Cursor cursor = getContentResolver().query(lookupUri, new String[]{ContactsContract.Data.DISPLAY_NAME_PRIMARY}, null, null, null);
-        if (cursor != null && cursor.moveToFirst()) {
-            name.append(cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Data.DISPLAY_NAME_PRIMARY)));
-        } else {
-            name.append(address.substring(address.indexOf('+') + 2, address.length()));
-        }
-        if (!mContacts.containsKey(name)) {
-            mContacts.put(String.valueOf(name), address);
-        }
-        cursor.close();
-        return String.valueOf(name);
+        finishAndRemoveTask();
     }
 
     private void initializeBroadcastReceivers() {
@@ -271,6 +300,9 @@ public class MainActivity extends ListActivity {
                 }
             }
         };
+
+        mReceivedReceiver = new SmsReceivedReceiver();
+        mReceivedReceiver.setListener(mListener);
         mDeliveredReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent in) {
