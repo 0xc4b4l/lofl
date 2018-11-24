@@ -185,7 +185,7 @@ public class MainActivity extends ListActivity {
         mListener = new Listener() {
             @Override
             public void onTextReceived(String text) {
-                readAllMessages();
+                recreate();
             }
         };
         initializeBroadcastReceivers();
@@ -263,6 +263,7 @@ public class MainActivity extends ListActivity {
     void updateUi(List<String> list) {
         ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, android.R.id.text1, list);
         setListAdapter(arrayAdapter);
+
 
     }
 
