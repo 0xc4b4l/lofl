@@ -17,6 +17,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
@@ -52,15 +53,7 @@ public class MainActivity extends ListActivity {
     private Map<String, String> mContacts;
     private BroadcastReceiver mSentReceiver, mDeliveredReceiver, mReceivedReceiver;
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        Toast.makeText(this, intent.getAction(), Toast.LENGTH_SHORT).show();
-        /*another app shared text to our app*/
-        if (!intent.getAction().equals("android.intent.action.MAIN")) {
-            Toast.makeText(this, "text to share: ".concat(intent.getStringExtra(Intent.EXTRA_TEXT)), Toast.LENGTH_SHORT).show();
-        }
-    }
+
 
     /*remove country code from telephone address - example:+1*/
     private static String removeCountryCode(String address) {
@@ -108,6 +101,13 @@ public class MainActivity extends ListActivity {
         }
     }
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        /*check if receiving implicit intent from another app because we were not in background*/
+        onNewIntent(getIntent());
+    }
+
     /*initialize everything that is deinitialized in onstop*/
     @Override
     protected void onStart() {
@@ -149,6 +149,17 @@ public class MainActivity extends ListActivity {
     protected void onDestroy() {
         super.onDestroy();
         finishAndRemoveTask();
+    }
+
+    /*received implicit intent from another app while in background*/
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Toast.makeText(this, intent.getAction(), Toast.LENGTH_SHORT).show();
+        /*another app shared text to our app*/
+        if (intent.getAction().equals("android.intent.action.SEND")) {
+            Toast.makeText(this, "text to share: ".concat(intent.getStringExtra(Intent.EXTRA_TEXT)), Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
