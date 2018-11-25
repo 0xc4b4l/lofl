@@ -53,8 +53,6 @@ public class MainActivity extends ListActivity {
     private Map<String, String> mContacts;
     private BroadcastReceiver mSentReceiver, mDeliveredReceiver, mReceivedReceiver;
 
-
-
     /*remove country code from telephone address - example:+1*/
     private static String removeCountryCode(String address) {
         if (address.length() > 11 && address.contains("+") && address.indexOf("+") == 0) {
@@ -101,53 +99,11 @@ public class MainActivity extends ListActivity {
         }
     }
 
+    /*initialize everything that is uninitialized in onDestroy*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         onNewIntent(getIntent());
-    }
-
-    /*initialize everything that is deinitialized in onstop*/
-    @Override
-    protected void onStart() {
-        super.onStart();
-        initializeUi();
-    }
-
-    /*initialize everything that is deinitialized in onPause*/
-    @Override
-    protected void onResume() {
-        super.onResume();
-        initializeBroadcastReceivers();
-    }
-
-    /*deinitialize everything that is initialized in onResume*/
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(mReceivedReceiver);
-        unregisterReceiver(mSentReceiver);
-        unregisterReceiver(mDeliveredReceiver);
-        mReceivedReceiver = null;
-        mSentReceiver = null;
-        mDeliveredReceiver = null;
-    }
-
-    /*deinitialize everything that is initialized in onStart*/
-    @Override
-    protected void onStop() {
-        super.onStop();
-        getListView().removeAllViewsInLayout();
-        getListView().setEmptyView(null);
-        setListAdapter(null);
-        mContacts = null;
-    }
-
-    /*deinitialize everything that is initialized in onCreate*/
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        finishAndRemoveTask();
     }
 
     /*received implicit intent from another app while in background*/
@@ -157,6 +113,20 @@ public class MainActivity extends ListActivity {
         if (intent != null && intent.getAction() != null && !intent.getAction().equals("android.intent.action.MAIN")) {
             Toast.makeText(this, "text to share: ".concat(intent.getStringExtra(Intent.EXTRA_TEXT)), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /*initialize everything that is uninitialized in onstop*/
+    @Override
+    protected void onStart() {
+        super.onStart();
+        initializeUi();
+    }
+
+    /*initialize everything that is uninitialized in onPause*/
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initializeBroadcastReceivers();
     }
 
     @Override
@@ -369,5 +339,34 @@ public class MainActivity extends ListActivity {
         PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
         PendingIntent deliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), 0);
         SmsManager.getDefault().sendTextMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, response.trim(), sentIntent, deliveredIntent);
+    }
+
+    /*uninitialize everything that is initialized in onResume*/
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(mReceivedReceiver);
+        unregisterReceiver(mSentReceiver);
+        unregisterReceiver(mDeliveredReceiver);
+        mReceivedReceiver = null;
+        mSentReceiver = null;
+        mDeliveredReceiver = null;
+    }
+
+    /*uninitialize everything that is initialized in onStart*/
+    @Override
+    protected void onStop() {
+        super.onStop();
+        getListView().removeAllViewsInLayout();
+        getListView().setEmptyView(null);
+        setListAdapter(null);
+        mContacts = null;
+    }
+
+    /*uninitialize everything that is initialized in onCreate*/
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        finishAndRemoveTask();
     }
 }
