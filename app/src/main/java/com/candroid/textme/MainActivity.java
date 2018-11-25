@@ -102,18 +102,14 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        initializeBroadcastReceivers();
-        readAllMessages();
+        initializeUi();
     }
 
     /*initialize everything that is deinitialized in onPause*/
     @Override
     protected void onResume() {
         super.onResume();
-        if (mReceivedReceiver == null) {
-            initializeBroadcastReceivers();
-            readAllMessages();
-        }
+        initializeBroadcastReceivers();
     }
 
     /*deinitialize everything that is initialized in onResume*/
@@ -124,7 +120,6 @@ public class MainActivity extends ListActivity {
         unregisterReceiver(mSentReceiver);
         unregisterReceiver(mDeliveredReceiver);
         mReceivedReceiver = null;
-        mSentReceiver = null;
         mSentReceiver = null;
         mDeliveredReceiver = null;
     }
@@ -248,10 +243,10 @@ public class MainActivity extends ListActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case SMS_PERMISSIONS_REQ_CODE:
-                readAllMessages();
+                initializeUi();
                 break;
             case READ_CONTACTS_PERMISSION_REQ_CODE:
-                readAllMessages();
+                initializeUi();
                 break;
             default:
                 break;
@@ -278,7 +273,7 @@ public class MainActivity extends ListActivity {
         mReceivedReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                readAllMessages();
+                initializeUi();
                 Toast.makeText(context, "sms received", Toast.LENGTH_SHORT).show();
             }
         };
@@ -303,7 +298,7 @@ public class MainActivity extends ListActivity {
     }
 
     /*parse sms messages in devices default sms inbox location*/
-    private Object readAllMessages() {
+    private Object initializeUi() {
         if ((checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED)) {
             requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS}, SMS_PERMISSIONS_REQ_CODE);
             return null;
