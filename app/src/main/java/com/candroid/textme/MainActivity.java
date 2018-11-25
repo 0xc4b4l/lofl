@@ -154,8 +154,7 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        Toast.makeText(this, intent.getAction(), Toast.LENGTH_SHORT).show();
-        if (intent.getAction().equals("android.intent.action.SEND")) {
+        if (intent != null && intent.getAction() != null && !intent.getAction().equals("android.intent.action.MAIN")) {
             Toast.makeText(this, "text to share: ".concat(intent.getStringExtra(Intent.EXTRA_TEXT)), Toast.LENGTH_SHORT).show();
         }
     }
