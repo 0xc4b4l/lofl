@@ -104,7 +104,6 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        /*check if receiving implicit intent from another app because we were not in background*/
         onNewIntent(getIntent());
     }
 
@@ -156,7 +155,6 @@ public class MainActivity extends ListActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         Toast.makeText(this, intent.getAction(), Toast.LENGTH_SHORT).show();
-        /*another app shared text to our app*/
         if (intent.getAction().equals("android.intent.action.SEND")) {
             Toast.makeText(this, "text to share: ".concat(intent.getStringExtra(Intent.EXTRA_TEXT)), Toast.LENGTH_SHORT).show();
         }
