@@ -52,6 +52,16 @@ public class MainActivity extends ListActivity {
     private Map<String, String> mContacts;
     private BroadcastReceiver mSentReceiver, mDeliveredReceiver, mReceivedReceiver;
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Toast.makeText(this, intent.getAction(), Toast.LENGTH_SHORT).show();
+        /*another app shared text to our app*/
+        if (!intent.getAction().equals("android.intent.action.MAIN")) {
+            Toast.makeText(this, "text to share: ".concat(intent.getStringExtra(Intent.EXTRA_TEXT)), Toast.LENGTH_SHORT).show();
+        }
+    }
+
     /*remove country code from telephone address - example:+1*/
     private static String removeCountryCode(String address) {
         if (address.length() > 11 && address.contains("+") && address.indexOf("+") == 0) {
