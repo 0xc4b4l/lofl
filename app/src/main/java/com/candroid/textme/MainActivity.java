@@ -278,15 +278,13 @@ public class MainActivity extends ListActivity {
                         Toast.makeText(getBaseContext(), "sms sent", Toast.LENGTH_SHORT).show();
                         if (sTextToShare != null) {
                             sTextToShare = null;
-                            MainActivity.this.setResult(Activity.RESULT_OK);
-                            MainActivity.this.finish();
+                            MainActivity.this.finishAndRemoveTask();
                         }
                         break;
                     default:
                         if (sTextToShare != null) {
                             sTextToShare = null;
-                            MainActivity.this.setResult(Activity.RESULT_CANCELED);
-                            MainActivity.this.finish();
+                            MainActivity.this.finishAndRemoveTask();
                         }
                         Toast.makeText(getBaseContext(), "sms failed", Toast.LENGTH_SHORT).show();
                         break;
