@@ -50,9 +50,10 @@ public class MainActivity extends ListActivity {
     private static final int READ_CONTACTS_PERMISSION_REQ_CODE = 201;
     private static final String SENT_SMS_FLAG = "SMS_SENT";
     private static final String DELIVER_SMS_FLAG = "SMS_DELIVERED";
+    private static final int PICK_CONTACT_RESULT_CODE = 1;
     private Map<String, String> mContacts;
     private BroadcastReceiver mSentReceiver, mDeliveredReceiver, mReceivedReceiver;
-
+    private static String sTextToShare;
     /*remove country code from telephone address - example:+1*/
     private static String removeCountryCode(String address) {
         if (address.length() > 11 && address.contains("+") && address.indexOf("+") == 0) {
@@ -78,7 +79,7 @@ public class MainActivity extends ListActivity {
         return String.valueOf(builder);
     }
 
-    /*create notifcation for received sms message*/
+    /*create notification for received sms message*/
     protected static void notify(Context context, Intent intent, String address, long time, String body) {
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         int importance = NotificationManager.IMPORTANCE_DEFAULT;
@@ -99,6 +100,24 @@ public class MainActivity extends ListActivity {
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Uri contactUri = data.getData();
+        Cursor cursor = getContentResolver().query(contactUri, null, null, null, null);
+        cursor.moveToFirst();
+        int addressColumn = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+      /*  int nameColumn = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME_PRIMARY);
+        String name = cursor.getString(nameColumn);*/
+        String address = cursor.getString(addressColumn);
+        cursor.close();
+        PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
+        PendingIntent deliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), 0);
+        if (sTextToShare != null) {
+            SmsManager.getDefault().sendTextMessage(address, null, sTextToShare, sentIntent, deliveredIntent);
+        }
+    }
+
     /*initialize everything that is uninitialized in onDestroy*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +131,12 @@ public class MainActivity extends ListActivity {
         super.onNewIntent(intent);
         if (intent != null && intent.getAction() != null && !intent.getAction().equals("android.intent.action.MAIN")) {
             Toast.makeText(this, "text to share: ".concat(intent.getStringExtra(Intent.EXTRA_TEXT)), Toast.LENGTH_SHORT).show();
+            Intent contactsIntent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+            sTextToShare = intent.getStringExtra(Intent.EXTRA_TEXT);
+            if (intent.getStringExtra(Intent.EXTRA_SUBJECT) != null) {
+                sTextToShare = intent.getStringExtra(Intent.EXTRA_SUBJECT).concat(NEW_LINE).concat(sTextToShare);
+            }
+            startActivityForResult(contactsIntent, PICK_CONTACT_RESULT_CODE);
         }
     }
 
@@ -143,7 +168,7 @@ public class MainActivity extends ListActivity {
         if(editText.requestFocus()){
             inputMethodManager.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
         }
-        builder.setMessage(selectedSms.substring(selectedSms.lastIndexOf(NEW_LINE), selectedSms.length()));
+        builder.setMessage(selectedSms.substring(selectedSms.indexOf(NEW_LINE), selectedSms.length()));
         builder.setTitle(selectedSms.substring(0, selectedSms.indexOf(NEW_LINE)));
         editText.setAlpha(0.6f);
         builder.setView(editText);
@@ -251,8 +276,18 @@ public class MainActivity extends ListActivity {
                     case Activity.RESULT_OK:
                         //sent SMS message successfully;
                         Toast.makeText(getBaseContext(), "sms sent", Toast.LENGTH_SHORT).show();
+                        if (sTextToShare != null) {
+                            sTextToShare = null;
+                            MainActivity.this.setResult(Activity.RESULT_OK);
+                            MainActivity.this.finish();
+                        }
                         break;
                     default:
+                        if (sTextToShare != null) {
+                            sTextToShare = null;
+                            MainActivity.this.setResult(Activity.RESULT_CANCELED);
+                            MainActivity.this.finish();
+                        }
                         Toast.makeText(getBaseContext(), "sms failed", Toast.LENGTH_SHORT).show();
                         break;
                 }
@@ -312,6 +347,9 @@ public class MainActivity extends ListActivity {
                     String address = cursor.getString(inboxAddressColumn);
                     if (replys.add(address)) {
                         String fullName = reverseLookupNameByPhoneNumber(address, contentResolver);
+                        if (mContacts == null) {
+                            mContacts = new HashMap<>();
+                        }
                         if (fullName != null && !mContacts.containsKey(fullName)) {
                             mContacts.put(String.valueOf(fullName), address);
                         }
@@ -367,6 +405,7 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        sTextToShare = null;
         finishAndRemoveTask();
     }
 }
