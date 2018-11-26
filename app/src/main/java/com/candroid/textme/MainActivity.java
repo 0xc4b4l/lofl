@@ -17,6 +17,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
@@ -49,8 +50,10 @@ public class MainActivity extends ListActivity {
     private static final int READ_CONTACTS_PERMISSION_REQ_CODE = 201;
     private static final String SENT_SMS_FLAG = "SMS_SENT";
     private static final String DELIVER_SMS_FLAG = "SMS_DELIVERED";
+    private static final int PICK_CONTACT_REQ_CODE = 1;
     private Map<String, String> mContacts;
     private BroadcastReceiver mSentReceiver, mDeliveredReceiver, mReceivedReceiver;
+    private static String sTextToShare;
 
     /*remove country code from telephone address - example:+1*/
     private static String removeCountryCode(String address) {
@@ -77,7 +80,7 @@ public class MainActivity extends ListActivity {
         return String.valueOf(builder);
     }
 
-    /*create notifcation for received sms message*/
+    /*create notification for received sms message*/
     protected static void notify(Context context, Intent intent, String address, long time, String body) {
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         int importance = NotificationManager.IMPORTANCE_DEFAULT;
@@ -98,47 +101,66 @@ public class MainActivity extends ListActivity {
         }
     }
 
-    /*initialize everything that is deinitialized in onstop*/
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_CONTACT_REQ_CODE && resultCode == Activity.RESULT_OK) {
+            Uri contactUri = data.getData();
+            Cursor cursor = getContentResolver().query(contactUri, null, null, null, null);
+            if (cursor.moveToFirst()) {
+                int addressColumn = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                String address = cursor.getString(addressColumn);
+                cursor.close();
+                PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
+                PendingIntent deliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), 0);
+                String response;
+                if (sTextToShare != null) {
+                    if (sTextToShare.length() > 120) {
+                        response = sTextToShare.substring(0, 120);
+                    } else {
+                        response = sTextToShare;
+                    }
+                    SmsManager.getDefault().sendTextMessage(address, null, response, sentIntent, deliveredIntent);
+                }
+            }
+        }
+
+    }
+
+    /*initialize everything that is uninitialized in onDestroy*/
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        onNewIntent(getIntent());
+    }
+
+    /*received implicit intent from another app while in background*/
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
+            Toast.makeText(this, "text to share: ".concat(intent.getStringExtra(Intent.EXTRA_TEXT)), Toast.LENGTH_SHORT).show();
+            Intent contactsIntent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+            sTextToShare = intent.getStringExtra(Intent.EXTRA_TEXT);
+            if (intent.getStringExtra(Intent.EXTRA_SUBJECT) != null) {
+                sTextToShare = intent.getStringExtra(Intent.EXTRA_SUBJECT).concat(NEW_LINE).concat(sTextToShare);
+            }
+            startActivityForResult(contactsIntent, PICK_CONTACT_REQ_CODE);
+        }
+    }
+
+    /*initialize everything that is uninitialized in onstop*/
     @Override
     protected void onStart() {
         super.onStart();
+        initializeBroadcastReceivers();
         initializeUi();
     }
 
-    /*initialize everything that is deinitialized in onPause*/
+    /*initialize everything that is uninitialized in onPause*/
     @Override
     protected void onResume() {
         super.onResume();
-        initializeBroadcastReceivers();
-    }
-
-    /*deinitialize everything that is initialized in onResume*/
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(mReceivedReceiver);
-        unregisterReceiver(mSentReceiver);
-        unregisterReceiver(mDeliveredReceiver);
-        mReceivedReceiver = null;
-        mSentReceiver = null;
-        mDeliveredReceiver = null;
-    }
-
-    /*deinitialize everything that is initialized in onStart*/
-    @Override
-    protected void onStop() {
-        super.onStop();
-        getListView().removeAllViewsInLayout();
-        getListView().setEmptyView(null);
-        setListAdapter(null);
-        mContacts = null;
-    }
-
-    /*deinitialize everything that is initialized in onCreate*/
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        finishAndRemoveTask();
     }
 
     @Override
@@ -155,7 +177,7 @@ public class MainActivity extends ListActivity {
         if(editText.requestFocus()){
             inputMethodManager.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
         }
-        builder.setMessage(selectedSms.substring(selectedSms.lastIndexOf(NEW_LINE), selectedSms.length()));
+        builder.setMessage(selectedSms.substring(selectedSms.indexOf(NEW_LINE), selectedSms.length()));
         builder.setTitle(selectedSms.substring(0, selectedSms.indexOf(NEW_LINE)));
         editText.setAlpha(0.6f);
         builder.setView(editText);
@@ -259,13 +281,31 @@ public class MainActivity extends ListActivity {
         mSentReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent in) {
-                switch (getResultCode()) {
+                StringBuilder result = new StringBuilder(20);
+                switch (this.getResultCode()) {
                     case Activity.RESULT_OK:
-                        //sent SMS message successfully;
-                        Toast.makeText(getBaseContext(), "sms sent", Toast.LENGTH_SHORT).show();
+                        result.append("sms sent");
+                        MainActivity.this.setResult(Activity.RESULT_OK);
+                        Toast.makeText(context, String.valueOf(result), Toast.LENGTH_SHORT).show();
+                        if (sTextToShare != null) {
+                            sTextToShare = null;
+                            MainActivity.this.finishActivity(PICK_CONTACT_REQ_CODE);
+                            MainActivity.this.finish();
+                        }
+                        result.delete(0, result.length() - 1);
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        result.append("sms failed");
+                        MainActivity.this.setResult(Activity.RESULT_CANCELED);
+                        Toast.makeText(context, String.valueOf(result), Toast.LENGTH_SHORT).show();
+                        if (sTextToShare != null) {
+                            sTextToShare = null;
+                            MainActivity.this.finishActivity(PICK_CONTACT_REQ_CODE);
+                            MainActivity.this.finish();
+                        }
+                        result.delete(0, result.length() - 1);
                         break;
                     default:
-                        Toast.makeText(getBaseContext(), "sms failed", Toast.LENGTH_SHORT).show();
                         break;
                 }
             }
@@ -324,6 +364,9 @@ public class MainActivity extends ListActivity {
                     String address = cursor.getString(inboxAddressColumn);
                     if (replys.add(address)) {
                         String fullName = reverseLookupNameByPhoneNumber(address, contentResolver);
+                        if (mContacts == null) {
+                            mContacts = new HashMap<>();
+                        }
                         if (fullName != null && !mContacts.containsKey(fullName)) {
                             mContacts.put(String.valueOf(fullName), address);
                         }
@@ -351,5 +394,35 @@ public class MainActivity extends ListActivity {
         PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
         PendingIntent deliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), 0);
         SmsManager.getDefault().sendTextMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, response.trim(), sentIntent, deliveredIntent);
+    }
+
+    /*uninitialize everything that is initialized in onResume*/
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    /*uninitialize everything that is initialized in onStart*/
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unregisterReceiver(mReceivedReceiver);
+        unregisterReceiver(mSentReceiver);
+        unregisterReceiver(mDeliveredReceiver);
+        mReceivedReceiver = null;
+        mSentReceiver = null;
+        mDeliveredReceiver = null;
+        getListView().removeAllViewsInLayout();
+        getListView().setEmptyView(null);
+        setListAdapter(null);
+        mContacts = null;
+    }
+
+    /*uninitialize everything that is initialized in onCreate*/
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        sTextToShare = null;
+        finishAndRemoveTask();
     }
 }
