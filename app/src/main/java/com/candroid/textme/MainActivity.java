@@ -19,6 +19,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.OpenableColumns;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.text.Editable;
@@ -36,6 +37,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -87,7 +93,7 @@ public class MainActivity extends ListActivity {
         NotificationChannel notificationChannel = new NotificationChannel("this", "this", importance);
         notificationChannel.setDescription("this");
         Notification.MessagingStyle.Message msg =
-                new Notification.MessagingStyle.Message(String.valueOf(body), time, String.valueOf(address));
+                new Notification.MessagingStyle.Message(String.valueOf(body).trim(), time, String.valueOf(address).trim());
         Intent clickIntent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, clickIntent, 0);
@@ -134,19 +140,80 @@ public class MainActivity extends ListActivity {
         onNewIntent(getIntent());
     }
 
+    @Override
+    public void onBackPressed() {
+        finishActivity(PICK_CONTACT_REQ_CODE);
+        super.onBackPressed();
+    }
+
+    public String getFileName(Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+            try {
+                if (cursor != null && cursor.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
+
     /*received implicit intent from another app while in background*/
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
-            Toast.makeText(this, "text to share: ".concat(intent.getStringExtra(Intent.EXTRA_TEXT)), Toast.LENGTH_SHORT).show();
-            Intent contactsIntent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+        final StringBuilder stringBuilder = new StringBuilder();
+        String fileContents = String.valueOf(parseSharedFile(intent, stringBuilder));
+        if (intent.hasExtra(Intent.EXTRA_TEXT)) {
             sTextToShare = intent.getStringExtra(Intent.EXTRA_TEXT);
-            if (intent.getStringExtra(Intent.EXTRA_SUBJECT) != null) {
-                sTextToShare = intent.getStringExtra(Intent.EXTRA_SUBJECT).concat(NEW_LINE).concat(sTextToShare);
-            }
+        }
+        if (intent.hasExtra(Intent.EXTRA_SUBJECT)) {
+            sTextToShare = intent.getStringExtra(Intent.EXTRA_SUBJECT).concat(NEW_LINE).concat(sTextToShare);
+        }
+        if (fileContents != null && fileContents.length() > 0) {
+            sTextToShare = fileContents;
+        }
+        if (sTextToShare != null && sTextToShare.length() > 0) {
+            Intent contactsIntent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
             startActivityForResult(contactsIntent, PICK_CONTACT_REQ_CODE);
         }
+    }
+
+    /*converts a file containing text into a string with sms formatting*/
+    private StringBuilder parseSharedFile(Intent intent, StringBuilder stringBuilder) {
+        if (intent != null && intent.getClipData() != null && intent.getClipData().getItemCount() > 0) {
+            Uri uri = intent.getClipData().getItemAt(0).getUri();
+            String fileName = getFileName(uri);
+            stringBuilder.append(fileName);
+            stringBuilder.append(NEW_LINE);
+            InputStream inputStream = null;
+            try {
+                inputStream = getContentResolver().openInputStream(uri);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line;
+            try {
+                while ((line = reader.readLine()) != null) {
+                    stringBuilder.append(line);
+                }
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return stringBuilder;
     }
 
     /*initialize everything that is uninitialized in onstop*/
@@ -289,8 +356,7 @@ public class MainActivity extends ListActivity {
                         Toast.makeText(context, String.valueOf(result), Toast.LENGTH_SHORT).show();
                         if (sTextToShare != null) {
                             sTextToShare = null;
-                            MainActivity.this.finishActivity(PICK_CONTACT_REQ_CODE);
-                            MainActivity.this.finish();
+                            onBackPressed();
                         }
                         result.delete(0, result.length() - 1);
                         break;
@@ -300,8 +366,7 @@ public class MainActivity extends ListActivity {
                         Toast.makeText(context, String.valueOf(result), Toast.LENGTH_SHORT).show();
                         if (sTextToShare != null) {
                             sTextToShare = null;
-                            MainActivity.this.finishActivity(PICK_CONTACT_REQ_CODE);
-                            MainActivity.this.finish();
+                            onBackPressed();
                         }
                         result.delete(0, result.length() - 1);
                         break;
