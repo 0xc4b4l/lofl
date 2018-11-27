@@ -59,7 +59,24 @@ public class MainActivity extends ListActivity {
     private static final int PICK_CONTACT_REQ_CODE = 1;
     private Map<String, String> mContacts;
     private BroadcastReceiver mSentReceiver, mDeliveredReceiver, mReceivedReceiver;
-    private static String sTextToShare;
+    private static String sSharedText;
+
+    /*reverse lookup contact name using phone number*/
+    protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
+        StringBuilder name = new StringBuilder();
+        Uri lookupUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(address));
+        try (Cursor cursor = contentResolver.query(lookupUri, new String[]{ContactsContract.Data.DISPLAY_NAME_PRIMARY, ContactsContract.Data.PHOTO_THUMBNAIL_URI}, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                name.append(cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Data.DISPLAY_NAME_PRIMARY)));
+            } else {
+                name.append(address.substring(address.indexOf('+') + 2, address.length()));
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+        return String.valueOf(name);
+
+    }
 
     /*remove country code from telephone address - example:+1*/
     private static String removeCountryCode(String address) {
@@ -120,11 +137,11 @@ public class MainActivity extends ListActivity {
                 PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
                 PendingIntent deliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), 0);
                 String response;
-                if (sTextToShare != null) {
-                    if (sTextToShare.length() > 120) {
-                        response = sTextToShare.substring(0, 120);
+                if (sSharedText != null) {
+                    if (sSharedText.length() > 120) {
+                        response = sSharedText.substring(0, 120);
                     } else {
-                        response = sTextToShare;
+                        response = sSharedText;
                     }
                     SmsManager.getDefault().sendTextMessage(address, null, response, sentIntent, deliveredIntent);
                 }
@@ -137,56 +154,23 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        onNewIntent(getIntent());
+        Intent intent = getIntent();
+        if (intent != null) {
+            if (intent.getType() != null && (intent.getAction().equals(Intent.ACTION_SEND) || intent.getAction().equals(Intent.ACTION_SENDTO) || intent.getAction().equals(Intent.ACTION_SEND_MULTIPLE))) {
+                if (intent.getType().equals("text/plain") || intent.getType().equals("text/html") || intent.getType().equals("text/*") || intent.getType().equals("text/")) {
+                    handleSharedText(intent);
+                }
+            } else {
+                handleSharedFile(intent);
+            }
+        }
     }
 
     @Override
     public void onBackPressed() {
         finishActivity(PICK_CONTACT_REQ_CODE);
+        finish();
         super.onBackPressed();
-    }
-
-    public String getFileName(Uri uri) {
-        String result = null;
-        if (uri.getScheme().equals("content")) {
-            Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-            try {
-                if (cursor != null && cursor.moveToFirst()) {
-                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-                }
-            } finally {
-                cursor.close();
-            }
-        }
-        if (result == null) {
-            result = uri.getPath();
-            int cut = result.lastIndexOf('/');
-            if (cut != -1) {
-                result = result.substring(cut + 1);
-            }
-        }
-        return result;
-    }
-
-    /*received implicit intent from another app while in background*/
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        final StringBuilder stringBuilder = new StringBuilder();
-        String fileContents = String.valueOf(parseSharedFile(intent, stringBuilder));
-        if (intent.hasExtra(Intent.EXTRA_TEXT)) {
-            sTextToShare = intent.getStringExtra(Intent.EXTRA_TEXT);
-        }
-        if (intent.hasExtra(Intent.EXTRA_SUBJECT)) {
-            sTextToShare = intent.getStringExtra(Intent.EXTRA_SUBJECT).concat(NEW_LINE).concat(sTextToShare);
-        }
-        if (fileContents != null && fileContents.length() > 0) {
-            sTextToShare = fileContents;
-        }
-        if (sTextToShare != null && sTextToShare.length() > 0) {
-            Intent contactsIntent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
-            startActivityForResult(contactsIntent, PICK_CONTACT_REQ_CODE);
-        }
     }
 
     /*converts a file containing text into a string with sms formatting*/
@@ -220,14 +204,80 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        initializeBroadcastReceivers();
         initializeUi();
     }
 
-    /*initialize everything that is uninitialized in onPause*/
+    public String getFileName(Uri uri) {
+        String result = null;
+        if (uri != null && uri.getScheme() != null && uri.getScheme().contains("content")) {
+            try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
+
+    /*received implicit intent from another app while in background*/
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        try {
+            if (intent.getClipData().getItemAt(0).getUri().toString().contains("content")) {
+                handleSharedFile(intent);
+                return;
+            }
+        } catch (NullPointerException e) {
+        }
+        if (intent.getType() != null) {
+            if (intent.getType().equals("text/plain") || intent.getType().equals("text/html") || intent.getType().equals("text/*") || intent.getType().equals("text/")) {
+                handleSharedText(intent);
+            }
+        }
+    }
+
+    private void handleSharedFile(Intent intent) {
+        StringBuilder builder = new StringBuilder();
+        if (intent.getClipData() != null && intent.getClipData().getItemCount() > 0) {
+            Intent contactsIntent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+            sSharedText = String.valueOf(parseSharedFile(intent, builder)).trim();
+            startActivityForResult(contactsIntent, PICK_CONTACT_REQ_CODE);
+        }
+    }
+
+    private void handleSharedText(Intent intent) {
+        if (intent.getAction().equals(Intent.ACTION_SEND)) {
+            StringBuilder text = new StringBuilder();
+            Bundle extras = intent.getExtras();
+            if (extras != null) {
+                if (extras.containsKey(Intent.EXTRA_TEXT)) {
+                    text.append(extras.getString(Intent.EXTRA_TEXT));
+                }
+                if (extras.containsKey(Intent.EXTRA_SUBJECT)) {
+                    text.append(NEW_LINE).append(extras.getString(Intent.EXTRA_SUBJECT));
+                }
+                if (extras.containsKey(Intent.EXTRA_TITLE)) {
+                    text.append(NEW_LINE).append(extras.getString(Intent.EXTRA_TITLE));
+                }
+                if (extras.containsKey(Intent.EXTRA_HTML_TEXT)) {
+                    text.append(NEW_LINE).append(extras.getString(Intent.EXTRA_TITLE));
+                }
+                if (text.length() > 0) {
+                    sSharedText = text.toString().trim();
+                    startActivityForResult(new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI), PICK_CONTACT_REQ_CODE);
+                } else {
+                    Toast.makeText(this, "Failed to handle shared text action!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
     }
 
     @Override
@@ -312,18 +362,13 @@ public class MainActivity extends ListActivity {
         alertDialog.show();
     }
 
-    /*reverse lookup contact name using phone number*/
-    protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
-        StringBuilder name = new StringBuilder();
-        Uri lookupUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(address));
-        Cursor cursor = contentResolver.query(lookupUri, new String[]{ContactsContract.Data.DISPLAY_NAME_PRIMARY, ContactsContract.Data.PHOTO_THUMBNAIL_URI}, null, null, null);
-        if (cursor != null && cursor.moveToFirst()) {
-            name.append(cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Data.DISPLAY_NAME_PRIMARY)));
-        } else {
-            name.append(address.substring(address.indexOf('+') + 2, address.length()));
+    /*initialize everything that is uninitialized in onPause*/
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mReceivedReceiver == null) {
+            initializeBroadcastReceivers();
         }
-        cursor.close();
-        return String.valueOf(name);
     }
 
     // TODO: 10/28/18 rationales for permissions
@@ -342,64 +387,16 @@ public class MainActivity extends ListActivity {
         }
     }
 
-    /*create broadcast receivers for an sms messages statuses.
-     * sent, received, and delivered*/
-    private void initializeBroadcastReceivers() {
-        mSentReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent in) {
-                StringBuilder result = new StringBuilder(20);
-                switch (this.getResultCode()) {
-                    case Activity.RESULT_OK:
-                        result.append("sms sent");
-                        MainActivity.this.setResult(Activity.RESULT_OK);
-                        Toast.makeText(context, String.valueOf(result), Toast.LENGTH_SHORT).show();
-                        if (sTextToShare != null) {
-                            sTextToShare = null;
-                            onBackPressed();
-                        }
-                        result.delete(0, result.length() - 1);
-                        break;
-                    case Activity.RESULT_CANCELED:
-                        result.append("sms failed");
-                        MainActivity.this.setResult(Activity.RESULT_CANCELED);
-                        Toast.makeText(context, String.valueOf(result), Toast.LENGTH_SHORT).show();
-                        if (sTextToShare != null) {
-                            sTextToShare = null;
-                            onBackPressed();
-                        }
-                        result.delete(0, result.length() - 1);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        };
-        mReceivedReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                initializeUi();
-                Toast.makeText(context, "sms received", Toast.LENGTH_SHORT).show();
-            }
-        };
-        mDeliveredReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent in) {
-                switch (getResultCode()) {
-                    case Activity.RESULT_OK:
-                        Toast.makeText(getBaseContext(), "sms delivered", Toast.LENGTH_SHORT).show();
-                        break;
-                    default:
-                        Toast.makeText(getBaseContext(), "sms failed to deliver", Toast.LENGTH_SHORT).show();
-                        break;
-                }
-            }
-        };
-        IntentFilter filter = new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION);
-        filter.setPriority(999);
-        registerReceiver(mReceivedReceiver, filter);
-        registerReceiver(mSentReceiver, new IntentFilter(SENT_SMS_FLAG));
-        registerReceiver(mDeliveredReceiver, new IntentFilter(DELIVER_SMS_FLAG));
+    /*uninitialize everything that is initialized in onResume*/
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(mReceivedReceiver);
+        unregisterReceiver(mSentReceiver);
+        unregisterReceiver(mDeliveredReceiver);
+        mReceivedReceiver = null;
+        mSentReceiver = null;
+        mDeliveredReceiver = null;
     }
 
     /*parse sms messages in devices default sms inbox location*/
@@ -461,25 +458,13 @@ public class MainActivity extends ListActivity {
         SmsManager.getDefault().sendTextMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, response.trim(), sentIntent, deliveredIntent);
     }
 
-    /*uninitialize everything that is initialized in onResume*/
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
     /*uninitialize everything that is initialized in onStart*/
     @Override
     protected void onStop() {
         super.onStop();
-        unregisterReceiver(mReceivedReceiver);
-        unregisterReceiver(mSentReceiver);
-        unregisterReceiver(mDeliveredReceiver);
-        mReceivedReceiver = null;
-        mSentReceiver = null;
-        mDeliveredReceiver = null;
+        setListAdapter(null);
         getListView().removeAllViewsInLayout();
         getListView().setEmptyView(null);
-        setListAdapter(null);
         mContacts = null;
     }
 
@@ -487,7 +472,68 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        sTextToShare = null;
         finishAndRemoveTask();
     }
+
+    /*create broadcast receivers for an sms messages statuses.
+     * sent, received, and delivered*/
+    private void initializeBroadcastReceivers() {
+        mSentReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent in) {
+                StringBuilder result = new StringBuilder(20);
+                switch (this.getResultCode()) {
+                    case Activity.RESULT_OK:
+                        result.append("sms sent");
+                        MainActivity.this.setResult(Activity.RESULT_OK);
+                        Toast.makeText(context, String.valueOf(result), Toast.LENGTH_SHORT).show();
+                        if (sSharedText != null) {
+                            sSharedText = null;
+                            onBackPressed();
+                        }
+                        result.delete(0, result.length() - 1);
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        result.append("sms failed");
+                        MainActivity.this.setResult(Activity.RESULT_CANCELED);
+                        Toast.makeText(context, String.valueOf(result), Toast.LENGTH_SHORT).show();
+                        if (sSharedText != null) {
+                            sSharedText = null;
+                            onBackPressed();
+                        }
+                        result.delete(0, result.length() - 1);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
+        mReceivedReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                initializeUi();
+                Toast.makeText(context, "sms received", Toast.LENGTH_SHORT).show();
+            }
+        };
+        mDeliveredReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent in) {
+                switch (getResultCode()) {
+                    case Activity.RESULT_OK:
+                        Toast.makeText(getBaseContext(), "sms delivered", Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                        Toast.makeText(getBaseContext(), "sms failed to deliver", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+        };
+        IntentFilter filter = new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION);
+        filter.setPriority(998);
+        registerReceiver(mReceivedReceiver, filter);
+        registerReceiver(mSentReceiver, new IntentFilter(SENT_SMS_FLAG));
+        registerReceiver(mDeliveredReceiver, new IntentFilter(DELIVER_SMS_FLAG));
+    }
+
+
 }
