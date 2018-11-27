@@ -23,19 +23,18 @@
         android:theme="@android:style/Theme.Material.Wallpaper.NoTitleBar">
         <activity
             android:name=".MainActivity"
-            android:allowTaskReparenting="true"
-            android:autoRemoveFromRecents="true"
             android:launchMode="singleInstance"
-            android:screenOrientation="portrait"
-            android:taskAffinity="">
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
-                <data android:mimeType="text/plain" />
+                <action android:name="android.intent.action.SENDTO" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
             </intent-filter>
         </activity>
         <receiver
