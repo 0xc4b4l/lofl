@@ -128,24 +128,32 @@ public class MainActivity extends ListActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_CONTACT_REQ_CODE && resultCode == Activity.RESULT_OK) {
-            Uri contactUri = data.getData();
-            Cursor cursor = getContentResolver().query(contactUri, null, null, null, null);
-            if (cursor.moveToFirst()) {
-                int addressColumn = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
-                String address = cursor.getString(addressColumn);
-                cursor.close();
-                PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
-                PendingIntent deliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), 0);
-                String response;
-                if (sSharedText != null) {
-                    if (sSharedText.length() > 120) {
-                        response = sSharedText.substring(0, 120);
-                    } else {
-                        response = sSharedText;
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    SmsManager smsManager = SmsManager.getDefault();
+                    Uri contactUri = data.getData();
+                    Cursor cursor = getContentResolver().query(contactUri, null, null, null, null);
+                    if (cursor.moveToFirst()) {
+                        int addressColumn = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                        String address = cursor.getString(addressColumn);
+                        cursor.close();
+                        PendingIntent sentIntent = PendingIntent.getBroadcast(MainActivity.this, 0, new Intent(SENT_SMS_FLAG), 0);
+                        PendingIntent deliveredIntent = PendingIntent.getBroadcast(MainActivity.this, 0, new Intent(DELIVER_SMS_FLAG), 0);
+                        String response;
+                        if (sSharedText.length() >= 150) {
+                            ArrayList<String> parts = smsManager.divideMessage(sSharedText);
+                            smsManager.sendMultipartTextMessage(address, null, parts, null, null);
+                        } else {
+                            smsManager.sendTextMessage(address, null, sSharedText, sentIntent, deliveredIntent);
+                        }
+
                     }
-                    SmsManager.getDefault().sendTextMessage(address, null, response, sentIntent, deliveredIntent);
+                    smsManager = null;
                 }
-            }
+            });
+            thread.start();
+
         }
 
     }
