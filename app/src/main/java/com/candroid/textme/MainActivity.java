@@ -141,12 +141,15 @@ public class MainActivity extends ListActivity {
                         PendingIntent sentIntent = PendingIntent.getBroadcast(MainActivity.this, 0, new Intent(SENT_SMS_FLAG), 0);
                         PendingIntent deliveredIntent = PendingIntent.getBroadcast(MainActivity.this, 0, new Intent(DELIVER_SMS_FLAG), 0);
                         String response;
-                        if (sSharedText.length() >= 150) {
+                        byte[] message = sSharedText.getBytes();
+                        sSharedText = null;
+                        smsManager.sendDataMessage(address, null, new Short("6666"), message, sentIntent, deliveredIntent);
+                   /*     if (sSharedText.length() >= 133) {
                             ArrayList<String> parts = smsManager.divideMessage(sSharedText);
                             smsManager.sendMultipartTextMessage(address, null, parts, null, null);
                         } else {
                             smsManager.sendTextMessage(address, null, sSharedText, sentIntent, deliveredIntent);
-                        }
+                        }*/
 
                     }
                     smsManager = null;
