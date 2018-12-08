@@ -55,7 +55,7 @@ public class MainActivity extends ListActivity {
     private static final int SMS_PERMISSIONS_REQ_CODE = 101;
     private static final int READ_CONTACTS_PERMISSION_REQ_CODE = 201;
     private static final String SENT_SMS_FLAG = "SMS_SENT";
-    private static final String DELIVER_SMS_FLAG = "SMS_DELIVERED";
+    private static final String DELIVER_SMS_FLAG = "SMS DELIVERED";
     private static final int PICK_CONTACT_REQ_CODE = 1;
     private Map<String, String> mContacts;
     private BroadcastReceiver mSentReceiver, mDeliveredReceiver, mReceivedReceiver;
@@ -124,36 +124,19 @@ public class MainActivity extends ListActivity {
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_CONTACT_REQ_CODE && resultCode == Activity.RESULT_OK) {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    SmsManager smsManager = SmsManager.getDefault();
-                    Uri contactUri = data.getData();
-                    Cursor cursor = getContentResolver().query(contactUri, null, null, null, null);
-                    if (cursor.moveToFirst()) {
-                        int addressColumn = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
-                        String address = cursor.getString(addressColumn);
-                        cursor.close();
-                        PendingIntent sentIntent = PendingIntent.getBroadcast(MainActivity.this, 0, new Intent(SENT_SMS_FLAG), 0);
-                        PendingIntent deliveredIntent = PendingIntent.getBroadcast(MainActivity.this, 0, new Intent(DELIVER_SMS_FLAG), 0);
-                        if (sSharedText.length() >= 133) {
-                            ArrayList<String> parts = smsManager.divideMessage(sSharedText);
-                            smsManager.sendMultipartTextMessage(address, null, parts, null, null);
-                        } else {
-                            smsManager.sendTextMessage(address, null, sSharedText, sentIntent, deliveredIntent);
-                        }
-                    }
-                    smsManager = null;
-                }
-            });
-            thread.start();
-
+    /*send sms message as type String*/
+    private static void sendSms(String response, String destTelephoneNumber, Context context) {
+        SmsManager smsManager = SmsManager.getDefault();
+        ArrayList<PendingIntent> sentIntents = new ArrayList<>();
+        ArrayList<PendingIntent> deliveredIntent = new ArrayList<>();
+        ArrayList<String> parts = smsManager.divideMessage(response);
+        for (int i = 0; i < parts.size(); i++) {
+            sentIntents.add(PendingIntent.getBroadcast(context, 0, new Intent(SENT_SMS_FLAG), 0));
+            deliveredIntent.add(PendingIntent.getBroadcast(context, 0, new Intent(DELIVER_SMS_FLAG), 0));
         }
-
+        for (int i = 0; i < parts.size(); i++) {
+            smsManager.sendDataMessage(destTelephoneNumber, null, new Short("6666"), parts.get(i).getBytes(), sentIntents.get(i), deliveredIntent.get(i));
+        }
     }
 
     /*initialize everything that is uninitialized in onDestroy*/
@@ -287,85 +270,28 @@ public class MainActivity extends ListActivity {
     }
 
     @Override
-    protected void onListItemClick(ListView l, View v, int position, long id) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getListView().getContext(), android.R.style.Theme_Material_Dialog_Presentation);
-        EditText editText = new EditText(builder.getContext());
-        editText.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
-        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-        String selectedSms = getListAdapter().getItem(position).toString();
-        editText.setHint(getString(R.string.sms_reply_field_hint));
-        editText.setInputType(InputType.TYPE_CLASS_TEXT);
-        editText.setImeOptions(EditorInfo.IME_ACTION_SEND);
-        editText.setImeActionLabel(getString(R.string.send), EditorInfo.IME_ACTION_SEND);
-        if(editText.requestFocus()){
-            inputMethodManager.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_CONTACT_REQ_CODE && resultCode == Activity.RESULT_OK) {
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    SmsManager smsManager = SmsManager.getDefault();
+                    Uri contactUri = data.getData();
+                    Cursor cursor = getContentResolver().query(contactUri, null, null, null, null);
+                    if (cursor.moveToFirst()) {
+                        int addressColumn = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                        String address = cursor.getString(addressColumn);
+                        cursor.close();
+                        sendSms(sSharedText, address, MainActivity.this);
+                    }
+                    smsManager = null;
+                }
+            });
+            thread.start();
+
         }
-        builder.setMessage(selectedSms.substring(selectedSms.indexOf(NEW_LINE), selectedSms.length()));
-        builder.setTitle(selectedSms.substring(0, selectedSms.indexOf(NEW_LINE)));
-        editText.setAlpha(0.6f);
-        builder.setView(editText);
-        AlertDialog alertDialog = builder.create();
-        alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.send), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Editable response = editText.getText();
-                boolean emptySmsResponse = false;
-                if (response != null && !TextUtils.isEmpty(response.toString().trim())) {
-                    sendSms(response.toString(), String.valueOf(getListAdapter().getItem(position)));
-                } else {
-                    emptySmsResponse = true;
-                }
-                inputMethodManager.hideSoftInputFromWindow(editText.getWindowToken(), InputMethodManager.HIDE_IMPLICIT_ONLY);
-                MainActivity.this.getListView().requestFocus();
-                alertDialog.getWindow().clearFlags((WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE|WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE));
-                alertDialog.dismiss();
-                if (emptySmsResponse) {
-                    AlertDialog.Builder emptyResponseAlert = new AlertDialog.Builder(builder.getContext());
-                    emptyResponseAlert.setTitle(android.R.string.dialog_alert_title);
-                    emptyResponseAlert.setMessage(getString(R.string.empty_response_alert));
-                    final boolean[] canceledRetry = new boolean[1];
-                    canceledRetry[0] = false;
-                    emptyResponseAlert.setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-                    emptyResponseAlert.setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            canceledRetry[0] = true;
-                            dialog.dismiss();
-                        }
-                    });
-                    emptyResponseAlert.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialogInterface) {
-                            if (!canceledRetry[0]) {
-                                alertDialog.show();
-                            } else {
-                                canceledRetry[0] = false;
-                            }
-                        }
-                    });
-                    emptyResponseAlert.create().show();
-                }
-            }
-        });
-        if(MainActivity.this.getListView().hasFocus()){ MainActivity.this.getListView().clearFocus(); }
-        alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE|WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                boolean consumed = false;
-                if(actionId == EditorInfo.IME_ACTION_SEND){
-                    alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).callOnClick();
-                    consumed = true;
-                }
-                return consumed;
-            }
-        });
-        alertDialog.show();
+
     }
 
     /*initialize everything that is uninitialized in onPause*/
@@ -457,15 +383,89 @@ public class MainActivity extends ListActivity {
         setListAdapter(arrayAdapter);
     }
 
-    /*send sms message as type String*/
-    private void sendSms(String response, String received) {
-        SmsManager smsManager = SmsManager.getDefault();
-        PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
-        PendingIntent deliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), 0);
-        ArrayList<String> parts = smsManager.divideMessage(response);
-        for (int i = 0; i < parts.size(); i++) {
-            smsManager.sendDataMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, new Short("6666"), parts.get(i).getBytes(), sentIntent, deliveredIntent);
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getListView().getContext(), android.R.style.Theme_Material_Dialog_Presentation);
+        EditText editText = new EditText(builder.getContext());
+        editText.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
+        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        String selectedSms = getListAdapter().getItem(position).toString();
+        editText.setHint(getString(R.string.sms_reply_field_hint));
+        editText.setInputType(InputType.TYPE_CLASS_TEXT);
+        editText.setImeOptions(EditorInfo.IME_ACTION_SEND);
+        editText.setImeActionLabel(getString(R.string.send), EditorInfo.IME_ACTION_SEND);
+        if (editText.requestFocus()) {
+            inputMethodManager.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
         }
+        builder.setMessage(selectedSms.substring(selectedSms.indexOf(NEW_LINE), selectedSms.length()));
+        builder.setTitle(selectedSms.substring(0, selectedSms.indexOf(NEW_LINE)));
+        editText.setAlpha(0.6f);
+        builder.setView(editText);
+        AlertDialog alertDialog = builder.create();
+        alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.send), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Editable response = editText.getText();
+                boolean emptySmsResponse = false;
+                if (response != null && !TextUtils.isEmpty(response.toString().trim())) {
+                    String received = String.valueOf(getListAdapter().getItem(position));
+                    sendSms(response.toString(), mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), MainActivity.this);
+                } else {
+                    emptySmsResponse = true;
+                }
+                inputMethodManager.hideSoftInputFromWindow(editText.getWindowToken(), InputMethodManager.HIDE_IMPLICIT_ONLY);
+                MainActivity.this.getListView().requestFocus();
+                alertDialog.getWindow().clearFlags((WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE));
+                alertDialog.dismiss();
+                if (emptySmsResponse) {
+                    AlertDialog.Builder emptyResponseAlert = new AlertDialog.Builder(builder.getContext());
+                    emptyResponseAlert.setTitle(android.R.string.dialog_alert_title);
+                    emptyResponseAlert.setMessage(getString(R.string.empty_response_alert));
+                    final boolean[] canceledRetry = new boolean[1];
+                    canceledRetry[0] = false;
+                    emptyResponseAlert.setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+                    emptyResponseAlert.setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            canceledRetry[0] = true;
+                            dialog.dismiss();
+                        }
+                    });
+                    emptyResponseAlert.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+                            if (!canceledRetry[0]) {
+                                alertDialog.show();
+                            } else {
+                                canceledRetry[0] = false;
+                            }
+                        }
+                    });
+                    emptyResponseAlert.create().show();
+                }
+            }
+        });
+        if (MainActivity.this.getListView().hasFocus()) {
+            MainActivity.this.getListView().clearFocus();
+        }
+        alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                boolean consumed = false;
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
+                    alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).callOnClick();
+                    consumed = true;
+                }
+                return consumed;
+            }
+        });
+        alertDialog.show();
     }
 
     /*uninitialize everything that is initialized in onStart*/
@@ -522,7 +522,13 @@ public class MainActivity extends ListActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 initializeUi();
-                Toast.makeText(context, "sms received", Toast.LENGTH_SHORT).show();
+                switch (getResultCode()) {
+                    case Activity.RESULT_OK:
+                        Toast.makeText(context, "sms received", Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                        break;
+                }
             }
         };
         mDeliveredReceiver = new BroadcastReceiver() {
