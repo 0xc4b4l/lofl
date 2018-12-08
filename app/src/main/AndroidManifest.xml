@@ -41,7 +41,7 @@
             android:name=".SmsReceivedReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter android:priority="10">
+            <intent-filter android:priority="999">
                 <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
                 <data
                     android:host="*"
