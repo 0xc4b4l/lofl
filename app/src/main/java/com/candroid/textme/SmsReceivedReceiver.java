@@ -18,7 +18,7 @@ public class SmsReceivedReceiver extends BroadcastReceiver {
         long time = smsMessage[0].getTimestampMillis();
         String address = MainActivity.reverseLookupNameByPhoneNumber(smsMessage[0].getDisplayOriginatingAddress(), context.getContentResolver());
         for (int i = 0; i < smsMessage.length; i++) {
-            builder.append(smsMessage[i]);
+            builder.append(smsMessage[i].getMessageBody());
         }
         MainActivity.notify(context, intent, address, time, String.valueOf(DateUtils.getRelativeTimeSpanString(time)).concat(MainActivity.NEW_LINE).concat(builder.toString()));
     }

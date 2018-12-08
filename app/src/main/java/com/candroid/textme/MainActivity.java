@@ -140,17 +140,12 @@ public class MainActivity extends ListActivity {
                         cursor.close();
                         PendingIntent sentIntent = PendingIntent.getBroadcast(MainActivity.this, 0, new Intent(SENT_SMS_FLAG), 0);
                         PendingIntent deliveredIntent = PendingIntent.getBroadcast(MainActivity.this, 0, new Intent(DELIVER_SMS_FLAG), 0);
-                        String response;
-                        byte[] message = sSharedText.getBytes();
-                        sSharedText = null;
-                        smsManager.sendDataMessage(address, null, new Short("6666"), message, sentIntent, deliveredIntent);
-                   /*     if (sSharedText.length() >= 133) {
+                        if (sSharedText.length() >= 133) {
                             ArrayList<String> parts = smsManager.divideMessage(sSharedText);
                             smsManager.sendMultipartTextMessage(address, null, parts, null, null);
                         } else {
                             smsManager.sendTextMessage(address, null, sSharedText, sentIntent, deliveredIntent);
-                        }*/
-
+                        }
                     }
                     smsManager = null;
                 }
@@ -464,9 +459,13 @@ public class MainActivity extends ListActivity {
 
     /*send sms message as type String*/
     private void sendSms(String response, String received) {
+        SmsManager smsManager = SmsManager.getDefault();
         PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, new Intent(SENT_SMS_FLAG), 0);
         PendingIntent deliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(DELIVER_SMS_FLAG), 0);
-        SmsManager.getDefault().sendTextMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, response.trim(), sentIntent, deliveredIntent);
+        ArrayList<String> parts = smsManager.divideMessage(response);
+        for (int i = 0; i < parts.size(); i++) {
+            smsManager.sendDataMessage(mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), null, new Short("6666"), parts.get(i).getBytes(), sentIntent, deliveredIntent);
+        }
     }
 
     /*uninitialize everything that is initialized in onStart*/
