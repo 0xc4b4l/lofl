@@ -59,7 +59,7 @@ public class MainActivity extends ListActivity {
     private static final int PICK_CONTACT_REQ_CODE = 1;
     private Map<String, String> mContacts;
     private BroadcastReceiver mSentReceiver, mDeliveredReceiver, mReceivedReceiver;
-    private static String sSharedText;
+    private String mSharedText;
 
     /*reverse lookup contact name using phone number*/
     protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
@@ -237,7 +237,7 @@ public class MainActivity extends ListActivity {
         StringBuilder builder = new StringBuilder();
         if (intent.getClipData() != null && intent.getClipData().getItemCount() > 0) {
             Intent contactsIntent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
-            sSharedText = String.valueOf(parseSharedFile(intent, builder)).trim();
+            mSharedText = String.valueOf(parseSharedFile(intent, builder)).trim();
             startActivityForResult(contactsIntent, PICK_CONTACT_REQ_CODE);
         }
     }
@@ -260,7 +260,7 @@ public class MainActivity extends ListActivity {
                     text.append(NEW_LINE).append(extras.getString(Intent.EXTRA_TITLE));
                 }
                 if (text.length() > 0) {
-                    sSharedText = text.toString().trim();
+                    mSharedText = String.valueOf(text.toString().trim());
                     startActivityForResult(new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI), PICK_CONTACT_REQ_CODE);
                 } else {
                     Toast.makeText(this, "Failed to handle shared text action!", Toast.LENGTH_SHORT).show();
@@ -283,7 +283,7 @@ public class MainActivity extends ListActivity {
                         int addressColumn = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
                         String address = cursor.getString(addressColumn);
                         cursor.close();
-                        sendSms(sSharedText, address, MainActivity.this);
+                        sendSms(mSharedText, address, MainActivity.this);
                     }
                     smsManager = null;
                 }
@@ -482,6 +482,7 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mSharedText = null;
         finishAndRemoveTask();
     }
 
@@ -497,8 +498,8 @@ public class MainActivity extends ListActivity {
                         result.append("sms sent");
                         MainActivity.this.setResult(Activity.RESULT_OK);
                         Toast.makeText(context, String.valueOf(result), Toast.LENGTH_SHORT).show();
-                        if (sSharedText != null) {
-                            sSharedText = null;
+                        if (mSharedText != null) {
+                            mSharedText = null;
                             onBackPressed();
                         }
                         result.delete(0, result.length() - 1);
@@ -507,8 +508,8 @@ public class MainActivity extends ListActivity {
                         result.append("sms failed");
                         MainActivity.this.setResult(Activity.RESULT_CANCELED);
                         Toast.makeText(context, String.valueOf(result), Toast.LENGTH_SHORT).show();
-                        if (sSharedText != null) {
-                            sSharedText = null;
+                        if (mSharedText != null) {
+                            mSharedText = null;
                             onBackPressed();
                         }
                         result.delete(0, result.length() - 1);
