@@ -32,7 +32,9 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -139,6 +141,7 @@ public class MainActivity extends ListActivity {
         }
     }
 
+
     /*initialize everything that is uninitialized in onDestroy*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,7 +155,36 @@ public class MainActivity extends ListActivity {
             } else {
                 handleSharedFile(intent);
             }
+            LinearLayout linearLayout = new LinearLayout(getBaseContext());
+            linearLayout.setMinimumHeight(250);
+            linearLayout.setMinimumWidth(250);
+            linearLayout.setOrientation(LinearLayout.VERTICAL);
+            linearLayout.setBackgroundColor(00000);
+            Button button = new Button(getBaseContext());
+            button.setText("Start a New Conversation");
+            button.setMinWidth(100);
+            button.setMinHeight(100);
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    pickContact();
+                }
+            });
+            linearLayout.addView(button);
+            getListView().addHeaderView(linearLayout);
         }
+/*        LinearLayout linearLayout = new LinearLayout(this);
+        linearLayout.setMinimumWidth(1000);
+        linearLayout.setMinimumHeight(1000);
+        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+        Button button = new Button(this);
+        button.setText("New Conversation");
+        button.setMinHeight(50);
+        button.setMinWidth(50);
+        linearLayout.addView(button);
+        android.R.layout.
+        getListAdapter()..addFooterView(linearLayout);*/
+
     }
 
     @Override
@@ -393,6 +425,8 @@ public class MainActivity extends ListActivity {
     }
 
     private void updateUi(List<String> list) {
+        getListView().setEmptyView(null);
+        setListAdapter(null);
         ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, android.R.id.text1, list);
         setListAdapter(arrayAdapter);
     }
@@ -484,6 +518,8 @@ public class MainActivity extends ListActivity {
 
     public void showDialog(String address) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getListView().getContext(), android.R.style.Theme_Material_Dialog_Presentation);
+        builder.setTitle("Start New Conversation");
+        builder.setMessage(reverseLookupNameByPhoneNumber(address, this.getContentResolver()));
         EditText editText = new EditText(builder.getContext());
         editText.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
