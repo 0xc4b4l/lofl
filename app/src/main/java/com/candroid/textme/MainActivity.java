@@ -60,7 +60,7 @@ public class MainActivity extends ListActivity {
     private Map<String, String> mContacts;
     private BroadcastReceiver mSentReceiver, mDeliveredReceiver, mReceivedReceiver;
     private String mSharedText;
-
+    private static boolean sNewConvo = true;
     /*reverse lookup contact name using phone number*/
     protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
         StringBuilder name = new StringBuilder();
@@ -236,10 +236,14 @@ public class MainActivity extends ListActivity {
     private void handleSharedFile(Intent intent) {
         StringBuilder builder = new StringBuilder();
         if (intent.getClipData() != null && intent.getClipData().getItemCount() > 0) {
-            Intent contactsIntent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
             mSharedText = String.valueOf(parseSharedFile(intent, builder)).trim();
-            startActivityForResult(contactsIntent, PICK_CONTACT_REQ_CODE);
+            pickContact();
         }
+    }
+
+    private void pickContact() {
+        Intent contactsIntent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+        startActivityForResult(contactsIntent, PICK_CONTACT_REQ_CODE);
     }
 
     private void handleSharedText(Intent intent) {
@@ -272,6 +276,7 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        final StringBuilder stringBuilder = new StringBuilder();
         if (requestCode == PICK_CONTACT_REQ_CODE && resultCode == Activity.RESULT_OK) {
             Thread thread = new Thread(new Runnable() {
                 @Override
@@ -281,11 +286,20 @@ public class MainActivity extends ListActivity {
                     Cursor cursor = getContentResolver().query(contactUri, null, null, null, null);
                     if (cursor.moveToFirst()) {
                         int addressColumn = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
-                        String address = cursor.getString(addressColumn);
+                        stringBuilder.append(cursor.getString(addressColumn));
                         cursor.close();
-                        sendSms(mSharedText, address, MainActivity.this);
+                        if (mSharedText != null) {
+                            sendSms(mSharedText, stringBuilder.toString(), MainActivity.this);
+                        }
                     }
                     smsManager = null;
+                    final Runnable runnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            showDialog(stringBuilder.toString());
+                        }
+                    };
+                    runOnUiThread(runnable);
                 }
             });
             thread.start();
@@ -410,6 +424,86 @@ public class MainActivity extends ListActivity {
                 if (response != null && !TextUtils.isEmpty(response.toString().trim())) {
                     String received = String.valueOf(getListAdapter().getItem(position));
                     sendSms(response.toString(), mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), MainActivity.this);
+                } else {
+                    emptySmsResponse = true;
+                }
+                inputMethodManager.hideSoftInputFromWindow(editText.getWindowToken(), InputMethodManager.HIDE_IMPLICIT_ONLY);
+                MainActivity.this.getListView().requestFocus();
+                alertDialog.getWindow().clearFlags((WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE));
+                alertDialog.dismiss();
+                if (emptySmsResponse) {
+                    AlertDialog.Builder emptyResponseAlert = new AlertDialog.Builder(builder.getContext());
+                    emptyResponseAlert.setTitle(android.R.string.dialog_alert_title);
+                    emptyResponseAlert.setMessage(getString(R.string.empty_response_alert));
+                    final boolean[] canceledRetry = new boolean[1];
+                    canceledRetry[0] = false;
+                    emptyResponseAlert.setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+                    emptyResponseAlert.setNegativeButton(getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            canceledRetry[0] = true;
+                            dialog.dismiss();
+                        }
+                    });
+                    emptyResponseAlert.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+                            if (!canceledRetry[0]) {
+                                alertDialog.show();
+                            } else {
+                                canceledRetry[0] = false;
+                            }
+                        }
+                    });
+                    emptyResponseAlert.create().show();
+                }
+            }
+        });
+        if (MainActivity.this.getListView().hasFocus()) {
+            MainActivity.this.getListView().clearFocus();
+        }
+        alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                boolean consumed = false;
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
+                    alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).callOnClick();
+                    consumed = true;
+                }
+                return consumed;
+            }
+        });
+        alertDialog.show();
+    }
+
+    public void showDialog(String address) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getListView().getContext(), android.R.style.Theme_Material_Dialog_Presentation);
+        EditText editText = new EditText(builder.getContext());
+        editText.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
+        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        editText.setHint(getString(R.string.sms_reply_field_hint));
+        editText.setInputType(InputType.TYPE_CLASS_TEXT);
+        editText.setImeOptions(EditorInfo.IME_ACTION_SEND);
+        editText.setImeActionLabel(getString(R.string.send), EditorInfo.IME_ACTION_SEND);
+        if (editText.requestFocus()) {
+            inputMethodManager.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
+        }
+        editText.setAlpha(0.6f);
+        builder.setView(editText);
+        AlertDialog alertDialog = builder.create();
+        alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.send), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Editable response = editText.getText();
+                boolean emptySmsResponse = false;
+                if (response != null && !TextUtils.isEmpty(response.toString().trim())) {
+                    sendSms(response.toString(), address, MainActivity.this);
                 } else {
                     emptySmsResponse = true;
                 }
