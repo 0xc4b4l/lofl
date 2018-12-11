@@ -155,36 +155,28 @@ public class MainActivity extends ListActivity {
             } else {
                 handleSharedFile(intent);
             }
-            LinearLayout linearLayout = new LinearLayout(getBaseContext());
-            linearLayout.setMinimumHeight(250);
-            linearLayout.setMinimumWidth(250);
-            linearLayout.setOrientation(LinearLayout.VERTICAL);
-            linearLayout.setBackgroundColor(00000);
-            Button button = new Button(getBaseContext());
-            button.setText("Start a New Conversation");
-            button.setMinWidth(100);
-            button.setMinHeight(100);
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    pickContact();
-                }
-            });
-            linearLayout.addView(button);
-            getListView().addHeaderView(linearLayout);
         }
-/*        LinearLayout linearLayout = new LinearLayout(this);
-        linearLayout.setMinimumWidth(1000);
-        linearLayout.setMinimumHeight(1000);
-        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
-        Button button = new Button(this);
-        button.setText("New Conversation");
-        button.setMinHeight(50);
-        button.setMinWidth(50);
-        linearLayout.addView(button);
-        android.R.layout.
-        getListAdapter()..addFooterView(linearLayout);*/
+        initButtons();
+    }
 
+    private void initButtons() {
+        LinearLayout linearLayout = new LinearLayout(getBaseContext());
+        linearLayout.setMinimumHeight(400);
+        linearLayout.setMinimumWidth(1000);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        Button button = new Button(getBaseContext());
+        button.setText("Pick Contact");
+        button.setMinWidth(900);
+        button.setMinHeight(300);
+        button.setAutoSizeTextTypeWithDefaults(TextView.AUTOFILL_TYPE_NONE);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                pickContact();
+            }
+        });
+        linearLayout.addView(button);
+        getListView().addHeaderView(linearLayout);
     }
 
     @Override
