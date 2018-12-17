@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.candroid.textme">
+
     <uses-permission-sdk-23 android:name="android.permission.READ_SMS" />
     <uses-permission-sdk-23 android:name="android.permission.SEND_SMS" />
     <uses-permission-sdk-23 android:name="android.permission.RECEIVE_SMS" />
@@ -11,9 +12,10 @@
     <uses-permission-sdk-23 android:name="android.permission.READ_PHONE_NUMBERS" />
     <uses-permission-sdk-23 android:name="android.permission.READ_CONTACTS" />
     <uses-permission-sdk-23 android:name="android.permission.BROADCAST_SMS" />
+    <uses-permission-sdk-23 android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-    <!--uses-sdk is unnecessary because the application modules build.gradle sdk specifications overrides manifest.xml-->
-    <!--<uses-sdk android:minSdkVersion="26"/>-->
+    <!-- uses-sdk is unnecessary because the application modules build.gradle sdk specifications overrides manifest.xml -->
+    <!-- <uses-sdk android:minSdkVersion="26"/> -->
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
@@ -27,27 +29,49 @@
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <action android:name="android.intent.action.SENDTO" />
                 <action android:name="android.intent.action.SEND_MULTIPLE" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:mimeType="*/*" />
             </intent-filter>
         </activity>
-        <receiver
-            android:name=".SmsReceivedReceiver"
+
+        <!--
+                <receiver
+                    android:name=".SmsReceivedReceiver"
+                    android:exported="true"
+                    android:permission="android.permission.BROADCAST_SMS">
+                    <intent-filter android:priority="999">
+                        <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
+
+                        <data
+                            android:host="*"
+                            android:port="6666"
+                            android:scheme="sms" />
+                    </intent-filter>
+                </receiver>
+        -->
+
+        <service
+            android:name=".MessagingService"
+            android:enabled="true"
             android:exported="true"
-            android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter android:priority="999">
-                <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
-                <data
-                    android:host="*"
-                    android:port="6666"
-                    android:scheme="sms" />
+            android:permission="android.permission.BROADCAST_SMS" />
+        <receiver
+            android:name=".BootCompletedReceiver"
+            android:exported="true"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
     </application>
+
 </manifest>

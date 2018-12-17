@@ -157,6 +157,7 @@ public class MainActivity extends ListActivity {
             }
         }
         initButtons();
+        //startService(new Intent(getApplicationContext(), MessagingService.class));
     }
 
     private void initButtons() {
@@ -238,6 +239,7 @@ public class MainActivity extends ListActivity {
         }
         return result;
     }
+
 
     /*received implicit intent from another app while in background*/
     @Override
@@ -372,7 +374,7 @@ public class MainActivity extends ListActivity {
     /*parse sms messages in devices default sms inbox location*/
     private Object initializeUi() {
         if ((checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED)) {
-            requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS}, SMS_PERMISSIONS_REQ_CODE);
+            requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.BROADCAST_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS}, SMS_PERMISSIONS_REQ_CODE);
             return null;
         }
         if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
