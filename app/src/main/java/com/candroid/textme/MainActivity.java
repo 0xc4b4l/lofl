@@ -429,7 +429,7 @@ public class MainActivity extends ListActivity {
         EditText editText = new EditText(builder.getContext());
         editText.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-        String selectedSms = getListAdapter().getItem(position).toString();
+        String selectedSms = getListAdapter().getItem(position - 1).toString();
         editText.setHint(getString(R.string.sms_reply_field_hint));
         editText.setInputType(InputType.TYPE_CLASS_TEXT);
         editText.setImeOptions(EditorInfo.IME_ACTION_SEND);
@@ -448,7 +448,7 @@ public class MainActivity extends ListActivity {
                 Editable response = editText.getText();
                 boolean emptySmsResponse = false;
                 if (response != null && !TextUtils.isEmpty(response.toString().trim())) {
-                    String received = String.valueOf(getListAdapter().getItem(position));
+                    String received = String.valueOf(getListAdapter().getItem(position - 1));
                     sendSms(response.toString(), mContacts.getOrDefault(received.substring(0, received.indexOf(NEW_LINE)), "+1234567892"), MainActivity.this);
                 } else {
                     emptySmsResponse = true;
