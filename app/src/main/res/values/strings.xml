@@ -24,4 +24,6 @@
 
     <string name="action_share">Share</string>
     <string name="action_reply">Reply</string>
+    <string name="whisper">whisper</string>
+    <string name="yell">yell</string>
 </resources>
