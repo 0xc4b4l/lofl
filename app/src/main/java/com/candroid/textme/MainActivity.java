@@ -4,9 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -19,7 +16,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -32,11 +28,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class MainActivity extends ListActivity {
     protected static final String NEW_LINE = "\n";
@@ -45,7 +36,6 @@ public class MainActivity extends ListActivity {
     private static final int READ_CONTACTS_PERMISSION_REQ_CODE = 201;
     private static final String SENT_SMS_FLAG = "SMS_SENT";
     private static final int PICK_CONTACT_REQ_CODE = 1;
-    private Map<String, String> mContacts;
     private BroadcastReceiver mSentReceiver;
 
     /*reverse lookup contact name using phone number*/
@@ -62,28 +52,6 @@ public class MainActivity extends ListActivity {
             e.printStackTrace();
         }
         return String.valueOf(name);
-
-    }
-
-    /*create notification for received sms message*/
-    protected static void notify(Context context, Intent intent, String address, long time, String body) {
-        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-        int importance = NotificationManager.IMPORTANCE_DEFAULT;
-        NotificationChannel notificationChannel = new NotificationChannel("this", "this", importance);
-        notificationChannel.setDescription("this");
-        Notification.MessagingStyle.Message msg =
-                new Notification.MessagingStyle.Message(String.valueOf(body).trim(), time, String.valueOf(address).trim());
-        Intent clickIntent = new Intent(context, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, clickIntent, 0);
-        Notification notification = new Notification.Builder(context, "this")
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setStyle(new Notification.MessagingStyle("this")
-                        .addMessage(msg)).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_SECRET).build();
-        if (notificationManager != null) {
-            notificationManager.createNotificationChannel(notificationChannel);
-            notificationManager.notify(SmsReceivedReceiver.sId++, notification);
-        }
     }
 
     /*send sms message as type String*/
@@ -110,7 +78,7 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initializeUi();
+        requestPermissions();
     }
 
     @Override
@@ -170,10 +138,10 @@ public class MainActivity extends ListActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case SMS_PERMISSIONS_REQ_CODE:
-                initializeUi();
+                requestPermissions();
                 break;
             case READ_CONTACTS_PERMISSION_REQ_CODE:
-                initializeUi();
+                requestPermissions();
                 break;
             default:
                 break;
@@ -189,7 +157,7 @@ public class MainActivity extends ListActivity {
     }
 
     /*parse sms messages in devices default sms inbox location*/
-    private Object initializeUi() {
+    private Object requestPermissions() {
         if ((checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED)) {
             requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.BROADCAST_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS}, SMS_PERMISSIONS_REQ_CODE);
             return null;
@@ -198,33 +166,6 @@ public class MainActivity extends ListActivity {
             requestPermissions(new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE}, 201);
             return null;
         }
-        mContacts = new HashMap<String, String>(50);
-        final List<String> list = new ArrayList<>();
-        final Runnable getMessages = () -> {
-            final Set<String> replys = new HashSet<>();
-            String[] projections = new String[]{Telephony.Sms.Inbox.ADDRESS, Telephony.Sms.Inbox.DATE_SENT, Telephony.Sms.Inbox.BODY};
-            ContentResolver contentResolver = MainActivity.this.getContentResolver();
-            final Cursor cursor = contentResolver.query(Telephony.Sms.Inbox.CONTENT_URI, projections, null, null, null);
-            int inboxAddressColumn = cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.ADDRESS);
-            if (cursor != null && cursor.moveToFirst()) {
-                do {
-                    String address = cursor.getString(inboxAddressColumn);
-                    if (replys.add(address)) {
-                        String fullName = reverseLookupNameByPhoneNumber(address, contentResolver);
-                        if (mContacts == null) {
-                            mContacts = new HashMap<>();
-                        }
-                        if (fullName != null && !mContacts.containsKey(fullName)) {
-                            mContacts.put(String.valueOf(fullName), address);
-                        }
-                    }
-                } while (cursor.moveToNext());
-                cursor.close();
-                replys.clear();
-            }
-        };
-        new Thread(getMessages).start();
-        list.clear();
         pickContact();
         return null;
     }
@@ -281,13 +222,6 @@ public class MainActivity extends ListActivity {
             }
         });
         alertDialog.show();
-    }
-
-    /*uninitialize everything that is initialized in onStart*/
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mContacts = null;
     }
 
     /*uninitialize everything that is initialized in onCreate*/
