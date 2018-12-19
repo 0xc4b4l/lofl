@@ -29,41 +29,22 @@
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <action android:name="android.intent.action.SENDTO" />
-                <action android:name="android.intent.action.SEND_MULTIPLE" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="*/*" />
-            </intent-filter>
         </activity>
-
-        <!--
-                <receiver
-                    android:name=".SmsReceivedReceiver"
-                    android:exported="true"
-                    android:permission="android.permission.BROADCAST_SMS">
-                    <intent-filter android:priority="999">
-                        <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
-
-                        <data
-                            android:host="*"
-                            android:port="6666"
-                            android:scheme="sms" />
-                    </intent-filter>
-                </receiver>
-        -->
 
         <service
             android:name=".MessagingService"
             android:enabled="true"
             android:exported="false"
+            android:process=":messagingService"
             android:permission="android.permission.BROADCAST_SMS" />
+
+        <service
+            android:name=".NotificationService"
+            android:exported="false"
+            android:process=":notificationService" />
+
         <receiver
             android:name=".BootCompletedReceiver"
             android:exported="true"
@@ -72,6 +53,7 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
     </application>
 
 </manifest>

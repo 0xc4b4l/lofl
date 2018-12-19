@@ -8,9 +8,7 @@ public class BootCompletedReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        // TODO: This method is called when the BroadcastReceiver is receiving
-        // an Intent broadcast.
-        context.startForegroundService(new Intent(context, MessagingService.class));
-
+        intent.setClass(context, MessagingService.class);
+        context.startForegroundService(intent);
     }
 }
