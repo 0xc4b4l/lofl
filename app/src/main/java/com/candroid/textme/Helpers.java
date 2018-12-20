@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import static android.content.Context.INPUT_METHOD_SERVICE;
 
 public class Helpers {
-    private static int sId = 666;
+    private static int sId = -1;
 
     protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
         StringBuilder name = new StringBuilder(666);
@@ -47,22 +47,17 @@ public class Helpers {
 
     protected static void notify(Context context, Intent intent, String address, long time, String body) {
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-        int importance = NotificationManager.IMPORTANCE_DEFAULT;
-        NotificationChannel notificationChannel = new NotificationChannel("666", "666", importance);
-        notificationChannel.setDescription("this");
+        createPrimaryNotificationChannel(context, notificationManager);
         Notification.MessagingStyle.Message msg =
                 new Notification.MessagingStyle.Message(String.valueOf(body).trim(), time, String.valueOf(address).trim());
         Intent clickIntent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, clickIntent, 0);
-        Notification notification = new Notification.Builder(context, "666")
+        Notification notification = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setStyle(new Notification.MessagingStyle("this")
-                        .addMessage(msg)).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_SECRET).build();
-        if (notificationManager != null) {
-            notificationManager.createNotificationChannel(notificationChannel);
-            notificationManager.notify(sId++, notification);
-        }
+                        .addMessage(msg)).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_SECRET).build();
+        notificationManager.notify(sId++, notification);
     }
 
     /*send sms message as type String*/
@@ -70,7 +65,7 @@ public class Helpers {
         SmsManager smsManager = SmsManager.getDefault();
         ArrayList<PendingIntent> sentIntents = new ArrayList<>();
         ArrayList<String> parts = smsManager.divideMessage(response);
-        for (String string : parts) {
+        for (int i = 0; i < parts.size(); i++) {
             sentIntents.add(PendingIntent.getBroadcast(context, 0, new Intent(Constants.SENT_SMS_FLAG), 0));
         }
         if (isWhisper) {
@@ -90,14 +85,28 @@ public class Helpers {
         activity.startActivityForResult(contactsIntent, Constants.PICK_CONTACT_REQ_CODE);
     }
 
+    protected static void createPrimaryNotificationChannel(Context context, NotificationManager notificationManager) {
+        notificationManager = context.getSystemService(NotificationManager.class);
+        NotificationChannel notificationChannel = new NotificationChannel(Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_DEFAULT);
+        notificationManager.createNotificationChannel(notificationChannel);
+    }
+
     protected static Notification createPersistentServiceNotification(Context context) {
-        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-        NotificationChannel notificationChannel = new NotificationChannel("persistent", "persistent", NotificationManager.IMPORTANCE_DEFAULT);
-        Notification.Builder builder = new Notification.Builder(context);
-        builder.setContentTitle("textme");
-        builder.setContentText("textme");
-        builder.setSmallIcon(android.R.mipmap.sym_def_app_icon);
+        createPersistentForegroundNotificationChannel(context);
+        Intent intent = new Intent(context, MainActivity.class);
+        Notification.Builder builder = new Notification.Builder(context, Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+        builder.setContentIntent(pendingIntent);
+        builder.setSmallIcon(R.mipmap.ic_launcher_round);
+        builder.setContentTitle("listening for whispers");
+        builder.setContentText("press to whisper");
         return builder.build();
+    }
+
+    private static void createPersistentForegroundNotificationChannel(Context context) {
+        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+        NotificationChannel notificationChannel = new NotificationChannel(Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_DEFAULT);
+        notificationManager.createNotificationChannel(notificationChannel);
     }
 
     protected static AlertDialog createDialog(String address, Context context) {
@@ -120,7 +129,7 @@ public class Helpers {
         alertDialog.setButton(DialogInterface.BUTTON_NEUTRAL, context.getString(R.string.yell), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int i) {
-                respond(response, editText, address, context);
+                respond(response, editText, address, context, false);
                 dialog.dismiss();
             }
         });
@@ -128,7 +137,7 @@ public class Helpers {
         alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, context.getString(R.string.whisper), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                respond(response, editText, address, context);
+                respond(response, editText, address, context, true);
                 dialog.dismiss();
             }
         });
@@ -147,11 +156,11 @@ public class Helpers {
         return alertDialog;
     }
 
-    private static void respond(StringBuilder response, EditText editText, String address, Context context) {
+    private static void respond(StringBuilder response, EditText editText, String address, Context context, boolean isWhisper) {
         response.append(editText.getText().toString().trim());
         if (TextUtils.isEmpty(response)) {
             response.append("666");
         }
-        Helpers.sendSms(response.toString(), address, context, false);
+        Helpers.sendSms(response.toString(), address, context, isWhisper);
     }
 }

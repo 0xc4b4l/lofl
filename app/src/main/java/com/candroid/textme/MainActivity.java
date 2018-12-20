@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.telephony.SmsManager;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
@@ -32,11 +33,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        final StringBuilder stringBuilder = new StringBuilder(666);
+        final StringBuilder stringBuilder = new StringBuilder();
         if (requestCode == Constants.PICK_CONTACT_REQ_CODE && resultCode == Activity.RESULT_OK) {
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    SmsManager smsManager = SmsManager.getDefault();
                     Uri contactUri = data.getData();
                     Cursor cursor = getContentResolver().query(contactUri, null, null, null, null);
                     if (cursor.moveToFirst()) {
@@ -44,6 +46,7 @@ public class MainActivity extends Activity {
                         stringBuilder.append(cursor.getString(addressColumn));
                         cursor.close();
                     }
+                    smsManager = null;
                     final Runnable runnable = new Runnable() {
                         @Override
                         public void run() {
@@ -59,12 +62,14 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*initialize everything that is uninitialized in onPause*/
     @Override
     protected void onResume() {
         super.onResume();
         initializeBroadcastReceivers();
     }
 
+    // TODO: 10/28/18 rationales for permissions
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -80,6 +85,7 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*uninitialize everything that is initialized in onResume*/
     @Override
     protected void onPause() {
         super.onPause();
@@ -87,6 +93,7 @@ public class MainActivity extends Activity {
         mSentReceiver = null;
     }
 
+    /*parse sms messages in devices default sms inbox location*/
     private Object requestPermissions() {
         if ((checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED)) {
             requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.BROADCAST_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS}, Constants.SMS_PERMISSIONS_REQ_CODE);

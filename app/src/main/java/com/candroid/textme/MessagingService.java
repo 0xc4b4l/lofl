@@ -15,7 +15,7 @@ public class MessagingService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        startForeground(666, Helpers.createPersistentServiceNotification(this));
+        startForeground(Constants.FOREGROUND_NOTIFICATION_ID, Helpers.createPersistentServiceNotification(this));
         sIsRunning = true;
         smsReceivedReceiver = new SmsReceivedReceiver();
         IntentFilter smsFilter = new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION);
