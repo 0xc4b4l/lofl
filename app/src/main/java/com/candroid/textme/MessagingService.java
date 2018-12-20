@@ -1,20 +1,25 @@
 package com.candroid.textme;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Telephony;
 
 public class MessagingService extends Service {
     protected static boolean sIsRunning = false;
     private SmsReceivedReceiver smsReceivedReceiver;
+    private BroadcastReceiver sendReceiver;
 
     public MessagingService() {
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public void onCreate() {
+        super.onCreate();
         startForeground(Constants.FOREGROUND_NOTIFICATION_ID, Helpers.createPersistentServiceNotification(this));
         sIsRunning = true;
         smsReceivedReceiver = new SmsReceivedReceiver();
@@ -23,7 +28,19 @@ public class MessagingService extends Service {
         smsFilter.addDataAuthority("localhost", "6666");
         smsFilter.addDataScheme("sms");
         registerReceiver(smsReceivedReceiver, smsFilter);
-        return super.onStartCommand(intent, flags, startId);
+        sendReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Bundle bundle = intent.getExtras();
+                String address = bundle.getString(Constants.ADDRESS);
+                String response = bundle.getString(Constants.RESPONSE);
+                Boolean isWhisper = bundle.getBoolean(Constants.IS_WHISPER, true);
+                Helpers.sendSms(response, address, context, isWhisper);
+            }
+        };
+        IntentFilter sendFilter = new IntentFilter();
+        sendFilter.addAction(Constants.SEND_ACTION);
+        registerReceiver(sendReceiver, sendFilter);
     }
 
     @Override
@@ -31,7 +48,9 @@ public class MessagingService extends Service {
         super.onDestroy();
         sIsRunning = false;
         unregisterReceiver(smsReceivedReceiver);
+        unregisterReceiver(sendReceiver);
         stopForeground(true);
+        stopSelf();
     }
 
     @Override

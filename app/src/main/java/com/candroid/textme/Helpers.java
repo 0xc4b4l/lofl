@@ -2,7 +2,6 @@ package com.candroid.textme;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -61,25 +60,24 @@ public class Helpers {
         notificationManager.notify(sId++, notification);
     }
 
+
     /*send sms message as type String*/
-    protected static void sendSms(String response, String destTelephoneNumber, IntentService context, boolean isWhisper) {
+    protected static void sendSms(String response, String destTelephoneNumber, Context context, boolean isWhisper) {
         SmsManager smsManager = SmsManager.getDefault();
-        ArrayList<PendingIntent> sentIntents = new ArrayList<>();
+        /*ArrayList<PendingIntent> sentIntents = new ArrayList<>();*/
         ArrayList<String> parts = smsManager.divideMessage(response);
-        for (int i = 0; i < parts.size(); i++) {
+       /* for (int i = 0; i < parts.size(); i++) {
             sentIntents.add(PendingIntent.getBroadcast(context, 0, new Intent(Constants.SENT_SMS_FLAG), 0));
-        }
+        }*/
         if (isWhisper) {
             for (int i = 0; i < parts.size(); i++) {
-                smsManager.sendDataMessage(destTelephoneNumber, null, new Short("6666"), parts.get(i).getBytes(), sentIntents.get(i), null);
+                smsManager.sendDataMessage(destTelephoneNumber, null, new Short("6666"), parts.get(i).getBytes(), null, null);
             }
         } else {
-            smsManager.sendMultipartTextMessage(destTelephoneNumber, null, parts, sentIntents, null);
+            smsManager.sendMultipartTextMessage(destTelephoneNumber, null, parts, null, null);
         }
         smsManager = null;
-        sentIntents = null;
         parts = null;
-        context.stopForeground(true);
     }
 
     protected static void pickContact(Activity activity) {
@@ -105,27 +103,9 @@ public class Helpers {
         return builder.build();
     }
 
-    protected static Notification createPersistentOutgoingServiceNotification(Context context) {
-        createPersistentForegroundNotificationChannel(context);
-        Intent intent = new Intent(context, MainActivity.class);
-        Notification.Builder builder = new Notification.Builder(context, Constants.FOREGROUND_SENDING_NOTIFICATION_CHANNEL_ID);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
-        builder.setContentIntent(pendingIntent);
-        builder.setSmallIcon(R.mipmap.ic_launcher_round);
-        builder.setContentTitle("whispering...");
-        builder.setProgress(100, 1, true);
-        return builder.build();
-    }
-
     private static void createPersistentForegroundNotificationChannel(Context context) {
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         NotificationChannel notificationChannel = new NotificationChannel(Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_DEFAULT);
-        notificationManager.createNotificationChannel(notificationChannel);
-    }
-
-    private static void createPersistentForegroundOutgoingNotificationChannel(Context context) {
-        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-        NotificationChannel notificationChannel = new NotificationChannel(Constants.FOREGROUND_SENDING_NOTIFICATION_CHANNEL_ID, Constants.FOREGROUND_SENDING_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_DEFAULT);
         notificationManager.createNotificationChannel(notificationChannel);
     }
 
@@ -181,11 +161,11 @@ public class Helpers {
         if (TextUtils.isEmpty(response)) {
             response.append("666");
         }
-        Intent intent = new Intent(context, OutgoingMessageService.class);
+        Intent intent = new Intent(Constants.SEND_ACTION);
         intent.putExtra(Constants.ADDRESS, address);
         intent.putExtra(Constants.RESPONSE, response.toString());
         intent.putExtra(Constants.IS_WHISPER, isWhisper);
-        context.startForegroundService(intent);
-        context.finishAndRemoveTask();
+        context.sendBroadcast(intent);
+        context.finish();
     }
 }

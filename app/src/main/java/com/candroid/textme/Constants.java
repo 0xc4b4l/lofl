@@ -15,4 +15,5 @@ class Constants {
     public static final String IS_WHISPER = "IS_WHISPER";
     public static final int FOREGROUND_SENDING_NOTIFICATION_ID = 999;
     public static final String FOREGROUND_SENDING_NOTIFICATION_CHANNEL_ID = "999";
+    public static final String SEND_ACTION = "SEND_ACTION";
 }
