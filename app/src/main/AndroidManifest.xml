@@ -45,6 +45,11 @@
             android:exported="false"
             android:process=":notificationService" />
 
+        <service
+            android:name=".OutgoingMessageService"
+            android:exported="false"
+            android:process=":outgoingMessagingService" />
+
         <receiver
             android:name=".BootCompletedReceiver"
             android:exported="true"

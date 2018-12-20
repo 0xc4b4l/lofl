@@ -127,7 +127,7 @@ public class MainActivity extends Activity {
                         MainActivity.this.setResult(Activity.RESULT_OK);
                         Toast.makeText(context, String.valueOf(result), Toast.LENGTH_SHORT).show();
                         result.delete(0, result.length() - 1);
-                        onBackPressed();
+                        //onBackPressed();
                         break;
                     case Activity.RESULT_CANCELED:
                         result.append("sms failed");

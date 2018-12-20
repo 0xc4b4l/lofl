@@ -10,4 +10,9 @@ class Constants {
     public static final int FOREGROUND_NOTIFICATION_ID = 666;
     public static final String FOREGROUND_NOTIFICATION_CHANNEL_ID = "666";
     public static final String PRIMARY_NOTIFICATION_GROUP = "this";
+    public static final String RESPONSE = "RESPONSE";
+    public static final String ADDRESS = "ADDRESS";
+    public static final String IS_WHISPER = "IS_WHISPER";
+    public static final int FOREGROUND_SENDING_NOTIFICATION_ID = 999;
+    public static final String FOREGROUND_SENDING_NOTIFICATION_CHANNEL_ID = "999";
 }

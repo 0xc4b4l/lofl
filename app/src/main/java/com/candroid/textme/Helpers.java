@@ -2,6 +2,7 @@ package com.candroid.textme;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -61,7 +62,7 @@ public class Helpers {
     }
 
     /*send sms message as type String*/
-    protected static void sendSms(String response, String destTelephoneNumber, Context context, boolean isWhisper) {
+    protected static void sendSms(String response, String destTelephoneNumber, IntentService context, boolean isWhisper) {
         SmsManager smsManager = SmsManager.getDefault();
         ArrayList<PendingIntent> sentIntents = new ArrayList<>();
         ArrayList<String> parts = smsManager.divideMessage(response);
@@ -78,6 +79,7 @@ public class Helpers {
         smsManager = null;
         sentIntents = null;
         parts = null;
+        context.stopForeground(true);
     }
 
     protected static void pickContact(Activity activity) {
@@ -103,13 +105,31 @@ public class Helpers {
         return builder.build();
     }
 
+    protected static Notification createPersistentOutgoingServiceNotification(Context context) {
+        createPersistentForegroundNotificationChannel(context);
+        Intent intent = new Intent(context, MainActivity.class);
+        Notification.Builder builder = new Notification.Builder(context, Constants.FOREGROUND_SENDING_NOTIFICATION_CHANNEL_ID);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+        builder.setContentIntent(pendingIntent);
+        builder.setSmallIcon(R.mipmap.ic_launcher_round);
+        builder.setContentTitle("whispering...");
+        builder.setProgress(100, 1, true);
+        return builder.build();
+    }
+
     private static void createPersistentForegroundNotificationChannel(Context context) {
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         NotificationChannel notificationChannel = new NotificationChannel(Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_DEFAULT);
         notificationManager.createNotificationChannel(notificationChannel);
     }
 
-    protected static AlertDialog createDialog(String address, Context context) {
+    private static void createPersistentForegroundOutgoingNotificationChannel(Context context) {
+        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+        NotificationChannel notificationChannel = new NotificationChannel(Constants.FOREGROUND_SENDING_NOTIFICATION_CHANNEL_ID, Constants.FOREGROUND_SENDING_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_DEFAULT);
+        notificationManager.createNotificationChannel(notificationChannel);
+    }
+
+    protected static AlertDialog createDialog(String address, Activity context) {
         final StringBuilder response = new StringBuilder(666);
         AlertDialog.Builder builder = new AlertDialog.Builder(context, android.R.style.Theme_Material_Dialog_Presentation);
         builder.setTitle("New Message");
@@ -156,11 +176,16 @@ public class Helpers {
         return alertDialog;
     }
 
-    private static void respond(StringBuilder response, EditText editText, String address, Context context, boolean isWhisper) {
+    private static void respond(StringBuilder response, EditText editText, String address, Activity context, boolean isWhisper) {
         response.append(editText.getText().toString().trim());
         if (TextUtils.isEmpty(response)) {
             response.append("666");
         }
-        Helpers.sendSms(response.toString(), address, context, isWhisper);
+        Intent intent = new Intent(context, OutgoingMessageService.class);
+        intent.putExtra(Constants.ADDRESS, address);
+        intent.putExtra(Constants.RESPONSE, response.toString());
+        intent.putExtra(Constants.IS_WHISPER, isWhisper);
+        context.startForegroundService(intent);
+        context.finishAndRemoveTask();
     }
 }
