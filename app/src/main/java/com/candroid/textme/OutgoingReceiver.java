@@ -12,6 +12,7 @@ public class OutgoingReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         StringBuilder reply = new StringBuilder();
         StringBuilder address = new StringBuilder();
+        int id = -1;
         boolean isWhisper = true;
         if (intent.getAction().equals(Constants.SEND_ACTION)) {
             Bundle bundle = intent.getExtras();
@@ -24,12 +25,16 @@ public class OutgoingReceiver extends BroadcastReceiver {
                 Log.d("OutgoingReceiver", "remote input received!");
                 if (remoteInput.getString(Constants.REPLY_KEY) != null) {
                     reply.append(remoteInput.getString(Constants.REPLY_KEY));
-                    address.append(intent.getStringExtra(Constants.ADDRESS));
+                    String name = intent.getStringExtra(Constants.ADDRESS);
+                    address.append(Helpers.lookupPhoneNumberByName(context, name));
+                    id = intent.getIntExtra(Constants.NOTIFICATION_ID_KEY, -1);
                     Log.d("OutgoingReceiver", "remote input received!".concat(Constants.NEW_LINE).concat(String.valueOf(reply).concat(Constants.NEW_LINE).concat(String.valueOf(address))));
-
                 }
             }
         }
         Helpers.sendSms(String.valueOf(reply), String.valueOf(address), context, isWhisper);
+        if (id != -1) {
+            Helpers.removeNotification(context, id);
+        }
     }
 }

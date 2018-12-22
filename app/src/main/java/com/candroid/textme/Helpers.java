@@ -52,6 +52,24 @@ public class Helpers {
         }
     }*/
 
+    protected static void removeNotification(Context context, int id) {
+        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+        notificationManager.cancel(id);
+    }
+
+    protected static String lookupPhoneNumberByName(Context context, String name) {
+        String address = "";
+        String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ? ";
+        String[] selectionArgs = new String[]{"%".concat(name).concat("%")};
+        String[] projection = new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER};
+        Cursor cursor = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, projection, selection, selectionArgs, null);
+        if (cursor.moveToFirst()) {
+            address = cursor.getString(0);
+        }
+        cursor.close();
+        return address;
+    }
+
     protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
         StringBuilder name = new StringBuilder(666);
         Uri lookupUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(address));
@@ -65,7 +83,6 @@ public class Helpers {
             e.printStackTrace();
         }
         return String.valueOf(name);
-
     }
 
     protected static void notify(Context context, Intent intent, String address, long time, String body) {
@@ -141,6 +158,7 @@ public class Helpers {
         Intent intent = new Intent();
         intent.setAction(Constants.REPLY_ACTION);
         intent.putExtra(Constants.ADDRESS, address);
+        intent.putExtra(Constants.NOTIFICATION_ID_KEY, sId);
         return intent;
     }
 
