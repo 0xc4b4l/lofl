@@ -106,6 +106,7 @@ public class MainActivity extends Activity {
         if (!MessagingService.sIsRunning) {
             startForegroundService(new Intent(this, MessagingService.class));
         }
+        //Helpers.buildContacts(this);
         Helpers.pickContact(this);
         return null;
     }

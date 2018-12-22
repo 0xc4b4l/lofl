@@ -6,6 +6,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.RemoteInput;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -24,11 +25,32 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
 
 public class Helpers {
     private static int sId = -1;
+    protected static String sAddress;
+    protected static HashMap<String, String> sContacts;
+
+/*    protected static void buildContacts(Context context){
+        if(sContacts == null){
+            sContacts = new HashMap<>();
+            String[] projection = new String[]{
+                    Contacts.People.NAME, Contacts.People.NUMBER
+            };
+            Cursor cursor = context.getContentResolver().query(Contacts.People.CONTENT_URI, projection, null, null, Contacts.People.NAME + " ASC");
+            int nameCol = cursor.getColumnIndexOrThrow(Contacts.People.DISPLAY_NAME);
+            int numCol = cursor.getColumnIndexOrThrow(Contacts.People.NUMBER);
+            int contacts = cursor.getCount();
+            do{
+                String name = cursor.getString(nameCol);
+                String address = cursor.getString(numCol);
+                sContacts.put(name, address);
+            }while (cursor.moveToNext());
+        }
+    }*/
 
     protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
         StringBuilder name = new StringBuilder(666);
@@ -43,9 +65,13 @@ public class Helpers {
             e.printStackTrace();
         }
         return String.valueOf(name);
+
     }
 
     protected static void notify(Context context, Intent intent, String address, long time, String body) {
+        sId++;
+        sAddress = address;
+        Notification.Action replyAction = createReplyAction(context, address);
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         createPrimaryNotificationChannel(context, notificationManager);
         Notification.MessagingStyle.Message msg =
@@ -54,10 +80,10 @@ public class Helpers {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, clickIntent, 0);
         Notification notification = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.drawable.ic_launcher_foreground).addAction(replyAction)
                 .setStyle(new Notification.MessagingStyle("this")
-                        .addMessage(msg)).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_SECRET).build();
-        notificationManager.notify(sId++, notification);
+                        .addMessage(msg)).setTimeoutAfter(Constants.TIMEOUT_AFTER).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_SECRET).build();
+        notificationManager.notify(sId, notification);
     }
 
 
@@ -89,6 +115,33 @@ public class Helpers {
         notificationManager = context.getSystemService(NotificationManager.class);
         NotificationChannel notificationChannel = new NotificationChannel(Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_DEFAULT);
         notificationManager.createNotificationChannel(notificationChannel);
+    }
+
+    private static Notification.Action createReplyAction(Context context, String address) {
+        RemoteInput remoteInput = createRemoteInput();
+        PendingIntent pendingIntent = createReplyPendingIntent(context, address);
+        Notification.Action.Builder builder = new Notification.Action.Builder(R.mipmap.ic_launcher_round, "WHISPER", pendingIntent);
+        builder.addRemoteInput(remoteInput);
+        return builder.build();
+    }
+
+    private static RemoteInput createRemoteInput() {
+        RemoteInput.Builder builder = new RemoteInput.Builder(Constants.REPLY_KEY);
+        builder.setLabel("REPLY");
+        return builder.build();
+    }
+
+    private static PendingIntent createReplyPendingIntent(Context context, String address) {
+        Intent replyIntent = createReplyIntent(context, sId, sId, address);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        return pendingIntent;
+    }
+
+    private static Intent createReplyIntent(Context context, int id, int messageId, String address) {
+        Intent intent = new Intent();
+        intent.setAction(Constants.REPLY_ACTION);
+        intent.putExtra(Constants.ADDRESS, address);
+        return intent;
     }
 
     protected static Notification createPersistentServiceNotification(Context context) {
