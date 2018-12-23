@@ -67,21 +67,21 @@ public class Helpers {
         return String.valueOf(name);
     }
 
-    protected static void notify(Context context, Intent intent, String address, long time, String body) {
+    protected static void notify(Context context, Intent intent, String address, String body) {
         sId++;
         sAddress = address;
         Notification.Action replyAction = createReplyAction(context, address);
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         createPrimaryNotificationChannel(context, notificationManager);
         Notification.MessagingStyle.Message msg =
-                new Notification.MessagingStyle.Message(String.valueOf(body).trim(), time, String.valueOf(address).trim());
-        Intent clickIntent = new Intent(context, MainActivity.class);
-        //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, clickIntent, 0);
+                new Notification.MessagingStyle.Message(String.valueOf(body).trim(), System.currentTimeMillis(), String.valueOf(address).trim());
+        intent.setClass(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
         Notification notification = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground).addAction(replyAction).setPriority(Notification.PRIORITY_MAX)
+                .setSmallIcon(R.drawable.ic_launcher_foreground).addAction(replyAction).setPriority(Notification.PRIORITY_HIGH)
                 .setStyle(new Notification.MessagingStyle("this")
-                        .addMessage(msg)).setTimeoutAfter(Constants.TIMEOUT_AFTER).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_SECRET).build();
+                        .addMessage(msg)).setDefaults(Notification.DEFAULT_ALL).setTimeoutAfter(Constants.TIMEOUT_AFTER).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PUBLIC).build();
         notificationManager.notify(sId, notification);
     }
 
@@ -111,8 +111,8 @@ public class Helpers {
 
     protected static void createPrimaryNotificationChannel(Context context, NotificationManager notificationManager) {
         notificationManager = context.getSystemService(NotificationManager.class);
-        NotificationChannel notificationChannel = new NotificationChannel(Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_DEFAULT);
-        notificationChannel.setImportance(NotificationManager.IMPORTANCE_HIGH);
+        NotificationChannel notificationChannel = new NotificationChannel(Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH);
+        notificationChannel.setShowBadge(true);
         notificationManager.createNotificationChannel(notificationChannel);
     }
 

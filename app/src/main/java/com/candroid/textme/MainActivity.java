@@ -51,7 +51,7 @@ public class MainActivity extends Activity {
                         public void run() {
                             String address = Helpers.reverseLookupNameByPhoneNumber(stringBuilder.toString(), MainActivity.this.getContentResolver());
                             finishActivity(Constants.PICK_CONTACT_REQ_CODE);
-                            Helpers.notify(MainActivity.this, null, address, 1, "create a whisper");
+                            Helpers.notify(MainActivity.this, data, address, "create a whisper");
                             //Helpers.createDialog(stringBuilder.toString(), MainActivity.this).show();
                         }
                     };
@@ -69,8 +69,7 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         initializeBroadcastReceivers();
-        finishActivity(Constants.PICK_CONTACT_REQ_CODE);
-        Helpers.pickContact(this);
+        requestPermissions();
     }
 
     // TODO: 10/28/18 rationales for permissions
@@ -110,7 +109,8 @@ public class MainActivity extends Activity {
         if (!MessagingService.sIsRunning) {
             startForegroundService(new Intent(this, MessagingService.class));
         }
-        //Helpers.buildContacts(this);
+        finishActivity(Constants.PICK_CONTACT_REQ_CODE);
+        Helpers.pickContact(this);
         return null;
     }
 
