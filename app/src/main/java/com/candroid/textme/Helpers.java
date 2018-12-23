@@ -10,6 +10,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.telephony.SmsManager;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 
 public class Helpers {
     private static int sId = -1;
+    private static long[] sVibration = new long[]{1000L, 500L, 1000L, 100L, 300L, 300L, 300L};
 
     protected static void removeNotification(Context context, int id) {
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
@@ -38,7 +40,7 @@ public class Helpers {
     }
 
     protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
-        StringBuilder name = new StringBuilder(666);
+        StringBuilder name = new StringBuilder();
         Uri lookupUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(address));
         try (Cursor cursor = contentResolver.query(lookupUri, new String[]{ContactsContract.Data.DISPLAY_NAME_PRIMARY, ContactsContract.Data.PHOTO_THUMBNAIL_URI}, null, null, null)) {
             if (cursor != null && cursor.moveToFirst()) {
@@ -65,7 +67,7 @@ public class Helpers {
         Notification notification = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground).addAction(replyAction).setPriority(Notification.PRIORITY_HIGH)
                 .setStyle(new Notification.MessagingStyle("this")
-                        .addMessage(msg)).setDefaults(Notification.DEFAULT_ALL).setTimeoutAfter(Constants.TIMEOUT_AFTER).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PUBLIC).build();
+                        .addMessage(msg)).setColor(context.getResources().getColor(android.R.color.holo_green_light)).setColorized(true).setTimeoutAfter(Constants.TIMEOUT_AFTER).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PUBLIC).build();
         notificationManager.notify(sId, notification);
     }
 
@@ -96,6 +98,11 @@ public class Helpers {
     protected static void createPrimaryNotificationChannel(Context context, NotificationManager notificationManager) {
         NotificationChannel notificationChannel = new NotificationChannel(Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH);
         notificationChannel.setShowBadge(true);
+        notificationChannel.enableVibration(true);
+        notificationChannel.enableLights(true);
+        notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+        notificationChannel.setVibrationPattern(sVibration);
+        notificationChannel.setLightColor(Color.RED);
         notificationManager.createNotificationChannel(notificationChannel);
     }
 

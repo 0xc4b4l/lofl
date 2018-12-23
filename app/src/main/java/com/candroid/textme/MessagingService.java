@@ -10,6 +10,7 @@ public class MessagingService extends Service {
     protected static boolean sIsRunning = false;
     private IncomingReceiver mIncomingReceiver;
     private OutgoingReceiver mOutgoingReceiver;
+
     public MessagingService() {
     }
 

@@ -7,6 +7,7 @@ import android.telephony.SmsMessage;
 
 public class NotificationService extends IntentService {
     private int mStartId;
+
     public NotificationService() {
         super("NotificationService");
     }
