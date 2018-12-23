@@ -25,7 +25,6 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        finishActivity(Constants.PICK_CONTACT_REQ_CODE);
         finish();
         super.onBackPressed();
     }
@@ -50,7 +49,10 @@ public class MainActivity extends Activity {
                     final Runnable runnable = new Runnable() {
                         @Override
                         public void run() {
-                            Helpers.createDialog(stringBuilder.toString(), MainActivity.this).show();
+                            String address = Helpers.reverseLookupNameByPhoneNumber(stringBuilder.toString(), MainActivity.this.getContentResolver());
+                            finishActivity(Constants.PICK_CONTACT_REQ_CODE);
+                            Helpers.notify(MainActivity.this, null, address, 1, "create a whisper");
+                            //Helpers.createDialog(stringBuilder.toString(), MainActivity.this).show();
                         }
                     };
                     runOnUiThread(runnable);
@@ -67,6 +69,8 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         initializeBroadcastReceivers();
+        finishActivity(Constants.PICK_CONTACT_REQ_CODE);
+        Helpers.pickContact(this);
     }
 
     // TODO: 10/28/18 rationales for permissions
@@ -107,7 +111,6 @@ public class MainActivity extends Activity {
             startForegroundService(new Intent(this, MessagingService.class));
         }
         //Helpers.buildContacts(this);
-        Helpers.pickContact(this);
         return null;
     }
 

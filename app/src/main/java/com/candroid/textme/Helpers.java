@@ -34,24 +34,6 @@ public class Helpers {
     protected static String sAddress;
     protected static HashMap<String, String> sContacts;
 
-/*    protected static void buildContacts(Context context){
-        if(sContacts == null){
-            sContacts = new HashMap<>();
-            String[] projection = new String[]{
-                    Contacts.People.NAME, Contacts.People.NUMBER
-            };
-            Cursor cursor = context.getContentResolver().query(Contacts.People.CONTENT_URI, projection, null, null, Contacts.People.NAME + " ASC");
-            int nameCol = cursor.getColumnIndexOrThrow(Contacts.People.DISPLAY_NAME);
-            int numCol = cursor.getColumnIndexOrThrow(Contacts.People.NUMBER);
-            int contacts = cursor.getCount();
-            do{
-                String name = cursor.getString(nameCol);
-                String address = cursor.getString(numCol);
-                sContacts.put(name, address);
-            }while (cursor.moveToNext());
-        }
-    }*/
-
     protected static void removeNotification(Context context, int id) {
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         notificationManager.cancel(id);
@@ -94,15 +76,14 @@ public class Helpers {
         Notification.MessagingStyle.Message msg =
                 new Notification.MessagingStyle.Message(String.valueOf(body).trim(), time, String.valueOf(address).trim());
         Intent clickIntent = new Intent(context, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, clickIntent, 0);
         Notification notification = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground).addAction(replyAction)
+                .setSmallIcon(R.drawable.ic_launcher_foreground).addAction(replyAction).setPriority(Notification.PRIORITY_MAX)
                 .setStyle(new Notification.MessagingStyle("this")
                         .addMessage(msg)).setTimeoutAfter(Constants.TIMEOUT_AFTER).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_SECRET).build();
         notificationManager.notify(sId, notification);
     }
-
 
     /*send sms message as type String*/
     protected static void sendSms(String response, String destTelephoneNumber, Context context, boolean isWhisper) {
@@ -131,13 +112,14 @@ public class Helpers {
     protected static void createPrimaryNotificationChannel(Context context, NotificationManager notificationManager) {
         notificationManager = context.getSystemService(NotificationManager.class);
         NotificationChannel notificationChannel = new NotificationChannel(Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_DEFAULT);
+        notificationChannel.setImportance(NotificationManager.IMPORTANCE_HIGH);
         notificationManager.createNotificationChannel(notificationChannel);
     }
 
     private static Notification.Action createReplyAction(Context context, String address) {
         RemoteInput remoteInput = createRemoteInput();
         PendingIntent pendingIntent = createReplyPendingIntent(context, address);
-        Notification.Action.Builder builder = new Notification.Action.Builder(R.mipmap.ic_launcher_round, "WHISPER", pendingIntent);
+        Notification.Action.Builder builder = new Notification.Action.Builder(R.drawable.ic_action_stat_reply, "WHISPER", pendingIntent);
         builder.addRemoteInput(remoteInput);
         return builder.build();
     }
