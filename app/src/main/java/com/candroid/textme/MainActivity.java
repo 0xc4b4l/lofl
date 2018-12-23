@@ -44,18 +44,12 @@ public class MainActivity extends Activity {
                         int addressColumn = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
                         stringBuilder.append(cursor.getString(addressColumn));
                         cursor.close();
+
                     }
+                    String address = Helpers.reverseLookupNameByPhoneNumber(stringBuilder.toString(), MainActivity.this.getContentResolver());
+                    finishActivity(Constants.PICK_CONTACT_REQ_CODE);
+                    Helpers.notify(MainActivity.this, data, address, "create a whisper");
                     smsManager = null;
-                    final Runnable runnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            String address = Helpers.reverseLookupNameByPhoneNumber(stringBuilder.toString(), MainActivity.this.getContentResolver());
-                            finishActivity(Constants.PICK_CONTACT_REQ_CODE);
-                            Helpers.notify(MainActivity.this, data, address, "create a whisper");
-                            //Helpers.createDialog(stringBuilder.toString(), MainActivity.this).show();
-                        }
-                    };
-                    runOnUiThread(runnable);
                 }
             });
             thread.start();
