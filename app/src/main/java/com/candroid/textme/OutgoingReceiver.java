@@ -28,7 +28,7 @@ public class OutgoingReceiver extends BroadcastReceiver {
                     String name = intent.getStringExtra(Constants.ADDRESS);
                     address.append(Helpers.lookupPhoneNumberByName(context, name));
                     id = intent.getIntExtra(Constants.NOTIFICATION_ID_KEY, -1);
-                    Log.d("OutgoingReceiver", "remote input received!".concat(Constants.NEW_LINE).concat(String.valueOf(reply).concat(Constants.NEW_LINE).concat(String.valueOf(address))));
+                    //Log.d("OutgoingReceiver", "remote input received!".concat(Constants.NEW_LINE).concat(String.valueOf(reply).concat(Constants.NEW_LINE).concat(String.valueOf(address))));
                 }
             }
         }

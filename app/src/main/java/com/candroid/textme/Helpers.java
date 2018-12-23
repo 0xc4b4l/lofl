@@ -1,7 +1,6 @@
 package com.candroid.textme;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -9,30 +8,16 @@ import android.app.PendingIntent;
 import android.app.RemoteInput;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.telephony.SmsManager;
-import android.text.InputType;
-import android.text.TextUtils;
-import android.view.KeyEvent;
-import android.view.WindowManager;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
-import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-
-import static android.content.Context.INPUT_METHOD_SERVICE;
 
 public class Helpers {
     private static int sId = -1;
-    protected static String sAddress;
-    protected static HashMap<String, String> sContacts;
 
     protected static void removeNotification(Context context, int id) {
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
@@ -69,7 +54,6 @@ public class Helpers {
 
     protected static void notify(Context context, Intent intent, String address, String body) {
         sId++;
-        sAddress = address;
         Notification.Action replyAction = createReplyAction(context, address);
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         createPrimaryNotificationChannel(context, notificationManager);
@@ -110,7 +94,6 @@ public class Helpers {
     }
 
     protected static void createPrimaryNotificationChannel(Context context, NotificationManager notificationManager) {
-        notificationManager = context.getSystemService(NotificationManager.class);
         NotificationChannel notificationChannel = new NotificationChannel(Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH);
         notificationChannel.setShowBadge(true);
         notificationManager.createNotificationChannel(notificationChannel);
@@ -160,65 +143,5 @@ public class Helpers {
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         NotificationChannel notificationChannel = new NotificationChannel(Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_DEFAULT);
         notificationManager.createNotificationChannel(notificationChannel);
-    }
-
-    protected static AlertDialog createDialog(String address, Activity context) {
-        final StringBuilder response = new StringBuilder(666);
-        AlertDialog.Builder builder = new AlertDialog.Builder(context, android.R.style.Theme_Material_Dialog_Presentation);
-        builder.setTitle("New Message");
-        builder.setMessage(Helpers.reverseLookupNameByPhoneNumber(address, context.getContentResolver()));
-        EditText editText = new EditText(builder.getContext());
-        editText.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
-        InputMethodManager inputMethodManager = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
-        editText.setHint(context.getString(R.string.sms_reply_field_hint));
-        editText.setInputType(InputType.TYPE_CLASS_TEXT);
-        editText.setImeOptions(EditorInfo.IME_ACTION_SEND);
-        editText.setImeActionLabel(context.getString(R.string.whisper), EditorInfo.IME_ACTION_SEND);
-        if (editText.requestFocus()) {
-            inputMethodManager.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
-        }
-        builder.setView(editText);
-        AlertDialog alertDialog = builder.create();
-        alertDialog.setButton(DialogInterface.BUTTON_NEUTRAL, context.getString(R.string.yell), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int i) {
-                respond(response, editText, address, context, false);
-                dialog.dismiss();
-            }
-        });
-
-        alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, context.getString(R.string.whisper), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                respond(response, editText, address, context, true);
-                dialog.dismiss();
-            }
-        });
-        alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                boolean consumed = false;
-                if (actionId == EditorInfo.IME_ACTION_SEND) {
-                    alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).callOnClick();
-                    consumed = true;
-                }
-                return consumed;
-            }
-        });
-        return alertDialog;
-    }
-
-    private static void respond(StringBuilder response, EditText editText, String address, Activity context, boolean isWhisper) {
-        response.append(editText.getText().toString().trim());
-        if (TextUtils.isEmpty(response)) {
-            response.append("666");
-        }
-        Intent intent = new Intent(Constants.SEND_ACTION);
-        intent.putExtra(Constants.ADDRESS, address);
-        intent.putExtra(Constants.RESPONSE, response.toString());
-        intent.putExtra(Constants.IS_WHISPER, isWhisper);
-        context.sendBroadcast(intent);
-        context.finish();
     }
 }
