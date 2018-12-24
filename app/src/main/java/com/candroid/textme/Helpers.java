@@ -56,7 +56,7 @@ public class Helpers {
 
     protected static void notify(Context context, Intent intent, String address, String body) {
         sId++;
-        Notification.Action replyAction = createReplyAction(context, address);
+        Notification.Action whisperAction = createWhisperAction(context, address);
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         createPrimaryNotificationChannel(context, notificationManager);
         Notification.MessagingStyle.Message msg =
@@ -65,7 +65,7 @@ public class Helpers {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
         Notification notification = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground).addAction(replyAction).setPriority(Notification.PRIORITY_HIGH)
+                .setSmallIcon(R.drawable.ic_launcher_foreground).addAction(whisperAction).setPriority(Notification.PRIORITY_HIGH)
                 .setStyle(new Notification.MessagingStyle("this")
                         .addMessage(msg)).setColor(context.getResources().getColor(android.R.color.holo_green_light)).setColorized(true).setTimeoutAfter(Constants.TIMEOUT_AFTER).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PUBLIC).build();
         notificationManager.notify(sId, notification);
@@ -100,13 +100,15 @@ public class Helpers {
         notificationChannel.setShowBadge(true);
         notificationChannel.enableVibration(true);
         notificationChannel.enableLights(true);
+        notificationChannel.shouldShowLights();
+        notificationChannel.shouldVibrate();
         notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
         notificationChannel.setVibrationPattern(sVibration);
         notificationChannel.setLightColor(Color.RED);
         notificationManager.createNotificationChannel(notificationChannel);
     }
 
-    private static Notification.Action createReplyAction(Context context, String address) {
+    private static Notification.Action createWhisperAction(Context context, String address) {
         RemoteInput remoteInput = createRemoteInput();
         PendingIntent pendingIntent = createReplyPendingIntent(context, address);
         Notification.Action.Builder builder = new Notification.Action.Builder(R.drawable.ic_action_stat_reply, "WHISPER", pendingIntent);
@@ -116,7 +118,7 @@ public class Helpers {
 
     private static RemoteInput createRemoteInput() {
         RemoteInput.Builder builder = new RemoteInput.Builder(Constants.REPLY_KEY);
-        builder.setLabel("REPLY");
+        builder.setLabel("Whisper");
         return builder.build();
     }
 
@@ -140,15 +142,19 @@ public class Helpers {
         Notification.Builder builder = new Notification.Builder(context, Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
         builder.setContentIntent(pendingIntent);
-        builder.setSmallIcon(R.mipmap.ic_launcher_round);
+        builder.setSmallIcon(android.R.drawable.stat_notify_chat);
         builder.setContentTitle("listening for whispers");
         builder.setContentText("press to whisper");
+        builder.setColorized(true);
+        builder.setColor(context.getResources().getColor(android.R.color.holo_green_dark));
         return builder.build();
     }
 
     private static void createPersistentForegroundNotificationChannel(Context context) {
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         NotificationChannel notificationChannel = new NotificationChannel(Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_DEFAULT);
+        notificationChannel.enableVibration(false);
+        notificationChannel.enableLights(false);
         notificationManager.createNotificationChannel(notificationChannel);
     }
 }
