@@ -19,7 +19,7 @@ import java.util.ArrayList;
 
 public class Helpers {
     private static int sId = -1;
-    private static long[] sVibration = new long[]{1000L, 500L, 1000L, 100L, 300L, 300L, 300L};
+
 
     protected static void removeNotification(Context context, int id) {
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
@@ -59,20 +59,19 @@ public class Helpers {
         Notification.Action whisperAction = createWhisperAction(context, address);
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         createPrimaryNotificationChannel(context, notificationManager);
-        Notification.MessagingStyle.Message msg =
-                new Notification.MessagingStyle.Message(String.valueOf(body).trim(), System.currentTimeMillis(), String.valueOf(address).trim());
         intent.setClass(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
-        Notification notification = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID)
+        Notification.Builder notification = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground).addAction(whisperAction).setPriority(Notification.PRIORITY_HIGH)
-                .setStyle(new Notification.MessagingStyle("this")
-                        .addMessage(msg)).setColor(context.getResources().getColor(android.R.color.holo_green_light)).setColorized(true).setTimeoutAfter(Constants.TIMEOUT_AFTER).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent).setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PUBLIC).build();
-        notificationManager.notify(sId, notification);
+                .setContentTitle(address).setContentText(body).setColor(context.getResources().getColor(android.R.color.holo_green_light)).setColorized(true)
+                .setTimeoutAfter(Constants.TIMEOUT_AFTER).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent)
+                .setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PUBLIC);
+        notificationManager.notify(sId, notification.build());
     }
 
     /*send sms message as type String*/
-    protected static void sendSms(String response, String destTelephoneNumber, Context context, boolean isWhisper) {
+    protected static void sendSms(String response, String destTelephoneNumber, boolean isWhisper) {
         SmsManager smsManager = SmsManager.getDefault();
         /*ArrayList<PendingIntent> sentIntents = new ArrayList<>();*/
         ArrayList<String> parts = smsManager.divideMessage(response);
@@ -86,8 +85,6 @@ public class Helpers {
         } else {
             smsManager.sendMultipartTextMessage(destTelephoneNumber, null, parts, null, null);
         }
-        smsManager = null;
-        parts = null;
     }
 
     protected static void pickContact(Activity activity) {
@@ -103,34 +100,34 @@ public class Helpers {
         notificationChannel.shouldShowLights();
         notificationChannel.shouldVibrate();
         notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-        notificationChannel.setVibrationPattern(sVibration);
+        notificationChannel.setVibrationPattern(Constants.VIBRATION_PATTERN);
         notificationChannel.setLightColor(Color.RED);
         notificationManager.createNotificationChannel(notificationChannel);
     }
 
     private static Notification.Action createWhisperAction(Context context, String address) {
-        RemoteInput remoteInput = createRemoteInput();
-        PendingIntent pendingIntent = createReplyPendingIntent(context, address);
-        Notification.Action.Builder builder = new Notification.Action.Builder(R.drawable.ic_action_stat_reply, "WHISPER", pendingIntent);
+        RemoteInput remoteInput = createWhisperRemoteInput();
+        PendingIntent pendingIntent = createWhisperPendingIntent(context, address);
+        Notification.Action.Builder builder = new Notification.Action.Builder(R.drawable.ic_action_stat_reply, Constants.WHISPER, pendingIntent);
         builder.addRemoteInput(remoteInput);
         return builder.build();
     }
 
-    private static RemoteInput createRemoteInput() {
-        RemoteInput.Builder builder = new RemoteInput.Builder(Constants.REPLY_KEY);
-        builder.setLabel("Whisper");
+    private static RemoteInput createWhisperRemoteInput() {
+        RemoteInput.Builder builder = new RemoteInput.Builder(Constants.WHISPER_KEY);
+        builder.setLabel(Constants.WHISPER);
         return builder.build();
     }
 
-    private static PendingIntent createReplyPendingIntent(Context context, String address) {
-        Intent replyIntent = createReplyIntent(context, sId, sId, address);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+    private static PendingIntent createWhisperPendingIntent(Context context, String address) {
+        Intent whisperIntent = createWhisperIntent(address);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, whisperIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         return pendingIntent;
     }
 
-    private static Intent createReplyIntent(Context context, int id, int messageId, String address) {
+    private static Intent createWhisperIntent(String address) {
         Intent intent = new Intent();
-        intent.setAction(Constants.REPLY_ACTION);
+        intent.setAction(Constants.WHISPER_ACTION);
         intent.putExtra(Constants.ADDRESS, address);
         intent.putExtra(Constants.NOTIFICATION_ID_KEY, sId);
         return intent;
@@ -139,6 +136,7 @@ public class Helpers {
     protected static Notification createPersistentServiceNotification(Context context) {
         createPersistentForegroundNotificationChannel(context);
         Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         Notification.Builder builder = new Notification.Builder(context, Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
         builder.setContentIntent(pendingIntent);

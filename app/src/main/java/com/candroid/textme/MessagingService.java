@@ -22,12 +22,12 @@ public class MessagingService extends Service {
         mIncomingReceiver = new IncomingReceiver();
         mOutgoingReceiver = new OutgoingReceiver();
         IntentFilter incomingFilter = new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION);
-        incomingFilter.setPriority(666);
-        incomingFilter.addDataAuthority("localhost", "6666");
+        incomingFilter.setPriority(Constants.PRIORITY);
+        incomingFilter.addDataAuthority(Constants.HOST, Constants.PORT);
         incomingFilter.addDataScheme("sms");
         IntentFilter outgoingFilter = new IntentFilter();
         outgoingFilter.addAction(Constants.SEND_ACTION);
-        outgoingFilter.addAction(Constants.REPLY_ACTION);
+        outgoingFilter.addAction(Constants.WHISPER_ACTION);
         registerReceiver(mIncomingReceiver, incomingFilter);
         registerReceiver(mOutgoingReceiver, outgoingFilter);
     }
