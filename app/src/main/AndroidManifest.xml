@@ -24,7 +24,7 @@
         android:theme="@android:style/Theme.Material.Wallpaper.NoTitleBar">
         <activity
             android:name=".MainActivity"
-            android:launchMode="singleInstance"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
