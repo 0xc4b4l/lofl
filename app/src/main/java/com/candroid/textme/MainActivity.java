@@ -37,11 +37,8 @@ public class MainActivity extends Activity {
                         int addressColumn = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
                         stringBuilder.append(cursor.getString(addressColumn));
                         cursor.close();
-
                     }
-                    String address = Helpers.reverseLookupNameByPhoneNumber(stringBuilder.toString(), MainActivity.this.getContentResolver());
-                    finishActivity(Constants.PICK_CONTACT_REQ_CODE);
-                    Helpers.notify(MainActivity.this, data, address, "create a whisper");
+                    Helpers.createConversation(MainActivity.this, stringBuilder.toString());
                 }
             });
             thread.start();

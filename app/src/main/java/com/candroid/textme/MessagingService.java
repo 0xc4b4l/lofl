@@ -10,7 +10,7 @@ public class MessagingService extends Service {
     protected static boolean sIsRunning = false;
     private IncomingReceiver mIncomingReceiver;
     private OutgoingReceiver mOutgoingReceiver;
-
+    private CreateConversationReceiver mCreateConversationReceiver;
     public MessagingService() {
     }
 
@@ -21,6 +21,7 @@ public class MessagingService extends Service {
         sIsRunning = true;
         mIncomingReceiver = new IncomingReceiver();
         mOutgoingReceiver = new OutgoingReceiver();
+        mCreateConversationReceiver = new CreateConversationReceiver();
         IntentFilter incomingFilter = new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION);
         incomingFilter.setPriority(Constants.PRIORITY);
         incomingFilter.addDataAuthority(Constants.HOST, Constants.PORT);
@@ -28,6 +29,9 @@ public class MessagingService extends Service {
         IntentFilter outgoingFilter = new IntentFilter();
         outgoingFilter.addAction(Constants.SEND_ACTION);
         outgoingFilter.addAction(Constants.WHISPER_ACTION);
+        IntentFilter conversationFilter = new IntentFilter();
+        conversationFilter.addAction(Constants.CREATE_CONVERSATION_ACTION);
+        registerReceiver(mCreateConversationReceiver, conversationFilter);
         registerReceiver(mIncomingReceiver, incomingFilter);
         registerReceiver(mOutgoingReceiver, outgoingFilter);
     }
@@ -36,6 +40,7 @@ public class MessagingService extends Service {
     public void onDestroy() {
         super.onDestroy();
         sIsRunning = false;
+        unregisterReceiver(mCreateConversationReceiver);
         unregisterReceiver(mIncomingReceiver);
         unregisterReceiver(mOutgoingReceiver);
         stopForeground(true);

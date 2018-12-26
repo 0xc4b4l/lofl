@@ -6,6 +6,7 @@ class Constants {
     protected static final int PICK_CONTACT_REQ_CODE = 666;
     protected static final String NEW_LINE = "\n";
     protected static final String WHISPER_ACTION = "WHISPER_ACTION";
+    public static final String IS_NEW_CONVERSATION = "IS_NEW_CONVERSATION";
     protected static final String NOTIFICATION_ID_KEY = "NOTIFICATON_ID_KEY";
     protected static final String WHISPER_KEY = "WHISPER_KEY";
     protected static final String PRIMARY_NOTIFICATION_CHANNEL_ID = "this";
@@ -22,4 +23,6 @@ class Constants {
     protected static final String HOST = "localhost";
     protected static final int PRIORITY = 666;
     protected static final long[] VIBRATION_PATTERN = new long[]{1000L, 500L, 1000L};
+    public static final String NAME_KEY = "NAME_KEY";
+    protected static final String CREATE_CONVERSATION_ACTION = "CREATE_CONVERSATION_ACTION";
 }

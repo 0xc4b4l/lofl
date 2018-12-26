@@ -24,14 +24,20 @@ public class NotificationService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        SmsMessage[] smsMessage = Telephony.Sms.Intents.getMessagesFromIntent(intent);
-        StringBuilder builder = new StringBuilder();
-        String address = Helpers.reverseLookupNameByPhoneNumber(smsMessage[0].getDisplayOriginatingAddress(), this.getContentResolver());
-        for (int i = 0; i < smsMessage.length; i++) {
-            builder.append(smsMessage[i].getMessageBody());
+        if (intent.hasExtra(Constants.IS_NEW_CONVERSATION)) {
+            String address = Helpers.reverseLookupNameByPhoneNumber(intent.getStringExtra(Constants.ADDRESS), this.getContentResolver());
+            Helpers.notify(this, intent, address, "Create New Conversation");
+        } else {
+            SmsMessage[] smsMessage = Telephony.Sms.Intents.getMessagesFromIntent(intent);
+            StringBuilder builder = new StringBuilder();
+            String address = Helpers.reverseLookupNameByPhoneNumber(smsMessage[0].getDisplayOriginatingAddress(), this.getContentResolver());
+            for (int i = 0; i < smsMessage.length; i++) {
+                builder.append(smsMessage[i].getMessageBody());
+            }
+            Helpers.notify(this, intent, address, builder.toString());
+            builder.delete(0, builder.length() - 1);
+
         }
-        Helpers.notify(this, intent, address, builder.toString());
-        builder.delete(0, builder.length() - 1);
         stopService(intent);
         stopSelf();
         stopSelf(mStartId);

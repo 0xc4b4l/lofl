@@ -20,7 +20,6 @@ import java.util.ArrayList;
 public class Helpers {
     private static int sId = -1;
 
-
     protected static void removeNotification(Context context, int id) {
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         notificationManager.cancel(id);
@@ -37,6 +36,14 @@ public class Helpers {
         }
         cursor.close();
         return address;
+    }
+
+    protected static void createConversation(Context context, String address) {
+        Intent notifyIntent = new Intent();
+        notifyIntent.putExtra(Constants.ADDRESS, address);
+        notifyIntent.setAction(Constants.CREATE_CONVERSATION_ACTION);
+        context.sendBroadcast(notifyIntent);
+        ((MainActivity) context).finishActivity(Constants.PICK_CONTACT_REQ_CODE);
     }
 
     protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
