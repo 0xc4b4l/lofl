@@ -13,6 +13,7 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.provider.Settings;
 import android.telephony.SmsManager;
 
 import java.util.ArrayList;
@@ -59,6 +60,18 @@ public class Helpers {
             e.printStackTrace();
         }
         return String.valueOf(name);
+    }
+
+
+    protected static void notifyAirplaneMode(Context context, String title, String body){
+        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+        Notification.Builder builder = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
+        builder.setContentTitle(title);
+        builder.setContentText(body);
+        builder.setSmallIcon(android.R.drawable.stat_notify_error);
+        builder.setTimeoutAfter(Constants.TIMEOUT_AFTER);
+        builder.setAutoCancel(true);
+        notificationManager.notify(sId++, builder.build());
     }
 
     protected static void notify(Context context, Intent intent, String address, String body) {
@@ -162,4 +175,14 @@ public class Helpers {
         notificationChannel.enableLights(false);
         notificationManager.createNotificationChannel(notificationChannel);
     }
+
+    protected static boolean checkAirplaneMode(Context context){
+        boolean isOn = false;
+        if(Settings.System.getInt(context.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) == 0){
+            isOn = true;
+        }
+        return isOn;
+    }
+
+
 }

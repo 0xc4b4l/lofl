@@ -37,12 +37,14 @@
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.BROADCAST_SMS"
-            android:process=":messagingService" />
+            android:process=":messagingService"
+            />
 
         <service
             android:name=".NotificationService"
             android:exported="false"
-            android:process=":notificationService" />
+            android:process=":notificationService"
+           />
 
         <receiver
             android:name=".BootCompletedReceiver"

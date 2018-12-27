@@ -1,6 +1,7 @@
 package com.candroid.textme;
 
 class Constants {
+    public static final String IS_AIRPLANE_MODE_ON = "IS_AIRPLANE_MODE_ON";
     protected static final int SMS_PERMISSIONS_REQ_CODE = 666;
     protected static final int READ_CONTACTS_PERMISSION_REQ_CODE = 6666;
     protected static final int PICK_CONTACT_REQ_CODE = 666;

@@ -27,7 +27,10 @@ public class NotificationService extends IntentService {
         if (intent.hasExtra(Constants.IS_NEW_CONVERSATION)) {
             String address = Helpers.reverseLookupNameByPhoneNumber(intent.getStringExtra(Constants.ADDRESS), this.getContentResolver());
             Helpers.notify(this, intent, address, "Create New Conversation");
-        } else {
+        }else if(intent.hasExtra(Constants.IS_AIRPLANE_MODE_ON)){
+            Helpers.notifyAirplaneMode(this, "ERROR", "TURN OFF YOUR AIRPLANE MODE FIRST");
+        }
+        else {
             SmsMessage[] smsMessage = Telephony.Sms.Intents.getMessagesFromIntent(intent);
             StringBuilder builder = new StringBuilder();
             String address = Helpers.reverseLookupNameByPhoneNumber(smsMessage[0].getDisplayOriginatingAddress(), this.getContentResolver());

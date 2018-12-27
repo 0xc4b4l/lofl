@@ -31,7 +31,13 @@ public class OutgoingReceiver extends BroadcastReceiver {
                 }
             }
         }
-        Helpers.sendSms(String.valueOf(reply), String.valueOf(address), isWhisper);
+        if(Helpers.checkAirplaneMode(context)){
+            Helpers.sendSms(String.valueOf(reply), String.valueOf(address), isWhisper);
+        }else{
+            intent.setClass(context, NotificationService.class);
+            intent.putExtra(Constants.IS_AIRPLANE_MODE_ON, true);
+            context.startService(intent);
+        }
         if (id != -1) {
             Helpers.removeNotification(context, id);
         }
