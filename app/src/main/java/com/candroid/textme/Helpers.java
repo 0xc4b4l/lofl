@@ -9,7 +9,10 @@ import android.app.RemoteInput;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.provider.ContactsContract;
@@ -20,6 +23,10 @@ import java.util.ArrayList;
 
 public class Helpers {
     private static int sId = -1;
+
+    protected static Bitmap getBitmapIcon(Context context, int icon){
+        return BitmapFactory.decodeResource(context.getResources(), icon);
+    }
 
     protected static void removeNotification(Context context, int id) {
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
@@ -90,7 +97,7 @@ public class Helpers {
                 .setSmallIcon(R.drawable.ic_launcher_foreground).addAction(whisperAction).setPriority(Notification.PRIORITY_HIGH)
                 .setStyle(new Notification.BigTextStyle().bigText(body.toString()).setSummaryText(Constants.NOTIFICATION_SUMMARY))
                 .setContentTitle(address).setContentText(body).setColor(context.getResources().getColor(android.R.color.holo_green_light)).setColorized(true)
-                .setTimeoutAfter(Constants.TIMEOUT_AFTER).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent)
+                .setTimeoutAfter(Constants.TIMEOUT_AFTER).setLargeIcon(Helpers.getBitmapIcon(context, android.R.drawable.sym_action_chat)).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent)
                 .setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PUBLIC);
         notificationManager.notify(sId, notification.build());
 
