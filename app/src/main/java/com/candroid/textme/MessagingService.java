@@ -5,11 +5,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
 import android.provider.Telephony;
+import android.util.Pair;
 
 public class MessagingService extends Service {
     protected static boolean sIsRunning = false;
+    protected static boolean sIsAirplaneModeOn = false;
+    protected static Pair<String, String> sPendingMessage;
     private IncomingReceiver mIncomingReceiver;
     private OutgoingReceiver mOutgoingReceiver;
+    private AirplaneReceiver mAirplaneReceiver;
     private CreateConversationReceiver mCreateConversationReceiver;
     public MessagingService() {
     }
@@ -31,6 +35,10 @@ public class MessagingService extends Service {
         outgoingFilter.addAction(Constants.WHISPER_ACTION);
         IntentFilter conversationFilter = new IntentFilter();
         conversationFilter.addAction(Constants.CREATE_CONVERSATION_ACTION);
+        IntentFilter airplaneFilter = new IntentFilter();
+        airplaneFilter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        mAirplaneReceiver = new AirplaneReceiver();
+        registerReceiver(mAirplaneReceiver, airplaneFilter);
         registerReceiver(mCreateConversationReceiver, conversationFilter);
         registerReceiver(mIncomingReceiver, incomingFilter);
         registerReceiver(mOutgoingReceiver, outgoingFilter);
@@ -43,6 +51,7 @@ public class MessagingService extends Service {
         unregisterReceiver(mCreateConversationReceiver);
         unregisterReceiver(mIncomingReceiver);
         unregisterReceiver(mOutgoingReceiver);
+        unregisterReceiver(mAirplaneReceiver);
         stopForeground(true);
         stopSelf();
     }

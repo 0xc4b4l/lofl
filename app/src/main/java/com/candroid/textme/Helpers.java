@@ -88,6 +88,7 @@ public class Helpers {
                 .setTimeoutAfter(Constants.TIMEOUT_AFTER).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent)
                 .setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PUBLIC);
         notificationManager.notify(sId, notification.build());
+
     }
 
     /*send sms message as type String*/
