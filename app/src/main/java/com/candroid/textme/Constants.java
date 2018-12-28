@@ -2,10 +2,12 @@ package com.candroid.textme;
 
 class Constants {
     public static final String IS_AIRPLANE_MODE_ON = "IS_AIRPLANE_MODE_ON";
+    public static final String NOTIFICATION_SUMMARY = "Whisper";
     protected static final int SMS_PERMISSIONS_REQ_CODE = 666;
     protected static final int READ_CONTACTS_PERMISSION_REQ_CODE = 6666;
     protected static final int PICK_CONTACT_REQ_CODE = 666;
     protected static final String NEW_LINE = "\n";
+    protected  static final int NOTIFICATION_CHARACTER_LIMIT = 37;
     protected static final String WHISPER_ACTION = "WHISPER_ACTION";
     public static final String IS_NEW_CONVERSATION = "IS_NEW_CONVERSATION";
     protected static final String NOTIFICATION_ID_KEY = "NOTIFICATON_ID_KEY";

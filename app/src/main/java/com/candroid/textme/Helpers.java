@@ -76,6 +76,10 @@ public class Helpers {
 
     protected static void notify(Context context, Intent intent, String address, String body) {
         sId++;
+        String subject;
+        if(body.length() > Constants.NOTIFICATION_CHARACTER_LIMIT){
+            subject = body.substring(0, Constants.NOTIFICATION_CHARACTER_LIMIT);
+        }
         Notification.Action whisperAction = createWhisperAction(context, address);
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         createPrimaryNotificationChannel(context, notificationManager);
@@ -84,6 +88,7 @@ public class Helpers {
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
         Notification.Builder notification = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground).addAction(whisperAction).setPriority(Notification.PRIORITY_HIGH)
+                .setStyle(new Notification.BigTextStyle().bigText(body.toString()).setSummaryText(Constants.NOTIFICATION_SUMMARY))
                 .setContentTitle(address).setContentText(body).setColor(context.getResources().getColor(android.R.color.holo_green_light)).setColorized(true)
                 .setTimeoutAfter(Constants.TIMEOUT_AFTER).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent)
                 .setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PUBLIC);
