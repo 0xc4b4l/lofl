@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Pair;
 
 public class OutgoingReceiver extends BroadcastReceiver {
     @Override
@@ -19,6 +18,9 @@ public class OutgoingReceiver extends BroadcastReceiver {
             address.append(bundle.getString(Constants.ADDRESS));
             reply.append(bundle.getString(Constants.RESPONSE));
             isWhisper = bundle.getBoolean(Constants.IS_WHISPER, true);
+        } else if (intent.getAction().equals(Constants.SENT_CONFIRMATION_ACTION)) {
+            address.append(intent.getStringExtra(Constants.ADDRESS));
+            Helpers.notifySent(context, "Whisper Sent", address.toString());
         } else {
             Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
             if (remoteInput != null) {
@@ -33,7 +35,7 @@ public class OutgoingReceiver extends BroadcastReceiver {
             }
         }
         if(Helpers.checkAirplaneMode(context)){
-            Helpers.sendSms(String.valueOf(reply), String.valueOf(address), isWhisper);
+            Helpers.sendSms(context, String.valueOf(reply), String.valueOf(address), isWhisper);
         }else{
             intent.setClass(context, NotificationService.class);
             intent.putExtra(Constants.IS_AIRPLANE_MODE_ON, true);

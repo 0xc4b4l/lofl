@@ -9,7 +9,6 @@ import android.app.RemoteInput;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -23,14 +22,19 @@ import java.util.ArrayList;
 
 public class Helpers {
     private static int sId = -1;
+    private static NotificationManager sNotificationManager;
+    private static Bitmap sLargeIcon;
 
-    protected static Bitmap getBitmapIcon(Context context, int icon){
-        return BitmapFactory.decodeResource(context.getResources(), icon);
+    private static Bitmap getBitmapIcon(Context context, int icon){
+        if(sLargeIcon == null){
+            sLargeIcon = BitmapFactory.decodeResource(context.getResources(), icon);
+        }
+        return sLargeIcon;
     }
 
     protected static void removeNotification(Context context, int id) {
-        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-        notificationManager.cancel(id);
+        initNotificationManager(context);
+        sNotificationManager.cancel(id);
     }
 
     protected static String lookupPhoneNumberByName(Context context, String name) {
@@ -71,25 +75,27 @@ public class Helpers {
 
 
     protected static void notifyAirplaneMode(Context context, String title, String body){
-        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+        initNotificationManager(context);
         Notification.Builder builder = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
         builder.setContentTitle(title);
         builder.setContentText(body);
         builder.setSmallIcon(android.R.drawable.stat_notify_error);
         builder.setTimeoutAfter(Constants.TIMEOUT_AFTER);
         builder.setAutoCancel(true);
-        notificationManager.notify(sId++, builder.build());
+        sNotificationManager.notify(sId++, builder.build());
+    }
+
+    protected static void notifySent(Context context, String title, String address){
+        Notification.Builder builder = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
+        builder.setSmallIcon(R.drawable.ic_launcher_foreground).setContentTitle(title).setContentText(address).setPriority(Notification.PRIORITY_DEFAULT).setColor(context.getResources().getColor(android.R.color.holo_green_dark)).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setTimeoutAfter(Constants.SENT_CONFIRM_TIMEOUT_AFTER).setAutoCancel(true);
+        sNotificationManager.notify(sId++, builder.build());
     }
 
     protected static void notify(Context context, Intent intent, String address, String body) {
         sId++;
-        String subject;
-        if(body.length() > Constants.NOTIFICATION_CHARACTER_LIMIT){
-            subject = body.substring(0, Constants.NOTIFICATION_CHARACTER_LIMIT);
-        }
         Notification.Action whisperAction = createWhisperAction(context, address);
-        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-        createPrimaryNotificationChannel(context, notificationManager);
+        initNotificationManager(context);
+        createPrimaryNotificationChannel(context, sNotificationManager);
         intent.setClass(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
@@ -99,21 +105,30 @@ public class Helpers {
                 .setContentTitle(address).setContentText(body).setColor(context.getResources().getColor(android.R.color.holo_green_light)).setColorized(true)
                 .setTimeoutAfter(Constants.TIMEOUT_AFTER).setLargeIcon(Helpers.getBitmapIcon(context, android.R.drawable.sym_action_chat)).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(pendingIntent)
                 .setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PUBLIC);
-        notificationManager.notify(sId, notification.build());
+        sNotificationManager.notify(sId, notification.build());
+    }
 
+    private static void initNotificationManager(Context context) {
+        if(sNotificationManager == null){
+            sNotificationManager = context.getSystemService(NotificationManager.class);
+        }
     }
 
     /*send sms message as type String*/
-    protected static void sendSms(String response, String destTelephoneNumber, boolean isWhisper) {
+    protected static void sendSms(Context context, String response, String destTelephoneNumber, boolean isWhisper) {
         SmsManager smsManager = SmsManager.getDefault();
-        /*ArrayList<PendingIntent> sentIntents = new ArrayList<>();*/
+        ArrayList<PendingIntent> sentIntents = new ArrayList<>();
+        String name = Helpers.reverseLookupNameByPhoneNumber(destTelephoneNumber, context.getContentResolver());
         ArrayList<String> parts = smsManager.divideMessage(response);
-       /* for (int i = 0; i < parts.size(); i++) {
-            sentIntents.add(PendingIntent.getBroadcast(context, 0, new Intent(Constants.SENT_SMS_FLAG), 0));
-        }*/
+        for (int i = 0; i < parts.size(); i++) {
+            Intent intent = new Intent();
+            intent.putExtra(Constants.ADDRESS, name);
+            intent.setAction(Constants.SENT_CONFIRMATION_ACTION);
+            sentIntents.add(PendingIntent.getBroadcast(context, 0, intent, 0));
+        }
         if (isWhisper) {
             for (int i = 0; i < parts.size(); i++) {
-                smsManager.sendDataMessage(destTelephoneNumber, null, new Short("6666"), parts.get(i).getBytes(), null, null);
+                smsManager.sendDataMessage(destTelephoneNumber, null, new Short("6666"), parts.get(i).getBytes(), sentIntents.get(i), null);
             }
         } else {
             smsManager.sendMultipartTextMessage(destTelephoneNumber, null, parts, null, null);
@@ -126,16 +141,18 @@ public class Helpers {
     }
 
     protected static void createPrimaryNotificationChannel(Context context, NotificationManager notificationManager) {
-        NotificationChannel notificationChannel = new NotificationChannel(Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH);
-        notificationChannel.setShowBadge(true);
-        notificationChannel.enableVibration(true);
-        notificationChannel.enableLights(true);
-        notificationChannel.shouldShowLights();
-        notificationChannel.shouldVibrate();
-        notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-        notificationChannel.setVibrationPattern(Constants.VIBRATION_PATTERN);
-        notificationChannel.setLightColor(Color.RED);
-        notificationManager.createNotificationChannel(notificationChannel);
+        if(sNotificationManager.getNotificationChannel(Constants.PRIMARY_NOTIFICATION_CHANNEL_ID) == null){
+            NotificationChannel notificationChannel = new NotificationChannel(Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH);
+            notificationChannel.setShowBadge(true);
+            notificationChannel.enableVibration(true);
+            notificationChannel.enableLights(true);
+            notificationChannel.shouldShowLights();
+            notificationChannel.shouldVibrate();
+            notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            notificationChannel.setVibrationPattern(Constants.VIBRATION_PATTERN);
+            notificationChannel.setLightColor(Color.RED);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
     }
 
     private static Notification.Action createWhisperAction(Context context, String address) {
@@ -182,11 +199,13 @@ public class Helpers {
     }
 
     private static void createPersistentForegroundNotificationChannel(Context context) {
-        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-        NotificationChannel notificationChannel = new NotificationChannel(Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_DEFAULT);
-        notificationChannel.enableVibration(false);
-        notificationChannel.enableLights(false);
-        notificationManager.createNotificationChannel(notificationChannel);
+        initNotificationManager(context);
+        if(sNotificationManager.getNotificationChannel(Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID) == null){
+            NotificationChannel notificationChannel = new NotificationChannel(Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_DEFAULT);
+            notificationChannel.enableVibration(false);
+            notificationChannel.enableLights(false);
+            sNotificationManager.createNotificationChannel(notificationChannel);
+        }
     }
 
     protected static boolean checkAirplaneMode(Context context){
@@ -196,6 +215,4 @@ public class Helpers {
         }
         return isOn;
     }
-
-
 }
