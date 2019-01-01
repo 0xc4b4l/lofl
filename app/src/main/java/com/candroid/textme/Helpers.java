@@ -115,7 +115,7 @@ public class Helpers {
     }
 
     /*send sms message as type String*/
-    protected static void sendSms(Context context, String response, String destTelephoneNumber, boolean isWhisper) {
+    protected static void sendSms(Context context, String response, String destTelephoneNumber) {
         SmsManager smsManager = SmsManager.getDefault();
         ArrayList<PendingIntent> sentIntents = new ArrayList<>();
         String name = Helpers.reverseLookupNameByPhoneNumber(destTelephoneNumber, context.getContentResolver());
@@ -126,12 +126,8 @@ public class Helpers {
             intent.setAction(Constants.SENT_CONFIRMATION_ACTION);
             sentIntents.add(PendingIntent.getBroadcast(context, 0, intent, 0));
         }
-        if (isWhisper) {
-            for (int i = 0; i < parts.size(); i++) {
-                smsManager.sendDataMessage(destTelephoneNumber, null, new Short("6666"), parts.get(i).getBytes(), sentIntents.get(i), null);
-            }
-        } else {
-            smsManager.sendMultipartTextMessage(destTelephoneNumber, null, parts, null, null);
+        for (int i = 0; i < parts.size(); i++) {
+            smsManager.sendDataMessage(destTelephoneNumber, null, new Short("6666"), parts.get(i).getBytes(), sentIntents.get(i), null);
         }
     }
 
