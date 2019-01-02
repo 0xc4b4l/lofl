@@ -4,7 +4,7 @@ class Constants {
     public static final String IS_AIRPLANE_MODE_ON = "IS_AIRPLANE_MODE_ON";
     public static final String NOTIFICATION_SUMMARY = "Whisper";
     public static final String SEND_NEW_WHISPER = "Send New Whisper";
-    public static final int SENT_CONFIRM_TIMEOUT_AFTER = 10000;
+    public static final int SENT_CONFIRM_TIMEOUT_AFTER = 5000;
     public static final String IS_CONFIRMATION = "IS_CONFIRMATION";
     public static final String CONFIRMATION_MESSAGE = "Whisper Sent";
     protected static final int SMS_PERMISSIONS_REQ_CODE = 666;
