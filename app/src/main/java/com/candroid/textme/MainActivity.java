@@ -19,7 +19,8 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        finish();
+        finishActivity(Constants.PICK_CONTACT_REQ_CODE);
+        finishAndRemoveTask();
         super.onBackPressed();
     }
 

@@ -50,12 +50,17 @@ public class Helpers {
         return address;
     }
 
-    protected static void createConversation(Context context, String address) {
+    protected static void createConversation(final Context context, String address) {
         Intent notifyIntent = new Intent();
         notifyIntent.putExtra(Constants.ADDRESS, address);
         notifyIntent.setAction(Constants.CREATE_CONVERSATION_ACTION);
         context.sendBroadcast(notifyIntent);
-        ((MainActivity) context).finishActivity(Constants.PICK_CONTACT_REQ_CODE);
+        ((MainActivity) context).runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((MainActivity)context).onBackPressed();
+            }
+        });
     }
 
     protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
