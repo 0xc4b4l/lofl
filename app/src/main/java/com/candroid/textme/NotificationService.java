@@ -2,6 +2,7 @@ package com.candroid.textme;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 
@@ -24,22 +25,26 @@ public class NotificationService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        if (intent.hasExtra(Constants.IS_NEW_CONVERSATION)) {
-            String address = Helpers.reverseLookupNameByPhoneNumber(intent.getStringExtra(Constants.ADDRESS), this.getContentResolver());
-            Helpers.notify(this, intent, address, Constants.SEND_NEW_WHISPER);
-        }else if(intent.hasExtra(Constants.IS_AIRPLANE_MODE_ON)){
+        Bundle bundle = intent.getExtras();
+        StringBuilder address = new StringBuilder();
+        if (bundle.containsKey(Constants.IS_NEW_CONVERSATION)) {
+            address.append(Helpers.reverseLookupNameByPhoneNumber(bundle.getString(Constants.ADDRESS), this.getContentResolver()));
+            Helpers.notify(this, intent, address.toString(), Constants.SEND_NEW_WHISPER);
+        }else if(bundle.containsKey(Constants.IS_AIRPLANE_MODE_ON)){
             Helpers.notifyAirplaneMode(this, "ERROR", "TURN OFF YOUR AIRPLANE MODE FIRST");
+        }else if(bundle.containsKey(Constants.IS_CONFIRMATION)){
+            address.append(bundle.getString(Constants.ADDRESS));
+            Helpers.notifySent(this, Constants.CONFIRMATION_MESSAGE, address.toString());
         }
         else {
             SmsMessage[] smsMessage = Telephony.Sms.Intents.getMessagesFromIntent(intent);
             StringBuilder builder = new StringBuilder();
-            String address = Helpers.reverseLookupNameByPhoneNumber(smsMessage[0].getDisplayOriginatingAddress(), this.getContentResolver());
+            address.append(Helpers.reverseLookupNameByPhoneNumber(smsMessage[0].getDisplayOriginatingAddress(), this.getContentResolver()));
             for (int i = 0; i < smsMessage.length; i++) {
                 builder.append(smsMessage[i].getMessageBody());
             }
-            Helpers.notify(this, intent, address, builder.toString());
+            Helpers.notify(this, intent, address.toString(), builder.toString());
             builder.delete(0, builder.length() - 1);
-
         }
         stopService(intent);
         stopSelf();
