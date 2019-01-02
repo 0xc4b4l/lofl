@@ -9,7 +9,19 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 
+import static com.candroid.textme.Constants.NEW_LINE;
+
 public class MainActivity extends Activity {
+    private String mSharedText;
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if(intent.getAction().equals(Intent.ACTION_SEND)){
+            mSharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+            requestPermissions();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +51,11 @@ public class MainActivity extends Activity {
                         stringBuilder.append(cursor.getString(addressColumn));
                         cursor.close();
                     }
-                    Helpers.createConversation(MainActivity.this, stringBuilder.toString());
+/*                    String sharedText = null;
+                    if(MainActivity.this.getIntent().hasExtra(Constants.SHARED_TEXT_KEY)){
+                        sharedText = MainActivity.this.getIntent().getStringExtra(Constants.SHARED_TEXT_KEY);
+                    }*/
+                    Helpers.createConversation(MainActivity.this, stringBuilder.toString(), mSharedText);
                 }
             });
             thread.start();
@@ -84,6 +100,10 @@ public class MainActivity extends Activity {
             startForegroundService(new Intent(this, MessagingService.class));
         }
         finishActivity(Constants.PICK_CONTACT_REQ_CODE);
+        String action = getIntent().getAction();
+        if(action != null && action.equals(Intent.ACTION_SEND)){
+            mSharedText = Helpers.handleSharedText(getIntent());
+        }
         Helpers.pickContact(this);
         return null;
     }
@@ -91,6 +111,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mSharedText = null;
         finishAndRemoveTask();
     }
 }

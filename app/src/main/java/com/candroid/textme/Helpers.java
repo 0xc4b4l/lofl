@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.telephony.SmsManager;
@@ -24,6 +25,26 @@ public class Helpers {
     private static int sId = -1;
     private static NotificationManager sNotificationManager;
     private static Bitmap sLargeIcon;
+
+    protected static String handleSharedText(Intent intent) {
+        StringBuilder text = new StringBuilder();
+        Bundle extras = intent.getExtras();
+        if (extras != null) {
+            if (extras.containsKey(Intent.EXTRA_TEXT)) {
+                text.append(extras.getString(Intent.EXTRA_TEXT));
+            }
+            if (extras.containsKey(Intent.EXTRA_SUBJECT)) {
+                text.append(" ").append(extras.getString(Intent.EXTRA_SUBJECT));
+            }
+            if (extras.containsKey(Intent.EXTRA_TITLE)) {
+                text.append(" ").append(extras.getString(Intent.EXTRA_TITLE));
+            }
+            if (extras.containsKey(Intent.EXTRA_HTML_TEXT)) {
+                text.append(" ").append(extras.getString(Intent.EXTRA_TITLE));
+            }
+        }
+        return text.toString();
+    }
 
     private static Bitmap getBitmapIcon(Context context, int icon){
         if(sLargeIcon == null){
@@ -50,8 +71,11 @@ public class Helpers {
         return address;
     }
 
-    protected static void createConversation(final Context context, String address) {
+    protected static void createConversation(final Context context, String address, String sharedText) {
         Intent notifyIntent = new Intent();
+        if(sharedText != null){
+            notifyIntent.putExtra(Constants.SHARED_TEXT_KEY, sharedText);
+        }
         notifyIntent.putExtra(Constants.ADDRESS, address);
         notifyIntent.setAction(Constants.CREATE_CONVERSATION_ACTION);
         context.sendBroadcast(notifyIntent);
@@ -90,17 +114,22 @@ public class Helpers {
         sNotificationManager.notify(sId++, builder.build());
     }
 
-    protected static void notifySent(Context context, String title, String address){
+    protected static void notifySent(Context context, String title){
         Notification.Builder builder = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
-        builder.setSmallIcon(R.drawable.ic_launcher_foreground).setContentTitle(title).setContentText(address).setPriority(Notification.PRIORITY_DEFAULT).setColor(context.getResources().getColor(android.R.color.holo_green_dark)).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setTimeoutAfter(Constants.SENT_CONFIRM_TIMEOUT_AFTER).setAutoCancel(true);
+        builder.setSmallIcon(R.drawable.ic_launcher_foreground).setContentTitle(title).setPriority(Notification.PRIORITY_DEFAULT).setColor(context.getResources().getColor(android.R.color.holo_green_dark)).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setTimeoutAfter(Constants.SENT_CONFIRM_TIMEOUT_AFTER).setAutoCancel(true);
         sNotificationManager.notify(sId++, builder.build());
     }
 
     protected static void notify(Context context, Intent intent, String address, String body) {
         sId++;
-        Notification.Action whisperAction = createWhisperAction(context, address);
+        Notification.Action whisperAction = null;
+        if(intent.hasExtra(Constants.SHARED_TEXT_KEY)){
+            whisperAction = createWhisperSharedTextAction(context, address, intent);
+        }else{
+            whisperAction = createWhisperAction(context, address, intent);
+        }
         initNotificationManager(context);
-        createPrimaryNotificationChannel(context, sNotificationManager);
+        createPrimaryNotificationChannel(sNotificationManager);
         intent.setClass(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
@@ -141,7 +170,7 @@ public class Helpers {
         activity.startActivityForResult(contactsIntent, Constants.PICK_CONTACT_REQ_CODE);
     }
 
-    protected static void createPrimaryNotificationChannel(Context context, NotificationManager notificationManager) {
+    protected static void createPrimaryNotificationChannel(NotificationManager notificationManager) {
         if(sNotificationManager.getNotificationChannel(Constants.PRIMARY_NOTIFICATION_CHANNEL_ID) == null){
             NotificationChannel notificationChannel = new NotificationChannel(Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH);
             notificationChannel.setShowBadge(true);
@@ -156,9 +185,15 @@ public class Helpers {
         }
     }
 
-    private static Notification.Action createWhisperAction(Context context, String address) {
+    private static Notification.Action createWhisperSharedTextAction(Context context, String address, Intent intent) {
+        PendingIntent pendingIntent = createWhisperPendingIntent(context, address, intent);
+        Notification.Action.Builder builder = new Notification.Action.Builder(R.drawable.ic_action_stat_reply, "Whisper Shared Text", pendingIntent);
+        return builder.build();
+    }
+
+    private static Notification.Action createWhisperAction(Context context, String address, Intent intent) {
         RemoteInput remoteInput = createWhisperRemoteInput();
-        PendingIntent pendingIntent = createWhisperPendingIntent(context, address);
+        PendingIntent pendingIntent = createWhisperPendingIntent(context, address, intent);
         Notification.Action.Builder builder = new Notification.Action.Builder(R.drawable.ic_action_stat_reply, Constants.WHISPER, pendingIntent);
         builder.addRemoteInput(remoteInput);
         return builder.build();
@@ -170,14 +205,17 @@ public class Helpers {
         return builder.build();
     }
 
-    private static PendingIntent createWhisperPendingIntent(Context context, String address) {
-        Intent whisperIntent = createWhisperIntent(address);
+    private static PendingIntent createWhisperPendingIntent(Context context, String address, Intent intent) {
+        Intent whisperIntent = createWhisperIntent(address, intent);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, whisperIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         return pendingIntent;
     }
 
-    private static Intent createWhisperIntent(String address) {
+    private static Intent createWhisperIntent(String address, Intent sharedIntent) {
         Intent intent = new Intent();
+        if(sharedIntent.hasExtra(Constants.SHARED_TEXT_KEY)){
+            intent.putExtra(Constants.SHARED_TEXT_KEY, sharedIntent.getStringExtra(Constants.SHARED_TEXT_KEY));
+        }
         intent.setAction(Constants.WHISPER_ACTION);
         intent.putExtra(Constants.ADDRESS, address);
         intent.putExtra(Constants.NOTIFICATION_ID_KEY, sId);

@@ -29,12 +29,16 @@ public class NotificationService extends IntentService {
         StringBuilder address = new StringBuilder();
         if (bundle.containsKey(Constants.IS_NEW_CONVERSATION)) {
             address.append(Helpers.reverseLookupNameByPhoneNumber(bundle.getString(Constants.ADDRESS), this.getContentResolver()));
-            Helpers.notify(this, intent, address.toString(), Constants.SEND_NEW_WHISPER);
+            if(bundle.containsKey(Constants.SHARED_TEXT_KEY)){
+                Helpers.notify(this, intent, address.toString(), bundle.getString(Constants.SHARED_TEXT_KEY));
+            }else{
+                Helpers.notify(this, intent, address.toString(), Constants.SEND_NEW_WHISPER);
+            }
         }else if(bundle.containsKey(Constants.IS_AIRPLANE_MODE_ON)){
             Helpers.notifyAirplaneMode(this, "ERROR", "TURN OFF YOUR AIRPLANE MODE FIRST");
         }else if(bundle.containsKey(Constants.IS_CONFIRMATION)){
             address.append(bundle.getString(Constants.ADDRESS));
-            Helpers.notifySent(this, Constants.CONFIRMATION_MESSAGE, address.toString());
+            Helpers.notifySent(this, Constants.CONFIRMATION_MESSAGE);
         }
         else {
             SmsMessage[] smsMessage = Telephony.Sms.Intents.getMessagesFromIntent(intent);

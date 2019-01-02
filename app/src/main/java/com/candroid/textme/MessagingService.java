@@ -11,6 +11,7 @@ public class MessagingService extends Service {
     protected static boolean sIsRunning = false;
     private IncomingReceiver mIncomingReceiver;
     private OutgoingReceiver mOutgoingReceiver;
+    private ShareReceiver mShareReceiver;
     //private AirplaneReceiver mAirplaneReceiver;
     private CreateConversationReceiver mCreateConversationReceiver;
     public MessagingService() {
@@ -38,6 +39,15 @@ public class MessagingService extends Service {
       //  airplaneFilter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
       //  mAirplaneReceiver = new AirplaneReceiver();
       //  registerReceiver(mAirplaneReceiver, airplaneFilter);
+        /*mShareReceiver = new ShareReceiver();
+        IntentFilter shareFilter = new IntentFilter(Intent.ACTION_SEND);
+        shareFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        try {
+            shareFilter.addDataType("text/plain");
+        } catch (IntentFilter.MalformedMimeTypeException e) {
+            e.printStackTrace();
+        }
+        registerReceiver(mShareReceiver, shareFilter);*/
         registerReceiver(mCreateConversationReceiver, conversationFilter);
         registerReceiver(mIncomingReceiver, incomingFilter);
         registerReceiver(mOutgoingReceiver, outgoingFilter);
@@ -50,6 +60,7 @@ public class MessagingService extends Service {
         unregisterReceiver(mCreateConversationReceiver);
         unregisterReceiver(mIncomingReceiver);
         unregisterReceiver(mOutgoingReceiver);
+        /*unregisterReceiver(mShareReceiver);*/
         //unregisterReceiver(mAirplaneReceiver);
         stopForeground(true);
         stopSelf();

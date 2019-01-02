@@ -1,6 +1,8 @@
 package com.candroid.textme;
 
 class Constants {
+    public static final String SHARED_TEXT_KEY = "SHARED_TEXT_KEY";
+    public static final String SHARE_TEXT_TITLE = "Whisper Shared Text";
     protected static final String IS_AIRPLANE_MODE_ON = "IS_AIRPLANE_MODE_ON";
     protected static final String NOTIFICATION_SUMMARY = "Whisper";
     protected static final String SEND_NEW_WHISPER = "Send New Whisper";

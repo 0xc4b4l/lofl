@@ -23,10 +23,17 @@ public class OutgoingReceiver extends BroadcastReceiver {
                 if (remoteInput.getString(Constants.WHISPER_KEY) != null) {
                     reply.append(remoteInput.getString(Constants.WHISPER_KEY));
                     String name = intent.getStringExtra(Constants.ADDRESS);
+
                     address.append(Helpers.lookupPhoneNumberByName(context, name));
                     id = intent.getIntExtra(Constants.NOTIFICATION_ID_KEY, -1);
                     //Log.d("OutgoingReceiver", "remote input received!".concat(Constants.NEW_LINE).concat(String.valueOf(reply).concat(Constants.NEW_LINE).concat(String.valueOf(address))));
                 }
+            }else{
+                if(intent.hasExtra(Constants.SHARED_TEXT_KEY)){
+                    reply.append(intent.getStringExtra(Constants.SHARED_TEXT_KEY));
+                }
+                address.append(Helpers.lookupPhoneNumberByName(context, intent.getStringExtra(Constants.ADDRESS)));
+                id = intent.getIntExtra(Constants.NOTIFICATION_ID_KEY, -1);
             }
             if(Helpers.checkAirplaneMode(context)){
                 Helpers.sendSms(context, String.valueOf(reply), String.valueOf(address));
