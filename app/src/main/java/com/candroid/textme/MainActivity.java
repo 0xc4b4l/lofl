@@ -9,8 +9,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 
-import static com.candroid.textme.Constants.NEW_LINE;
-
 public class MainActivity extends Activity {
     private String mSharedText;
 

@@ -38,7 +38,7 @@ public class NotificationService extends IntentService {
             Helpers.notifyAirplaneMode(this, "ERROR", "TURN OFF YOUR AIRPLANE MODE FIRST");
         }else if(bundle.containsKey(Constants.IS_CONFIRMATION)){
             address.append(bundle.getString(Constants.ADDRESS));
-            Helpers.notifySent(this, Constants.CONFIRMATION_MESSAGE);
+            Helpers.notifySent(this, Constants.CONFIRMATION_MESSAGE, intent);
         }
         else {
             SmsMessage[] smsMessage = Telephony.Sms.Intents.getMessagesFromIntent(intent);

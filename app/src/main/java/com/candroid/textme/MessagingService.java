@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
 import android.provider.Telephony;
-import android.util.Pair;
 
 public class MessagingService extends Service {
     protected static boolean sIsRunning = false;
