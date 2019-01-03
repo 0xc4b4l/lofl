@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
+import android.util.Pair;
 
 public class NotificationService extends IntentService {
     private int mStartId;
@@ -41,14 +42,8 @@ public class NotificationService extends IntentService {
             Helpers.notifySent(this, Constants.CONFIRMATION_MESSAGE, intent);
         }
         else {
-            SmsMessage[] smsMessage = Telephony.Sms.Intents.getMessagesFromIntent(intent);
-            StringBuilder builder = new StringBuilder();
-            address.append(Helpers.reverseLookupNameByPhoneNumber(smsMessage[0].getDisplayOriginatingAddress(), this.getContentResolver()));
-            for (int i = 0; i < smsMessage.length; i++) {
-                builder.append(smsMessage[i].getMessageBody());
-            }
-            Helpers.notify(this, intent, address.toString(), builder.toString());
-            builder.delete(0, builder.length() - 1);
+            Pair<String, String> smsMessage = Helpers.handleSms(this, intent);
+            Helpers.notify(this, intent, smsMessage.first, smsMessage.second);
         }
         stopService(intent);
         stopSelf();

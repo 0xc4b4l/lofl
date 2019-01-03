@@ -17,7 +17,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Settings;
+import android.provider.Telephony;
 import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
+import android.util.Pair;
 
 import java.util.ArrayList;
 
@@ -152,6 +155,18 @@ public class Helpers {
         if(sNotificationManager == null){
             sNotificationManager = context.getSystemService(NotificationManager.class);
         }
+    }
+
+    protected static Pair<String, String> handleSms(Context context, Intent intent){
+        StringBuilder address = new StringBuilder();
+        StringBuilder body = new StringBuilder();
+        SmsMessage[] smsMessage = Telephony.Sms.Intents.getMessagesFromIntent(intent);
+        String number = smsMessage[0].getDisplayOriginatingAddress();
+        address.append(Helpers.reverseLookupNameByPhoneNumber(number, context.getContentResolver()));
+        for (int i = 0; i < smsMessage.length; i++) {
+            body.append(smsMessage[i].getMessageBody());
+        }
+        return new Pair<>(address.toString(), body.toString());
     }
 
     /*send sms message as type String*/
