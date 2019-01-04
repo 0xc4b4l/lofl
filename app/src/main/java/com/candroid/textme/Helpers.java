@@ -118,7 +118,8 @@ public class Helpers {
     }
 
     protected static void notifySent(Context context, String title, Intent intent){
-        Notification.Builder builder = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
+        createConfirmationsNotificationChannel(context);
+        Notification.Builder builder = new Notification.Builder(context, Constants.CONFIRMATIONS_NOTIFICATION_CHANNEL_ID);
         builder.setSmallIcon(android.R.drawable.stat_notify_chat).setContentTitle(title).setPriority(Notification.PRIORITY_DEFAULT).setColor(context.getResources().getColor(android.R.color.holo_green_dark))
                 .setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setTimeoutAfter(Constants.SENT_CONFIRM_TIMEOUT_AFTER)
                 .setAutoCancel(true).setContentIntent(createContentClickIntent(context, intent));
@@ -175,7 +176,8 @@ public class Helpers {
     }
 
     protected static void notifyDelivered(Context context, Intent intent){
-        Notification.Builder builder = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
+        createConfirmationsNotificationChannel(context);
+        Notification.Builder builder = new Notification.Builder(context, Constants.CONFIRMATIONS_NOTIFICATION_CHANNEL_ID);
         builder.setSmallIcon(android.R.drawable.stat_notify_chat).setContentTitle("Whisper Delivered").setPriority(Notification.PRIORITY_DEFAULT).setColor(context.getResources().getColor(android.R.color.holo_green_dark))
                 .setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setTimeoutAfter(Constants.SENT_CONFIRM_TIMEOUT_AFTER)
                 .setAutoCancel(true).setContentIntent(createContentClickIntent(context, intent));
@@ -202,6 +204,18 @@ public class Helpers {
     protected static void pickContact(Activity activity) {
         Intent contactsIntent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
         activity.startActivityForResult(contactsIntent, Constants.PICK_CONTACT_REQ_CODE);
+    }
+
+    protected static void createConfirmationsNotificationChannel(Context context){
+        initNotificationManager(context);
+        if(sNotificationManager.getNotificationChannel(Constants.CONFIRMATIONS_NOTIFICATION_CHANNEL_ID) == null){
+            NotificationChannel notificationChannel = new NotificationChannel(Constants.CONFIRMATIONS_NOTIFICATION_CHANNEL_ID, Constants.CONFIRMATION_NOTIFICATION_CHANNEL_TITLE, NotificationManager.IMPORTANCE_HIGH);
+            notificationChannel.setShowBadge(false);
+            notificationChannel.enableVibration(false);
+            notificationChannel.enableLights(false);
+            notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            sNotificationManager.createNotificationChannel(notificationChannel);
+        }
     }
 
     protected static void createPrimaryNotificationChannel(NotificationManager notificationManager) {
