@@ -121,7 +121,7 @@ public class Helpers {
         createConfirmationsNotificationChannel(context);
         Notification.Builder builder = new Notification.Builder(context, Constants.CONFIRMATIONS_NOTIFICATION_CHANNEL_ID);
         builder.setSmallIcon(android.R.drawable.stat_notify_chat).setContentTitle(title).setPriority(Notification.PRIORITY_DEFAULT).setColor(context.getResources().getColor(android.R.color.holo_green_dark))
-                .setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setTimeoutAfter(Constants.SENT_CONFIRM_TIMEOUT_AFTER)
+                .setGroup(Constants.CONFIRMATIONS_NOTIFICATION_GROUP).setTimeoutAfter(Constants.SENT_CONFIRM_TIMEOUT_AFTER)
                 .setAutoCancel(true).setContentIntent(createContentClickIntent(context, intent));
         sNotificationManager.notify(sId++, builder.build());
     }
@@ -176,10 +176,11 @@ public class Helpers {
     }
 
     protected static void notifyDelivered(Context context, Intent intent){
+        sId++;
         createConfirmationsNotificationChannel(context);
         Notification.Builder builder = new Notification.Builder(context, Constants.CONFIRMATIONS_NOTIFICATION_CHANNEL_ID);
         builder.setSmallIcon(android.R.drawable.stat_notify_chat).setContentTitle("Whisper Delivered").setPriority(Notification.PRIORITY_DEFAULT).setColor(context.getResources().getColor(android.R.color.holo_green_dark))
-                .setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setTimeoutAfter(Constants.SENT_CONFIRM_TIMEOUT_AFTER)
+                .setGroup(Constants.CONFIRMATIONS_NOTIFICATION_GROUP).setTimeoutAfter(Constants.SENT_CONFIRM_TIMEOUT_AFTER)
                 .setAutoCancel(true).setContentIntent(createContentClickIntent(context, intent));
         sNotificationManager.notify(sId++, builder.build());
     }
