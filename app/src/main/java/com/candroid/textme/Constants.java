@@ -35,4 +35,5 @@ class Constants {
     protected static final long[] VIBRATION_PATTERN = new long[]{1000L, 500L, 1000L};
     protected static final String NAME_KEY = "NAME_KEY";
     protected static final String CREATE_CONVERSATION_ACTION = "CREATE_CONVERSATION_ACTION";
+    protected static final String DELIVERY_REPORT_CODE = "!6!6!6#6#6!6!!!!!!######";
 }

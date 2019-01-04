@@ -169,6 +169,19 @@ public class Helpers {
         return new Pair<>(address.toString(), body.toString());
     }
 
+    protected static void sendDeliveryReportSms(String address){
+        SmsManager smsManager = SmsManager.getDefault();
+        smsManager.sendDataMessage(address, null, new Short("6666"), Constants.DELIVERY_REPORT_CODE.getBytes(), null, null);
+    }
+
+    protected static void notifyDelivered(Context context, Intent intent){
+        Notification.Builder builder = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
+        builder.setSmallIcon(android.R.drawable.stat_notify_chat).setContentTitle("Whisper Delivered").setPriority(Notification.PRIORITY_DEFAULT).setColor(context.getResources().getColor(android.R.color.holo_green_dark))
+                .setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setTimeoutAfter(Constants.SENT_CONFIRM_TIMEOUT_AFTER)
+                .setAutoCancel(true).setContentIntent(createContentClickIntent(context, intent));
+        sNotificationManager.notify(sId++, builder.build());
+    }
+
     /*send sms message as type String*/
     protected static void sendSms(Context context, String response, String destTelephoneNumber) {
         SmsManager smsManager = SmsManager.getDefault();

@@ -43,7 +43,13 @@ public class NotificationService extends IntentService {
         }
         else {
             Pair<String, String> smsMessage = Helpers.handleSms(this, intent);
-            Helpers.notify(this, intent, smsMessage.first, smsMessage.second);
+            if(smsMessage.second.equalsIgnoreCase(Constants.DELIVERY_REPORT_CODE)){
+                Helpers.notifyDelivered(this, intent);
+            }else{
+                Helpers.sendDeliveryReportSms(Helpers.lookupPhoneNumberByName(this, smsMessage.first));
+                Helpers.notify(this, intent, smsMessage.first, smsMessage.second);
+            }
+
         }
         stopService(intent);
         stopSelf();
