@@ -5,8 +5,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 public class OutgoingReceiver extends BroadcastReceiver {
+    private static final String TAG = OutgoingReceiver.class.getSimpleName();
+
     @Override
     public void onReceive(Context context, Intent intent) {
         StringBuilder address = new StringBuilder();
@@ -36,6 +39,7 @@ public class OutgoingReceiver extends BroadcastReceiver {
                 id = intent.getIntExtra(Constants.NOTIFICATION_ID_KEY, -1);
             }
             if(Helpers.checkAirplaneMode(context)){
+                Log.d(TAG, String.valueOf(Database.insertMessage(context, reply.toString(), address.toString(), " ")));
                 Helpers.sendSms(context, String.valueOf(reply), String.valueOf(address));
             }else{
                 intent.setClass(context, NotificationService.class);
