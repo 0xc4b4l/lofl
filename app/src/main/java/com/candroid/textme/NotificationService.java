@@ -5,9 +5,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
+import android.util.Log;
 import android.util.Pair;
 
+
 public class NotificationService extends IntentService {
+    private static final String TAG = NotificationService.class.getSimpleName();
     private int mStartId;
 
     public NotificationService() {
@@ -45,9 +48,12 @@ public class NotificationService extends IntentService {
             Pair<String, String> smsMessage = Helpers.handleSms(this, intent);
             if(smsMessage.second.equalsIgnoreCase(Constants.DELIVERY_REPORT_CODE)){
                 Helpers.notifyDelivered(this, intent);
+                Log.d(TAG, Database.getMessages(this, "been"));
+
             }else{
                 Helpers.sendDeliveryReportSms(Helpers.lookupPhoneNumberByName(this, smsMessage.first));
                 Helpers.notify(this, intent, smsMessage.first, smsMessage.second);
+                Log.d(TAG, "rows deleted ".concat(String.valueOf(Database.deleteMessages(this, "been"))));
             }
 
         }
