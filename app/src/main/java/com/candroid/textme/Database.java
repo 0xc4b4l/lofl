@@ -7,24 +7,20 @@ import android.database.sqlite.SQLiteDatabase;
 
 public class Database {
 
-    protected static long insertMessage(Context context, String columnOne, String columnTwo, String columnThree){
-        DatabaseHelper dbHelper = new DatabaseHelper(context);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+    protected static long insertMessage(Context context, DatabaseHelper database, String columnOne, String columnTwo, String columnThree){
+        SQLiteDatabase db = database.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(DataContract.COLUMN_ONE, columnOne);
         values.put(DataContract.COLUMN_TWO, columnTwo);
         values.put(DataContract.COLUMN_THREE, columnThree);
         long newRowId = db.insert(DataContract.TABLE_NAME, null, values);
         db.close();
-        dbHelper.close();
         return newRowId;
     }
 
-    protected static String getMessages(Context context, String phraseToLookFor){
+    protected static String getMessages(Context context, String phraseToLookFor, DatabaseHelper database){
         StringBuilder messages = new StringBuilder();
-        DatabaseHelper helper = new DatabaseHelper(context);
-
-        SQLiteDatabase db = helper.getReadableDatabase();
+        SQLiteDatabase db = database.getReadableDatabase();
         String[] projection = new String[]{DataContract._ID, DataContract.COLUMN_ONE, DataContract.COLUMN_TWO};
         String selection = DataContract.COLUMN_ONE + " = ?";
         String[] selectionArgs = new String[]{phraseToLookFor};
@@ -40,16 +36,15 @@ public class Database {
         }
         cursor.close();
         db.close();
-        helper.close();
         return messages.toString();
     }
 
-    protected static int deleteMessages(Context context, String phraseToLookFor){
-        DatabaseHelper dbHelper = new DatabaseHelper(context);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+    protected static int deleteMessages(Context context, DatabaseHelper database, String phraseToLookFor){
+        SQLiteDatabase db = database.getWritableDatabase();
         String selection = DataContract.COLUMN_ONE + " LIKE ?";
         String[] selectionArgs = new String[]{phraseToLookFor};
         int numberOfRowsDeleted = db.delete(DataContract.TABLE_NAME, selection, selectionArgs);
+        db.close();
         return numberOfRowsDeleted;
     }
 

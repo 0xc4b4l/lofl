@@ -39,7 +39,6 @@ public class OutgoingReceiver extends BroadcastReceiver {
                 id = intent.getIntExtra(Constants.NOTIFICATION_ID_KEY, -1);
             }
             if(Helpers.checkAirplaneMode(context)){
-                Log.d(TAG, String.valueOf(Database.insertMessage(context, reply.toString(), address.toString(), " ")));
                 Helpers.sendSms(context, String.valueOf(reply), String.valueOf(address));
             }else{
                 intent.setClass(context, NotificationService.class);

@@ -27,12 +27,15 @@
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <action android:name="android.intent.action.SEND"/>
-                <data android:mimeType="text/*"/>
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <action android:name="android.intent.action.SEND" />
+
+                <data android:mimeType="text/*" />
             </intent-filter>
         </activity>
 
@@ -40,13 +43,10 @@
             android:name=".MessagingService"
             android:enabled="true"
             android:exported="false"
-            android:permission="android.permission.BROADCAST_SMS"
-            />
-
+            android:permission="android.permission.BROADCAST_SMS" />
         <service
             android:name=".NotificationService"
-            android:exported="false"
-            />
+            android:exported="false" />
 
         <receiver
             android:name=".BootCompletedReceiver"
@@ -57,6 +57,10 @@
             </intent-filter>
         </receiver>
 
+        <service
+            android:name=".DatabaseService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

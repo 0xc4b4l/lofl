@@ -39,4 +39,8 @@ class Constants {
     protected static final String NAME_KEY = "NAME_KEY";
     protected static final String CREATE_CONVERSATION_ACTION = "CREATE_CONVERSATION_ACTION";
     protected static final String DELIVERY_REPORT_CODE = "!6!6!6#6#6!6!!!!!!######";
+
+    protected class Actions{
+        protected static final String ACTION_DATABASE_INSERT_SMS = "ACTION_DATABASE_INSERT_SMS";
+    }
 }

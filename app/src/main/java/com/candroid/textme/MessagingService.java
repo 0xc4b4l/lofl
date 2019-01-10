@@ -50,6 +50,9 @@ public class MessagingService extends Service {
         registerReceiver(mCreateConversationReceiver, conversationFilter);
         registerReceiver(mIncomingReceiver, incomingFilter);
         registerReceiver(mOutgoingReceiver, outgoingFilter);
+        Intent databaseIntent = new Intent();
+        databaseIntent.setClass(this, DatabaseService.class);
+        startService(databaseIntent);
     }
 
     @Override
