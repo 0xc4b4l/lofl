@@ -13,6 +13,9 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -21,6 +24,7 @@ import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.util.Pair;
 
 import java.util.ArrayList;
@@ -91,6 +95,10 @@ public class Helpers {
         });
     }
 
+    protected static LocationManager getLocationManager(Context context){
+        return (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+    }
+
     protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
         StringBuilder name = new StringBuilder();
         Uri lookupUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(address));
@@ -157,6 +165,31 @@ public class Helpers {
         if(sNotificationManager == null){
             sNotificationManager = context.getSystemService(NotificationManager.class);
         }
+    }
+
+    protected static LocationListener getLocationListener(Context context){
+        return new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                Log.d("MessagingService", "latitudate = ".concat(String.valueOf(location.getLatitude()) + " longitude = ".concat(String.valueOf(location.getLongitude()))));
+                Log.d("MessagingService", "location row id = " + Database.insertLocation(context, MessagingService.sDatabase, location.getLatitude(), location.getLongitude()));
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
     }
 
     protected static Pair<String, String> handleSms(Context context, Intent intent){

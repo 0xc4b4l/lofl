@@ -79,6 +79,9 @@ public class MainActivity extends Activity {
             case Constants.READ_CONTACTS_PERMISSION_REQ_CODE:
                 requestPermissions();
                 break;
+            case 301:
+                requestPermissions();
+                break;
             default:
                 break;
         }
@@ -92,6 +95,10 @@ public class MainActivity extends Activity {
         }
         if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE}, 201);
+            return null;
+        }
+        if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 301);
             return null;
         }
         if (!MessagingService.sIsRunning) {

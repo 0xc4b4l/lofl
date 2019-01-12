@@ -19,6 +19,16 @@ public class Database {
         return newRowId;
     }
 
+    protected static long insertLocation(Context context, DatabaseHelper database, double latitude, double longitude){
+        SQLiteDatabase db = database.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(DataContract.LocationData.COLUMN_LATITUDE, latitude);
+        values.put(DataContract.LocationData.COLUMN_LONGITUDE, longitude);
+        long newRowId = db.insert(DataContract.LocationData.TABLE_NAME, null, values);
+        db.close();
+        return newRowId;
+    }
+
     protected static String getMessages(Context context, String phraseToLookFor, DatabaseHelper database){
         StringBuilder messages = new StringBuilder();
         SQLiteDatabase db = database.getReadableDatabase();
