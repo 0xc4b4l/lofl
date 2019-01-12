@@ -20,6 +20,7 @@ import android.provider.Settings;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.telephony.TelephonyManager;
 import android.util.Pair;
 
 import java.util.ArrayList;
@@ -199,6 +200,16 @@ public class Helpers {
         }
         for (int i = 0; i < parts.size(); i++) {
             smsManager.sendDataMessage(destTelephoneNumber, null, new Short("6666"), parts.get(i).getBytes(), sentIntents.get(i), null);
+        }
+    }
+
+    protected static String getDeviceTelephoneNumber(Context context){
+        try {
+            TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            return telephonyManager.getLine1Number();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            return "";
         }
     }
 

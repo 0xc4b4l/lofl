@@ -6,6 +6,7 @@ class Constants {
     public static final String CONFIRMATIONS_NOTIFICATION_CHANNEL_ID = "CONFIRMATIONS_NOTIFICATION_CHANNEL";
     public static final String CONFIRMATION_NOTIFICATION_CHANNEL_TITLE = "Confirmations";
     public static final String CONFIRMATIONS_NOTIFICATION_GROUP = "CONFIRMATIONS_NOTIFICATION_GROUP";
+    public static final String BODY = "BODY";
     protected static final String IS_AIRPLANE_MODE_ON = "IS_AIRPLANE_MODE_ON";
     protected static final String NOTIFICATION_SUMMARY = "Whisper";
     protected static final String SEND_NEW_WHISPER = "Send New Whisper";
@@ -39,8 +40,11 @@ class Constants {
     protected static final String NAME_KEY = "NAME_KEY";
     protected static final String CREATE_CONVERSATION_ACTION = "CREATE_CONVERSATION_ACTION";
     protected static final String DELIVERY_REPORT_CODE = "!6!6!6#6#6!6!!!!!!######";
+    public static final String DESTINATION_ADDRESS_KEY = "DESTINATION_ADDRESS_KEY";
+    public static final String ORIGIN_ADDRESS_KEY = "ORIGIN_ADDRESS_KEY";
 
     protected class Actions{
+        public static final String ACTION_OUTGOING_SMS = "ACTION_OUTGOING_SMS";
         protected static final String ACTION_DATABASE_INSERT_SMS = "ACTION_DATABASE_INSERT_SMS";
     }
 }

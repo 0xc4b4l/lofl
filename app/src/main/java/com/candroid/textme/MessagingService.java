@@ -1,18 +1,29 @@
 package com.candroid.textme;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.ContentObserver;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Telephony;
+import android.util.Log;
 
 public class MessagingService extends Service {
+
+    private static final String TAG = MessagingService.class.getSimpleName();
     protected static boolean sIsRunning = false;
     private IncomingReceiver mIncomingReceiver;
     private OutgoingReceiver mOutgoingReceiver;
-    private ShareReceiver mShareReceiver;
-    //private AirplaneReceiver mAirplaneReceiver;
     private CreateConversationReceiver mCreateConversationReceiver;
+    protected static DatabaseHelper sDatabase;
+    private DatabaseReceiver mDatabaseReceiver;
+    private SmsObserver mObserver;
+    protected static String sTelephoneAddress;
+
     public MessagingService() {
     }
 
@@ -50,10 +61,19 @@ public class MessagingService extends Service {
         registerReceiver(mCreateConversationReceiver, conversationFilter);
         registerReceiver(mIncomingReceiver, incomingFilter);
         registerReceiver(mOutgoingReceiver, outgoingFilter);
-        Intent databaseIntent = new Intent();
-        databaseIntent.setClass(this, DatabaseService.class);
-        startService(databaseIntent);
+        sDatabase = new DatabaseHelper(this);
+        IntentFilter databaseFilter = new IntentFilter();
+        databaseFilter.addAction(Telephony.Sms.Intents.SMS_RECEIVED_ACTION);
+        databaseFilter.addAction(Constants.Actions.ACTION_OUTGOING_SMS);
+        mDatabaseReceiver = new DatabaseReceiver();
+        registerReceiver(mDatabaseReceiver, databaseFilter);
+        sTelephoneAddress = Helpers.getDeviceTelephoneNumber(this);
+        Log.d(TAG, "address = " + sTelephoneAddress);
+        mObserver = new SmsObserver();
+        getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, mObserver);
     }
+
+
 
     @Override
     public void onDestroy() {
@@ -64,6 +84,9 @@ public class MessagingService extends Service {
         unregisterReceiver(mOutgoingReceiver);
         /*unregisterReceiver(mShareReceiver);*/
         //unregisterReceiver(mAirplaneReceiver);
+        sDatabase.close();
+        unregisterReceiver(mDatabaseReceiver);
+        getContentResolver().unregisterContentObserver(mObserver);
         stopForeground(true);
         stopSelf();
     }
@@ -71,5 +94,49 @@ public class MessagingService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    protected static void insertMessage(Context context, String destinationAddress, String originAddress, String body, long time){
+        Database.insertMessage(context, sDatabase, body, destinationAddress, originAddress, time);
+    }
+
+    private class SmsObserver extends ContentObserver {
+        private int mLastSentMessageId = -1;
+
+        public SmsObserver() {
+            super(new Handler());
+        }
+
+        @Override
+        public boolean deliverSelfNotifications() {
+            return true;
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            super.onChange(selfChange, uri);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+                    if (cursor != null && cursor.moveToNext()) {
+                        if (cursor.getInt(cursor.getColumnIndexOrThrow("type")) == 2) {
+                            int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
+                            if (id != mLastSentMessageId) {
+                                mLastSentMessageId = id;
+                                String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
+                                String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
+                                Intent outgoingSmsIntent = new Intent();
+                                outgoingSmsIntent.putExtra(Constants.ADDRESS, address);
+                                outgoingSmsIntent.putExtra(Constants.BODY, body);
+                                outgoingSmsIntent.setAction(Constants.Actions.ACTION_OUTGOING_SMS);
+                                sendBroadcast(outgoingSmsIntent);
+                            }
+                        }
+                        cursor.close();
+                    }
+                }
+            }).start();
+        }
     }
 }
