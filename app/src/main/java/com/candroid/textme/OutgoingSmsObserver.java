@@ -1,6 +1,5 @@
 package com.candroid.textme;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.ContentObserver;

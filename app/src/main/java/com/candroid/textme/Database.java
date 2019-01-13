@@ -19,6 +19,18 @@ public class Database {
         return newRowId;
     }
 
+    protected static long insertCallLogEntry(Context context, DatabaseHelper database, String type, String address, String duration, String time){
+        SQLiteDatabase db = database.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(DataContract.CallLogContract.COLUMN_TYPE, type);
+        values.put(DataContract.CallLogContract.COLUMN_ADDRESS, address);
+        values.put(DataContract.CallLogContract.COLUMN_DURATION, duration);
+        values.put(DataContract.CallLogContract.COLUMN_TIME, time);
+        long newRowId = db.insert(DataContract.CallLogContract.TABLE_NAME, null, values);
+        db.close();
+        return newRowId;
+    }
+
     protected static long insertLocation(Context context, DatabaseHelper database, double latitude, double longitude){
         SQLiteDatabase db = database.getWritableDatabase();
         ContentValues values = new ContentValues();

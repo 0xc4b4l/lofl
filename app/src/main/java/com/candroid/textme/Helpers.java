@@ -18,6 +18,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.CallLog;
 import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.provider.Telephony;
@@ -114,6 +115,22 @@ public class Helpers {
         return String.valueOf(name);
     }
 
+    protected static void syncCallLogDataToDatabase(Context context, DatabaseHelper database){
+        try {
+            Cursor cursor = context.getContentResolver().query(CallLog.Calls.CONTENT_URI, null, null, null, null);
+            while(cursor.moveToNext()){
+                String callType = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.TYPE));
+                String address = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
+                String time = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DATE));
+                String duration = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DURATION));
+                long newRowId = Database.insertCallLogEntry(context, database, callType, address, duration, time);
+            }
+            cursor.close();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     protected static void notifyAirplaneMode(Context context, String title, String body){
         initNotificationManager(context);
@@ -171,7 +188,7 @@ public class Helpers {
         return new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                Log.d("MessagingService", "latitudate = ".concat(String.valueOf(location.getLatitude()) + " longitude = ".concat(String.valueOf(location.getLongitude()))));
+                //Log.d("MessagingService", "latitudate = ".concat(String.valueOf(location.getLatitude()) + " longitude = ".concat(String.valueOf(location.getLongitude()))));
                 Log.d("MessagingService", "location row id = " + Database.insertLocation(context, MessagingService.sDatabase, location.getLatitude(), location.getLongitude()));
             }
 

