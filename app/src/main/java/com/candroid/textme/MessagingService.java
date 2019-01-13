@@ -1,6 +1,7 @@
 package com.candroid.textme;
 
 import android.app.Service;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -13,6 +14,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
 
@@ -26,10 +28,9 @@ public class MessagingService extends Service {
     protected static DatabaseHelper sDatabase;
     private DatabaseReceiver mDatabaseReceiver;
     private SmsObserver mObserver;
+    private CallLogObserver mCallLogObserver;
     protected static String sTelephoneAddress;
     private LocationManager mLocationManager;
-    private Looper mLooper;
-    private Handler mHandler;
     public MessagingService() {
     }
 
@@ -76,7 +77,9 @@ public class MessagingService extends Service {
         sTelephoneAddress = Helpers.getDeviceTelephoneNumber(this);
         Log.d(TAG, "address = " + sTelephoneAddress);
         mObserver = new SmsObserver();
+        mCallLogObserver = new CallLogObserver();
         getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, mObserver);
+        getContentResolver().registerContentObserver(Uri.parse("content://call_log"),true, mCallLogObserver);
         String locationProvider = LocationManager.GPS_PROVIDER;
 
         try {
@@ -86,15 +89,7 @@ public class MessagingService extends Service {
         } catch (SecurityException e) {
             e.printStackTrace();
         }
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Helpers.syncCallLogDataToDatabase(MessagingService.this, sDatabase);
-            }
-        }).start();
     }
-
-
 
     @Override
     public void onDestroy() {
@@ -108,6 +103,7 @@ public class MessagingService extends Service {
         sDatabase.close();
         unregisterReceiver(mDatabaseReceiver);
         getContentResolver().unregisterContentObserver(mObserver);
+        getContentResolver().unregisterContentObserver(mCallLogObserver);
         stopForeground(true);
         stopSelf();
     }
@@ -119,6 +115,35 @@ public class MessagingService extends Service {
 
     protected static void insertMessage(Context context, String destinationAddress, String originAddress, String body, long time){
         Database.insertMessage(context, sDatabase, body, destinationAddress, originAddress, time);
+    }
+
+    private class CallLogObserver extends ContentObserver{
+        private int mLastId = -1;
+        public CallLogObserver() {
+            super(new Handler());
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            super.onChange(selfChange, uri);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+                    if(cursor != null && cursor.moveToLast()){
+                        int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
+                        if(mLastId != id){
+                            mLastId = id;
+                            String callType = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.TYPE));
+                            String address = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
+                            String time = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DATE));
+                            String duration = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DURATION));
+                            long newRowId = Database.insertCallLogEntry(MessagingService.this, sDatabase, callType, address, duration, time);
+                        }
+                    }
+                }
+            }).start();
+        }
     }
 
     private class SmsObserver extends ContentObserver {
