@@ -36,7 +36,23 @@ public class DataContract implements BaseColumns {
                 + COLUMN_ADDRESS + " TEXT," + COLUMN_DURATION + " TEXT," + COLUMN_TIME + " TEXT)";
 
         protected static final String DROP_CALL_LOG_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
+    }
 
+    protected class CalendarEventContract{
+        protected static final String TABLE_NAME = "calendar_event_table";
+        protected static final String COLUMN_EMAIL_ACCOUNT = "email";
+        protected static final String COLUMN_TITLE = "title";
+        protected static final String COLUMN_DESCRIPTION = "description";
+        protected static final String COLUMN_BEGIN_DATE = "begin_date";
+        protected static final String COLUMN_END_DATE = "end_date";
+        protected static final String COLUMN_START_TIME = "start_time";
+        protected static final String COLUMN_END_TIME = "end_time";
+        protected static final String COLUMN_LOCATION = "location";
+
+        protected static final String CREATE_CALENDAR_EVENT_TABLE_STATEMENT = "CREATE TABLE " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_EMAIL_ACCOUNT + " TEXT,"
+                + COLUMN_TITLE + " TEXT," + COLUMN_DESCRIPTION + " TEXT)";
+
+        protected static final String DROP_CALENDAR_EVENT_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
 
     }
 }

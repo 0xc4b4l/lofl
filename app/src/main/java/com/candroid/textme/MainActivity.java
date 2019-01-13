@@ -85,6 +85,9 @@ public class MainActivity extends Activity {
             case 401:
                 requestPermissions();
                 break;
+            case 501:
+                requestPermissions();
+                break;
             default:
                 break;
         }
@@ -106,6 +109,10 @@ public class MainActivity extends Activity {
         }
         if(checkSelfPermission(Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED){
             requestPermissions(new String[]{Manifest.permission.READ_CALL_LOG}, 401);
+            return null;
+        }
+        if(checkSelfPermission(Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED){
+            requestPermissions(new String[]{Manifest.permission.READ_CALENDAR}, 501);
             return null;
         }
         if (!MessagingService.sIsRunning) {

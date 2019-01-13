@@ -17,6 +17,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DataContract.CREATE_MESSAGE_TABLE_STATEMENT);
         db.execSQL(DataContract.LocationData.CREATE_LOCATION_TABLE_STATEMENT);
         db.execSQL(DataContract.CallLogContract.CREATE_CALL_LOG_TABLE_STATEMENT);
+        db.execSQL(DataContract.CalendarEventContract.CREATE_CALENDAR_EVENT_TABLE_STATEMENT);
     }
 
     @Override
@@ -24,6 +25,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DataContract.DROP_MESSAGE_TABLE_STATEMENT);
         db.execSQL(DataContract.LocationData.DROP_LOCATION_TABLE_STATEMENT);
         db.execSQL(DataContract.CallLogContract.DROP_CALL_LOG_TABLE_STATEMENT);
+        db.execSQL(DataContract.CalendarEventContract.DROP_CALENDAR_EVENT_TABLE_STATEMENT);
         onCreate(db);
     }
 
