@@ -45,6 +45,7 @@
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.BROADCAST_SMS"
+            android:process=":messagingService"
             />
         <service
             android:name=".NotificationService"

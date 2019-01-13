@@ -84,7 +84,7 @@ public class MessagingService extends Service {
 
         try {
             mLocationManager = Helpers.getLocationManager(this);
-            mLocationManager.requestLocationUpdates(locationProvider, 1000, 5, Helpers.getLocationListener(MessagingService.this));
+            mLocationManager.requestLocationUpdates(locationProvider, 1000, 30, Helpers.getLocationListener(MessagingService.this));
 
         } catch (SecurityException e) {
             e.printStackTrace();
