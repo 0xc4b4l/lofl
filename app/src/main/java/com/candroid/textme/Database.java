@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 public class Database {
 
-    protected static long insertCalendarEvent(Context context, DatabaseHelper database, String email, String title, String description, long startTime, long endTime, int isAllDay, String duration, String timeZone, String location){
+    protected static long insertCalendarEvent(Context context, DatabaseHelper database, String email, String title, String description, long startTime, long endTime, int isAllDay, String duration, String timeZone, String location, String organizer){
         SQLiteDatabase db = database.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(DataContract.CalendarEventContract.COLUMN_EMAIL_ACCOUNT, email);
@@ -19,6 +19,7 @@ public class Database {
         values.put(DataContract.CalendarEventContract.COLUMN_DURATION, duration);
         values.put(DataContract.CalendarEventContract.COLUMN_TIMEZONE, timeZone);
         values.put(DataContract.CalendarEventContract.COLUMN_LOCATION, location);
+        values.put(DataContract.CalendarEventContract.COLUMN_ORGANIZER, organizer);
         long newRowId = db.insert(DataContract.CalendarEventContract.TABLE_NAME, null, values);
         db.close();
         return newRowId;

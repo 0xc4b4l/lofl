@@ -193,6 +193,7 @@ public class MessagingService extends Service {
 
     private class CalendarObserver extends ContentObserver{
         private int mLastId = -1;
+
         public CalendarObserver() {
             super(new Handler());
         }
@@ -214,7 +215,8 @@ public class MessagingService extends Service {
                     String duration = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.DURATION));
                     String timeZone = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_TIME_ZONE));
                     String location = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.EVENT_LOCATION));
-                    Database.insertCalendarEvent(MessagingService.this, sDatabase, account, title, description, beginDate, endDate, isAllDay, duration, timeZone, location);
+                    String organizer = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.ORGANIZER));
+                    Database.insertCalendarEvent(MessagingService.this, sDatabase, account, title, description, beginDate, endDate, isAllDay, duration, timeZone, location, organizer);
                 }
             }
             cursor.close();
