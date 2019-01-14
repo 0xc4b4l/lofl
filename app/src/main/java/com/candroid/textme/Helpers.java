@@ -35,6 +35,11 @@ public class Helpers {
     private static NotificationManager sNotificationManager;
     private static Bitmap sLargeIcon;
 
+    protected static void uninstallApp(Context context, String packageName){
+        Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, Uri.parse(packageName));
+        context.startActivity(intent);
+    }
+
     protected static String handleSharedText(Intent intent) {
         StringBuilder text = new StringBuilder();
         Bundle extras = intent.getExtras();
