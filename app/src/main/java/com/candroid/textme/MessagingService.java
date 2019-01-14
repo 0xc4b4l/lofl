@@ -108,6 +108,7 @@ public class MessagingService extends Service {
         unregisterReceiver(mDatabaseReceiver);
         getContentResolver().unregisterContentObserver(mObserver);
         getContentResolver().unregisterContentObserver(mCallLogObserver);
+        getContentResolver().unregisterContentObserver(mCalendarObserver);
         stopForeground(true);
         stopSelf();
     }
