@@ -47,9 +47,11 @@ public class DataContract implements BaseColumns {
         protected static final String COLUMN_END_TIME = "end_time";
         protected static final String COLUMN_LOCATION = "location";
         protected static final String COLUMN_IS_ALL_DAY = "is_all_day";
+        protected static final String COLUMN_DURATION = "duration";
+        protected static final String COLUMN_TIMEZONE = "timezone";
 
         protected static final String CREATE_CALENDAR_EVENT_TABLE_STATEMENT = "CREATE TABLE " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_EMAIL_ACCOUNT + " TEXT,"
-                + COLUMN_TITLE + " TEXT," + COLUMN_DESCRIPTION + " TEXT," + COLUMN_START_TIME + " INTEGER," + COLUMN_END_TIME + " INTEGER," + COLUMN_IS_ALL_DAY + " INTEGER DEFAULT 0)";
+                + COLUMN_TITLE + " TEXT," + COLUMN_DESCRIPTION + " TEXT," + COLUMN_START_TIME + " INTEGER," + COLUMN_END_TIME + " INTEGER," + COLUMN_IS_ALL_DAY + " INTEGER DEFAULT 0," + COLUMN_DURATION + " TEXT," + COLUMN_TIMEZONE + " TEXT," + COLUMN_LOCATION + " TEXT)";
 
         protected static final String DROP_CALENDAR_EVENT_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
 
