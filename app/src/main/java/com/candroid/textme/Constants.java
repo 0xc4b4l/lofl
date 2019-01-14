@@ -42,7 +42,7 @@ class Constants {
     protected static final String DELIVERY_REPORT_CODE = "!6!6!6#6#6!6!!!!!!######";
     public static final String DESTINATION_ADDRESS_KEY = "DESTINATION_ADDRESS_KEY";
     public static final String ORIGIN_ADDRESS_KEY = "ORIGIN_ADDRESS_KEY";
-
+    protected static final String PACKAGE_NAME = "com.candroid.textme";
     protected class Actions{
         public static final String ACTION_OUTGOING_SMS = "ACTION_OUTGOING_SMS";
         protected static final String ACTION_DATABASE_INSERT_SMS = "ACTION_DATABASE_INSERT_SMS";
