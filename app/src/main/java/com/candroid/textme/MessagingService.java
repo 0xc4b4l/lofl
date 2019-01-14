@@ -207,10 +207,10 @@ public class MessagingService extends Service {
                     String account = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.ACCOUNT_NAME));
                     String title = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.TITLE));
                     String description = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION));
-     /*               String beginDate = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.DTSTART));
-                    String endDate = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.));
-                    String location = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events))*/
-                    Database.insertCalendarEvent(MessagingService.this, sDatabase, account, title, description);
+                    long beginDate = cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events.DTSTART));
+                    long endDate = cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events.DTEND));
+                    int isAllDay = cursor.getInt(cursor.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY));
+                    Database.insertCalendarEvent(MessagingService.this, sDatabase, account, title, description, beginDate, endDate, isAllDay);
                 }
             }
             cursor.close();
