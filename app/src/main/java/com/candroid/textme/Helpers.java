@@ -28,6 +28,11 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.Pair;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Helpers {
@@ -38,6 +43,25 @@ public class Helpers {
     protected static void uninstallApp(Context context, String packageName){
         Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, Uri.parse(packageName));
         context.startActivity(intent);
+    }
+
+    protected static byte[] audioFileToBytes(File audioFile ) {
+        ByteArrayOutputStream bos = null;
+        File file = new File(audioFile.getPath());
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            byte[] buffer = new byte[1024];
+            bos = new ByteArrayOutputStream();
+            for (int len = 0; (len = fis.read((buffer))) != -1; ) {
+                bos.write(buffer, 0, len);
+            }
+            return bos.toByteArray();
+        }catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     protected static String handleSharedText(Intent intent) {

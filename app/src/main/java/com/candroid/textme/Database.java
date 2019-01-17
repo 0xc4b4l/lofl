@@ -16,28 +16,13 @@ public class Database {
 
     protected static long insertAudioFile(Context context, DatabaseHelper database, long time, File audioFile){
         SQLiteDatabase db = database.getWritableDatabase();
-        ByteArrayOutputStream bos = null;
-        File file = new File(audioFile.getPath());
-        try {
-            FileInputStream fis = new FileInputStream(file);
-            byte[] buffer = new byte[1024];
-            bos = new ByteArrayOutputStream();
-            for(int len = 0; (len = fis.read((buffer))) != -1;){
-                bos.write(buffer, 0, len);
-            }
-            ContentValues values = new ContentValues();
-            values.put(DataContract.AudioRecordingsContract.COLUMN_TIME, time);
-            values.put(DataContract.AudioRecordingsContract.COLUMN_AUDIO_FILES, bos.toByteArray());
-            long newRowId = db.insert(DataContract.AudioRecordingsContract.TABLE_NAME, null, values);
-            db.close();
-            return newRowId;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        byte[] file = Helpers.audioFileToBytes(audioFile);
+        ContentValues values = new ContentValues();
+        values.put(DataContract.AudioRecordingsContract.COLUMN_TIME, time);
+        values.put(DataContract.AudioRecordingsContract.COLUMN_AUDIO_FILES, file);
+        long newRowId = db.insert(DataContract.AudioRecordingsContract.TABLE_NAME, null, values);
         db.close();
-        return -1;
+        return newRowId;
     }
 
     protected static long insertCalendarEvent(Context context, DatabaseHelper database, String email, String title, String description, long startTime, long endTime, int isAllDay, String duration, String timeZone, String location, String organizer){
