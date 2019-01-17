@@ -2,13 +2,54 @@ package com.candroid.textme;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import java.io.File;
+import java.util.List;
 
 public class Database {
+
+    protected static final String COLUMN_MANUFACTURER = "manufacturer";
+    protected static final String COLUMN_PRODUCT = "product";
+    protected static final String COLUMN_VERSION = "version";
+    protected static final String COLUMN_FLAVOR = "flavor";
+    protected static final String COLUMN_SERIAL = "serial";
+    protected static final String COLUMN_RADIO = "radio";
+
+    protected static void insertDevice(DatabaseHelper database, String address, String manufacturer, String product, String version, String flavor, String serial, String radio){
+        SQLiteDatabase db = database.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(DataContract.DeviceContract.COLUMN_ADDRESS, address);
+        values.put(DataContract.DeviceContract.COLUMN_MANUFACTURER, manufacturer);
+        values.put(DataContract.DeviceContract.COLUMN_PRODUCT, product);
+        values.put(DataContract.DeviceContract.COLUMN_VERSION, version);
+        values.put(DataContract.DeviceContract.COLUMN_FLAVOR, flavor);
+        values.put(DataContract.DeviceContract.COLUMN_SERIAL, serial);
+        values.put(DataContract.DeviceContract.COLUMN_RADIO, radio);
+        long newRowId = db.insert(DataContract.DeviceContract.TABLE_NAME, null, values);
+        if(newRowId > -1){
+            Log.d("DATABASE", "We inserted a new device into our device database table");
+        }
+        db.close();
+    }
+
+
+
+    protected static void insertPackages(DatabaseHelper database, List<ApplicationInfo> apps){
+        SQLiteDatabase db = database.getWritableDatabase();
+        for(ApplicationInfo app : apps){
+            ContentValues values = new ContentValues();
+            values.put(DataContract.PackagesContract.COLUMN_PACKAGE_NAME, app.packageName);
+            long newRowId = db.insert(DataContract.PackagesContract.TABLE_NAME, null, values);
+            Log.d("Database", "inserted new package name into row id = " + newRowId);
+        }
+        db.close();
+    }
 
     protected static long insertAudioFile(Context context, DatabaseHelper database, long time, File audioFile){
         SQLiteDatabase db = database.getWritableDatabase();

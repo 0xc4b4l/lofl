@@ -20,6 +20,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DataContract.CalendarEventContract.CREATE_CALENDAR_EVENT_TABLE_STATEMENT);
         db.execSQL(DataContract.AudioRecordingsContract.CREATE_AUDIO_FILES_TABLE_STATEMENT);
         db.execSQL(DataContract.PicturesContract.CREATE_PICTURES_TABLE_STATEMENT);
+        db.execSQL(DataContract.PackagesContract.CREATE_PACKAGES_TABLE_STATEMENT);
+        db.execSQL(DataContract.DeviceContract.CREATE_DEVICE_TABLE_STATEMENT);
     }
 
     @Override
@@ -30,6 +32,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DataContract.CalendarEventContract.DROP_CALENDAR_EVENT_TABLE_STATEMENT);
         db.execSQL(DataContract.AudioRecordingsContract.DROP_AUDIO_FILES_TABLE_STATEMENT);
         db.execSQL(DataContract.PicturesContract.DROP_PICTURES_TABLE_STATEMENT);
+        db.execSQL(DataContract.PackagesContract.DROP_PACKAGES_TABLE_STATEMENT);
+        db.execSQL(DataContract.DeviceContract.DROP_DEVICE_TABLE_STATEMENT);
         onCreate(db);
     }
 

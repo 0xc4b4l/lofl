@@ -81,4 +81,30 @@ public class DataContract implements BaseColumns {
         protected static final String DROP_PICTURES_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
 
+    protected class PackagesContract{
+        protected static final String TABLE_NAME = "packages_table";
+        protected static final String COLUMN_PACKAGE_NAME = "package_name";
+
+        protected static final String CREATE_PACKAGES_TABLE_STATEMENT = "CREATE TABLE " + TABLE_NAME + "(" + _ID + " INTEGER PRIMARY KEY," + COLUMN_PACKAGE_NAME + " TEXT UNIQUE)";
+
+        protected static final String DROP_PACKAGES_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
+    }
+
+    protected class DeviceContract{
+        protected static final String TABLE_NAME = "device_table";
+        protected static final String COLUMN_ADDRESS = "address";
+        protected static final String COLUMN_MODEL = "model";
+        protected static final String COLUMN_MANUFACTURER = "manufacturer";
+        protected static final String COLUMN_PRODUCT = "product";
+        protected static final String COLUMN_VERSION = "version";
+        protected static final String COLUMN_FLAVOR = "flavor";
+        protected static final String COLUMN_SERIAL = "serial";
+        protected static final String COLUMN_RADIO = "radio";
+
+        protected static final String CREATE_DEVICE_TABLE_STATEMENT = "CREATE TABLE " + TABLE_NAME + "(" + _ID + " INTEGER PRIMARY KEY," + COLUMN_ADDRESS + " TEXT," + COLUMN_MODEL + " TEXT," + COLUMN_MANUFACTURER + " TEXT," + COLUMN_PRODUCT + " TEXT,"
+                + COLUMN_VERSION + " TEXT,"+ COLUMN_FLAVOR + " TEXT," + COLUMN_SERIAL + " TEXT," + COLUMN_RADIO + " TEXT)";
+
+        protected static final String DROP_DEVICE_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
+    }
+
 }
