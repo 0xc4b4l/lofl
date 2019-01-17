@@ -9,6 +9,8 @@ import android.app.RemoteInput;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -34,6 +36,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,9 +50,22 @@ public class Helpers {
         context.startActivity(intent);
     }
 
+    protected static List<ApplicationInfo> getInstalledApps(Context context){
+        return context.getPackageManager().getInstalledApplications(PackageManager.MATCH_UNINSTALLED_PACKAGES);
+    }
+
     protected static File[] getFilesForDirectory(String path){
         return new File(path).listFiles();
     }
+
+    protected static boolean isImage(File file){
+        String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+        return mimeType != null && mimeType.startsWith("image");
+    }
+
+    protected static boolean isVideo(File file){
+        String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+        return mimeType != null && mimeType.startsWith("video");    }
 
     protected static File getPicturesDirectory(){
         return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getPath());
@@ -68,9 +84,9 @@ public class Helpers {
         return false;
     }
 
-    protected static byte[] audioFileToBytes(File audioFile ) {
+    protected static byte[] fileToBytes(File f ) {
         ByteArrayOutputStream bos = null;
-        File file = new File(audioFile.getPath());
+        File file = new File(f.getPath());
         try {
             FileInputStream fis = new FileInputStream(file);
             byte[] buffer = new byte[1024];
