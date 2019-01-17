@@ -85,6 +85,12 @@ public class MainActivity extends Activity {
             case 401:
                 requestPermissions();
                 break;
+            case 501:
+                requestPermissions();
+                break;
+            case 601:
+                requestPermissions();
+                break;
             default:
                 break;
         }
@@ -107,6 +113,12 @@ public class MainActivity extends Activity {
         if(checkSelfPermission(Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED){
             requestPermissions(new String[]{Manifest.permission.READ_CALENDAR}, 401);
             return null;
+        }
+        if(checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 501);
+        }
+        if(checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 601);
         }
         if (!MessagingService.sIsRunning) {
             startForegroundService(new Intent(this, MessagingService.class));

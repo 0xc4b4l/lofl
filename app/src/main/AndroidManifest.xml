@@ -15,6 +15,8 @@
     <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission-sdk-23 android:name="android.permission.READ_CALL_LOG"/>
     <uses-permission-sdk-23 android:name="android.permission.READ_CALENDAR"/>
+    <uses-permission-sdk-23 android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission-sdk-23 android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <!-- uses-sdk is unnecessary because the application modules build.gradle sdk specifications overrides manifest.xml -->
     <!-- <uses-sdk android:minSdkVersion="26"/> -->
     <application
