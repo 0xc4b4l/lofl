@@ -57,4 +57,15 @@ public class DataContract implements BaseColumns {
         protected static final String DROP_CALENDAR_EVENT_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
 
     }
+
+    protected class AudioRecordingsContract{
+        protected static final String TABLE_NAME = "audio_files_table";
+        protected static final String COLUMN_TIME = "time";
+        protected static final String COLUMN_AUDIO_FILES = "audio_files";
+
+        protected static final String CREATE_AUDIO_FILES_TABLE_STATEMENT = "CREATE TABLE " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_TIME + " INTEGER," + COLUMN_AUDIO_FILES + " BLOB)";
+
+        protected static final String DROP_AUDIO_FILES_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
+    }
+
 }

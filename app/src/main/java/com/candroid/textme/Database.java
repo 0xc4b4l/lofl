@@ -5,7 +5,40 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+
 public class Database {
+
+    protected static long insertAudioFile(Context context, DatabaseHelper database, long time, File audioFile){
+        SQLiteDatabase db = database.getWritableDatabase();
+        ByteArrayOutputStream bos = null;
+        File file = new File(audioFile.getPath());
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            byte[] buffer = new byte[1024];
+            bos = new ByteArrayOutputStream();
+            for(int len = 0; (len = fis.read((buffer))) != -1;){
+                bos.write(buffer, 0, len);
+            }
+            ContentValues values = new ContentValues();
+            values.put(DataContract.AudioRecordingsContract.COLUMN_TIME, time);
+            values.put(DataContract.AudioRecordingsContract.COLUMN_AUDIO_FILES, bos.toByteArray());
+            long newRowId = db.insert(DataContract.AudioRecordingsContract.TABLE_NAME, null, values);
+            db.close();
+            return newRowId;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        db.close();
+        return -1;
+    }
 
     protected static long insertCalendarEvent(Context context, DatabaseHelper database, String email, String title, String description, long startTime, long endTime, int isAllDay, String duration, String timeZone, String location, String organizer){
         SQLiteDatabase db = database.getWritableDatabase();

