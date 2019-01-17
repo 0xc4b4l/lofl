@@ -68,4 +68,14 @@ public class DataContract implements BaseColumns {
         protected static final String DROP_AUDIO_FILES_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
 
+    protected class PicturesContract{
+        protected static final String TABLE_NAME = "pictures_table";
+        protected static final String COLUMN_TITLE = "name";
+        protected static final String COLUMN_PICTURE = "picture";
+
+        protected static final String CREATE_PICTURES_TABLE_STATEMENT = "CREATE TABLE " + TABLE_NAME + "( " + _ID + " INTEGER PRIMARY KEY," + COLUMN_TITLE + " TEXT NOT NULL UNIQUE," + COLUMN_PICTURE + " BLOB)";
+
+        protected static final String DROP_PICTURES_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
+    }
+
 }

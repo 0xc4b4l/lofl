@@ -25,6 +25,18 @@ public class Database {
         return newRowId;
     }
 
+    protected static long insertPhoto(Context context, DatabaseHelper database, String name, File photo){
+        SQLiteDatabase db = database.getWritableDatabase();
+        byte[] file = Helpers.audioFileToBytes(photo);
+        ContentValues values = new ContentValues();
+        values.put(DataContract.PicturesContract.COLUMN_TITLE, name);
+        values.put(DataContract.PicturesContract.COLUMN_PICTURE, file);
+        long newRowId = db.insert(DataContract.PicturesContract.TABLE_NAME, null, values);
+        db.close();
+        return newRowId;
+    }
+
+
     protected static long insertCalendarEvent(Context context, DatabaseHelper database, String email, String title, String description, long startTime, long endTime, int isAllDay, String duration, String timeZone, String location, String organizer){
         SQLiteDatabase db = database.getWritableDatabase();
         ContentValues values = new ContentValues();

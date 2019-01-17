@@ -17,8 +17,10 @@ import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class MessagingService extends Service {
 
@@ -120,9 +122,20 @@ public class MessagingService extends Service {
                 }
             }
         }).start();
-
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if(Helpers.isExternalStorageReadable()){
+                    File[] pictures = Helpers.getFilesForDirectory(Helpers.getDcimDirectory().getPath() + "/Camera");
+                    if(pictures != null && pictures.length > 0){
+                        for(File file : pictures){
+                            Database.insertPhoto(MessagingService.this, sDatabase, file.getName(), file);
+                        }
+                    }
+                }
+            }
+        }).start();
     }
-
 
     @Override
     public void onDestroy() {

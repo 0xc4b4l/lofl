@@ -18,6 +18,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
 import android.provider.Settings;
@@ -34,6 +35,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Helpers {
     private static int sId = -1;
@@ -43,6 +45,27 @@ public class Helpers {
     protected static void uninstallApp(Context context, String packageName){
         Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, Uri.parse(packageName));
         context.startActivity(intent);
+    }
+
+    protected static File[] getFilesForDirectory(String path){
+        return new File(path).listFiles();
+    }
+
+    protected static File getPicturesDirectory(){
+        return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getPath());
+    }
+
+    protected static File getDcimDirectory(){
+        return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getPath());
+    }
+
+    protected static boolean isExternalStorageReadable(){
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state) ||
+                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+            return true;
+        }
+        return false;
     }
 
     protected static byte[] audioFileToBytes(File audioFile ) {
