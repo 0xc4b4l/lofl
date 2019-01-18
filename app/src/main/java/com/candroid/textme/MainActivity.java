@@ -79,9 +79,9 @@ public class MainActivity extends Activity {
             case Constants.READ_CONTACTS_PERMISSION_REQ_CODE:
                 requestPermissions();
                 break;
-            case 301:
+/*            case 301:
                 requestPermissions();
-                break;
+                break;*/
 /*            case 401:
                 requestPermissions();
                 break;

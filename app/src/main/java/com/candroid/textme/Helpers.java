@@ -68,6 +68,36 @@ public class Helpers {
         String mimeType = URLConnection.guessContentTypeFromName(file.getName());
         return mimeType != null && mimeType.startsWith("video");    }
 
+    protected static boolean isText(File file){
+        String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+        return mimeType != null && mimeType.startsWith("text") && !mimeType.endsWith("iif");
+    }
+
+    protected static boolean isSpreadsheet(File file){
+        String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+        if(mimeType != null && mimeType.contains("excel")){
+            return true;
+        }else if(mimeType != null && mimeType.contains("oasis.opendocument.spreadsheet")){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    protected static boolean isQuickbooks(File file){
+        String mimeType = URLConnection.guessContentTypeFromName(file.getName());
+       if(mimeType != null && mimeType.contains("qbooks")){
+            return true;
+        }else if(mimeType != null && mimeType.equals("text/iif")){
+            return true;
+        }else if(mimeType != null && mimeType.equals("application/vnd.intu.qbo")){
+           return true;
+       }
+        else{
+            return false;
+        }
+    }
+
     protected static File getPicturesDirectory(){
         return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getPath());
     }

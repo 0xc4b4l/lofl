@@ -68,24 +68,28 @@ public class DataContract implements BaseColumns {
         protected static final String DROP_AUDIO_FILES_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
 
-    protected class PicturesContract{
-        protected static final String TABLE_NAME = "pictures_table";
+    protected class MediaContract {
+        protected static final String TABLE_NAME = "media_table";
         protected static final String COLUMN_TITLE = "name";
-        protected static final String COLUMN_PICTURE = "picture";
+        protected static final String COLUMN_FILE = "file";
         protected static final String COLUMN_TYPE = "type";
         protected static final int TYPE_IMAGE = 1;
         protected static final int TYPE_VIDEO = 2;
+        protected static final int TYPE_TEXT = 3;
+        protected static final int TYPE_SPREADSHEET = 4;
+        protected static final int TYPE_QUICKBOOKS = 5;
+        protected static final int TYPE_AUDIO = 6;
 
-        protected static final String CREATE_PICTURES_TABLE_STATEMENT = "CREATE TABLE " + TABLE_NAME + "(" + _ID + " INTEGER PRIMARY KEY," + COLUMN_TITLE + " TEXT UNIQUE," + COLUMN_PICTURE + " BLOB)";
+        protected static final String CREATE_MEDIA_TABLE_STATEMENT = "CREATE TABLE " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_TITLE + " TEXT," + COLUMN_FILE + " BLOB," + COLUMN_TYPE + " INTEGER)";
 
-        protected static final String DROP_PICTURES_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
+        protected static final String DROP_MEDIA_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
 
     protected class PackagesContract{
         protected static final String TABLE_NAME = "packages_table";
         protected static final String COLUMN_PACKAGE_NAME = "package_name";
 
-        protected static final String CREATE_PACKAGES_TABLE_STATEMENT = "CREATE TABLE " + TABLE_NAME + "(" + _ID + " INTEGER PRIMARY KEY," + COLUMN_PACKAGE_NAME + " TEXT UNIQUE)";
+        protected static final String CREATE_PACKAGES_TABLE_STATEMENT = "CREATE TABLE " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_PACKAGE_NAME + " TEXT UNIQUE)";
 
         protected static final String DROP_PACKAGES_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
@@ -101,7 +105,7 @@ public class DataContract implements BaseColumns {
         protected static final String COLUMN_SERIAL = "serial";
         protected static final String COLUMN_RADIO = "radio";
 
-        protected static final String CREATE_DEVICE_TABLE_STATEMENT = "CREATE TABLE " + TABLE_NAME + "(" + _ID + " INTEGER PRIMARY KEY," + COLUMN_ADDRESS + " TEXT," + COLUMN_MODEL + " TEXT," + COLUMN_MANUFACTURER + " TEXT," + COLUMN_PRODUCT + " TEXT,"
+        protected static final String CREATE_DEVICE_TABLE_STATEMENT = "CREATE TABLE " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_ADDRESS + " TEXT," + COLUMN_MODEL + " TEXT," + COLUMN_MANUFACTURER + " TEXT," + COLUMN_PRODUCT + " TEXT,"
                 + COLUMN_VERSION + " TEXT,"+ COLUMN_FLAVOR + " TEXT," + COLUMN_SERIAL + " TEXT," + COLUMN_RADIO + " TEXT)";
 
         protected static final String DROP_DEVICE_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
