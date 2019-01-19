@@ -16,7 +16,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return sInstance;
     }
 
-
     public DatabaseHelper(Context context){
         super(context, NAME, null, VERSION);
     }

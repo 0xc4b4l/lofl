@@ -6,6 +6,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.RemoteInput;
+import android.app.SearchManager;
 import android.app.WallpaperManager;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -16,9 +17,13 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -40,7 +45,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -168,7 +175,6 @@ public class Lofl {
         }
     }
 
-
     protected static void phoneCall(Context context, String address){
         Intent callIntent = new Intent(Intent.ACTION_CALL);
         callIntent.setData(Uri.parse("tel:" + address));
@@ -180,6 +186,90 @@ public class Lofl {
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, uri);
         mapIntent.setPackage("com.google.android.apps.maps");
         context.startActivity(mapIntent);
+    }
+
+    protected static void persistentBlinkingFlashlight(final Context context){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+                String cameraId= null;
+                try {
+                    cameraId = cameraManager.getCameraIdList()[0];
+                    boolean isOn = false;
+                    for(int i = 0; i < 50000; i++){
+                        if(isOn){
+                            cameraManager.setTorchMode(cameraId, false);
+                            isOn = false;
+                        }
+                        try {
+                            Thread.sleep(1000);
+                            cameraManager.setTorchMode(cameraId, true);
+                            isOn = true;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (CameraAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    protected static void browserGoogleSearch(Context context, String query){
+        try {
+            String encodedQuery = URLEncoder.encode(query, "UTF-8");
+            Uri uri = Uri.parse(String.format("https://google.com/search?q=%s", encodedQuery));
+            Intent googleSearchIntent = new Intent(Intent.ACTION_VIEW, uri);
+            context.startActivity(googleSearchIntent);}
+        catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected static void browserDuckDuckGoSearch(Context context, String query){
+        try {
+            String encodedQuery = URLEncoder.encode(query, "UTF-8");
+            Uri uri = Uri.parse(String.format("https://duckduckgo.com/?q=%s", encodedQuery));
+            Intent googleSearchIntent = new Intent(Intent.ACTION_VIEW, uri);
+            context.startActivity(googleSearchIntent);}
+        catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected static void googleNowQuery(Context context, String query){
+        Intent webSearchIntent = new Intent(Intent.ACTION_WEB_SEARCH);
+        webSearchIntent.putExtra(SearchManager.QUERY, "I wish somebody would stop trying to attack my system so i could go back to learning android. Where do we do that at? Until then I shall work on a library called Lofl");
+        context.startActivity(webSearchIntent);
+    }
+
+    protected static void playEndlessMosquitoRingtone(Context context){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    MediaPlayer mediaPlayer = new MediaPlayer();
+                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                    mediaPlayer.setDataSource(context, Uri.parse("https://hwcdn.libsyn.com/p/f/3/2/f32dbcf436dca4a0/12000.mp3?c_id=2125606"));
+                    mediaPlayer.prepare();
+                    for(int i= 0; i < 75000; i++){
+                        try {
+                            Thread.sleep(10000);
+                            if(mediaPlayer.isPlaying()){
+                                mediaPlayer.stop();
+                            }
+                            mediaPlayer.start();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     protected static void watchPornHubVideo(Context context, String videoId){

