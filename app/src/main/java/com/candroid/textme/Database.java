@@ -41,8 +41,7 @@ public class Database {
         db.close();
     }
 
-    protected static void insertPackages(DatabaseHelper database, List<ApplicationInfo> apps){
-        SQLiteDatabase db = database.getWritableDatabase();
+    protected static void insertPackages(SQLiteDatabase db, List<ApplicationInfo> apps){
         for(ApplicationInfo app : apps){
             try{
                 ContentValues values = new ContentValues();
@@ -53,14 +52,13 @@ public class Database {
                 e.printStackTrace();
             }
         }
-        db.close();
     }
 
     protected static long insertAudioFile(Context context, DatabaseHelper database, long time, File audioFile){
         SQLiteDatabase db = database.getWritableDatabase();
         long newRowId = -1;
         try{
-            byte[] file = Helpers.fileToBytes(audioFile);
+            byte[] file = Lofl.fileToBytes(audioFile);
             ContentValues values = new ContentValues();
             values.put(DataContract.AudioRecordingsContract.COLUMN_TIME, time);
             values.put(DataContract.AudioRecordingsContract.COLUMN_AUDIO_FILES, file);
@@ -72,36 +70,34 @@ public class Database {
         return newRowId;
     }
 
-    protected static long insertMedia(DatabaseHelper database, String name, File mediaFile){
-        SQLiteDatabase db = database.getWritableDatabase();
+    protected static long insertMedia(SQLiteDatabase db, String name, File mediaFile) {
         long newRowId = -1;
         int type = -1;
-        boolean isImage = Helpers.isImage(mediaFile);
-        boolean isVideo = Helpers.isVideo(mediaFile);
-        boolean isText = Helpers.isText(mediaFile);
-        boolean isExcel = Helpers.isSpreadsheet(mediaFile);
-        if(isImage){
+        boolean isImage = Lofl.isImage(mediaFile);
+        boolean isVideo = Lofl.isVideo(mediaFile);
+        boolean isText = Lofl.isText(mediaFile);
+        boolean isExcel = Lofl.isSpreadsheet(mediaFile);
+        if (isImage) {
             type = DataContract.MediaContract.TYPE_IMAGE;
-        }else if(isVideo){
+        } else if (isVideo) {
             type = DataContract.MediaContract.TYPE_VIDEO;
-        }else if(isText){
+        } else if (isText) {
             type = DataContract.MediaContract.TYPE_TEXT;
-        }else if(isExcel){
+        } else if (isExcel) {
             type = DataContract.MediaContract.TYPE_SPREADSHEET;
-        } else{
+        } else {
             type = 0;
         }
-        try{
-            byte[] file = Helpers.fileToBytes(mediaFile);
+        try {
+            byte[] file = Lofl.fileToBytes(mediaFile);
             ContentValues values = new ContentValues();
             values.put(DataContract.MediaContract.COLUMN_TITLE, name);
             values.put(DataContract.MediaContract.COLUMN_FILE, file);
             values.put(DataContract.MediaContract.COLUMN_TYPE, type);
-            newRowId = db.insert(DataContract.MediaContract.TABLE_NAME, null, values);
-        }catch (Exception e){
+            newRowId = db.insertWithOnConflict(DataContract.MediaContract.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        db.close();
         return newRowId;
     }
 
@@ -154,10 +150,13 @@ public class Database {
 
     protected static long insertLocation(Context context, DatabaseHelper database, double latitude, double longitude){
         SQLiteDatabase db = database.getWritableDatabase();
+        db.beginTransaction();
         ContentValues values = new ContentValues();
         values.put(DataContract.LocationData.COLUMN_LATITUDE, latitude);
         values.put(DataContract.LocationData.COLUMN_LONGITUDE, longitude);
         long newRowId = db.insert(DataContract.LocationData.TABLE_NAME, null, values);
+        db.setTransactionSuccessful();
+        db.endTransaction();
         db.close();
         return newRowId;
     }

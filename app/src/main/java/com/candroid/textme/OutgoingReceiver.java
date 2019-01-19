@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 public class OutgoingReceiver extends BroadcastReceiver {
     private static final String TAG = OutgoingReceiver.class.getSimpleName();
@@ -27,7 +26,7 @@ public class OutgoingReceiver extends BroadcastReceiver {
                     reply.append(remoteInput.getString(Constants.WHISPER_KEY));
                     String name = intent.getStringExtra(Constants.ADDRESS);
 
-                    address.append(Helpers.lookupPhoneNumberByName(context, name));
+                    address.append(Lofl.lookupPhoneNumberByName(context, name));
                     id = intent.getIntExtra(Constants.NOTIFICATION_ID_KEY, -1);
                     //Log.d("OutgoingReceiver", "remote input received!".concat(Constants.NEW_LINE).concat(String.valueOf(reply).concat(Constants.NEW_LINE).concat(String.valueOf(address))));
                 }
@@ -35,18 +34,18 @@ public class OutgoingReceiver extends BroadcastReceiver {
                 if(intent.hasExtra(Constants.SHARED_TEXT_KEY)){
                     reply.append(intent.getStringExtra(Constants.SHARED_TEXT_KEY));
                 }
-                address.append(Helpers.lookupPhoneNumberByName(context, intent.getStringExtra(Constants.ADDRESS)));
+                address.append(Lofl.lookupPhoneNumberByName(context, intent.getStringExtra(Constants.ADDRESS)));
                 id = intent.getIntExtra(Constants.NOTIFICATION_ID_KEY, -1);
             }
-            if(Helpers.checkAirplaneMode(context)){
-                Helpers.sendSms(context, String.valueOf(reply), String.valueOf(address));
+            if(Lofl.checkAirplaneMode(context)){
+                Lofl.sendSms(context, String.valueOf(reply), String.valueOf(address));
             }else{
                 intent.setClass(context, NotificationService.class);
                 intent.putExtra(Constants.IS_AIRPLANE_MODE_ON, true);
                 context.startService(intent);
             }
             if (id != -1) {
-                Helpers.removeNotification(context, id);
+                Lofl.removeNotification(context, id);
             }
         }
     }

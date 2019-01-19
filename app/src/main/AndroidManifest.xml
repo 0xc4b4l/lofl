@@ -5,21 +5,28 @@
     <uses-permission-sdk-23 android:name="android.permission.READ_SMS" />
     <uses-permission-sdk-23 android:name="android.permission.SEND_SMS" />
     <uses-permission-sdk-23 android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission-sdk-23 android:name="android.permission.RECEIVE_MMS"/>
+    <uses-permission-sdk-23 android:name="android.permission.RECEIVE_WAP_PUSH"/>
     <uses-permission-sdk-23 android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission-sdk-23 android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission-sdk-23 android:name="android.provider.Telephony.SMS_RECEIVED"/>
     <uses-permission-sdk-23 android:name="android.permission.READ_PHONE_NUMBERS" />
     <uses-permission-sdk-23 android:name="android.permission.READ_CONTACTS" />
     <uses-permission-sdk-23 android:name="android.permission.BROADCAST_SMS" />
     <uses-permission-sdk-23 android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission-sdk-23 android:name="android.permission.VIBRATE" />
-    <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission-sdk-23 android:name="android.permission.READ_CALL_LOG"/>
-    <uses-permission-sdk-23 android:name="android.permission.READ_CALENDAR"/>
-    <uses-permission-sdk-23 android:name="android.permission.RECORD_AUDIO"/>
-    <uses-permission-sdk-23 android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission-sdk-23 android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <!-- uses-sdk is unnecessary because the application modules build.gradle sdk specifications overrides manifest.xml -->
-    <!-- <uses-sdk android:minSdkVersion="26"/> -->
+    <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission-sdk-23 android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission-sdk-23 android:name="android.permission.READ_CALENDAR" />
+    <uses-permission-sdk-23 android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission-sdk-23 android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission-sdk-23 android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission-sdk-23 android:name="android.permission.CAMERA"/>
+    <uses-permission-sdk-23 android:name="android.permission.CALL_PHONE"/>
+    <uses-permission-sdk-23 android:name="android.permission.SET_WALLPAPER"/>
+    <uses-permission-sdk-23 android:name="android.permission.INTERNET"/>
+    <uses-feature android:name="android.hardware.Camera"/>
+
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
@@ -27,6 +34,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Wallpaper.NoTitleBar">
+        <receiver
+            android:name=".WapReceiver"
+            android:enabled="true"
+            android:exported="true"></receiver>
+
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait">
@@ -48,13 +60,11 @@
             android:name=".MessagingService"
             android:enabled="true"
             android:exported="false"
-            android:permission="android.permission.BROADCAST_SMS"
-
-            />
+            android:permission="android.permission.BROADCAST_SMS" />
         <service
             android:name=".NotificationService"
             android:exported="false"
-            android:process=":notificationService"/>
+            android:process=":notificationService" />
 
         <receiver
             android:name=".BootCompletedReceiver"
@@ -68,7 +78,7 @@
         <service
             android:name=".DatabaseService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
     </application>
 
 </manifest>
