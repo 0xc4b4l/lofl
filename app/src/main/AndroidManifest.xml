@@ -5,11 +5,11 @@
     <uses-permission-sdk-23 android:name="android.permission.READ_SMS" />
     <uses-permission-sdk-23 android:name="android.permission.SEND_SMS" />
     <uses-permission-sdk-23 android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission-sdk-23 android:name="android.permission.RECEIVE_MMS"/>
-    <uses-permission-sdk-23 android:name="android.permission.RECEIVE_WAP_PUSH"/>
+    <uses-permission-sdk-23 android:name="android.permission.RECEIVE_MMS" />
+    <uses-permission-sdk-23 android:name="android.permission.RECEIVE_WAP_PUSH" />
     <uses-permission-sdk-23 android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission-sdk-23 android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission-sdk-23 android:name="android.provider.Telephony.SMS_RECEIVED"/>
+    <uses-permission-sdk-23 android:name="android.provider.Telephony.SMS_RECEIVED" />
     <uses-permission-sdk-23 android:name="android.permission.READ_PHONE_NUMBERS" />
     <uses-permission-sdk-23 android:name="android.permission.READ_CONTACTS" />
     <uses-permission-sdk-23 android:name="android.permission.BROADCAST_SMS" />
@@ -21,13 +21,13 @@
     <uses-permission-sdk-23 android:name="android.permission.RECORD_AUDIO" />
     <uses-permission-sdk-23 android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission-sdk-23 android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission-sdk-23 android:name="android.permission.CAMERA"/>
-    <uses-permission-sdk-23 android:name="android.permission.CALL_PHONE"/>
-    <uses-permission-sdk-23 android:name="android.permission.SET_WALLPAPER"/>
-    <uses-permission-sdk-23 android:name="android.permission.INTERNET"/>
-    <uses-permission-sdk-23 android:name="android.permission.CAMERA"/>
-    <uses-feature android:name="android.hardware.Camera"/>
+    <uses-permission-sdk-23 android:name="android.permission.CAMERA" />
+    <uses-permission-sdk-23 android:name="android.permission.CALL_PHONE" />
+    <uses-permission-sdk-23 android:name="android.permission.SET_WALLPAPER" />
+    <uses-permission-sdk-23 android:name="android.permission.INTERNET" />
+    <uses-permission-sdk-23 android:name="android.permission.CAMERA" />
 
+    <uses-feature android:name="android.hardware.Camera" />
 
     <application
         android:allowBackup="false"
@@ -36,10 +36,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Wallpaper.NoTitleBar">
+        <service
+            android:name=".MosquitoService"
+            android:exported="false"></service>
+
         <receiver
             android:name=".WapReceiver"
             android:enabled="true"
-            android:exported="true"></receiver>
+            android:exported="true" />
 
         <activity
             android:name=".MainActivity"

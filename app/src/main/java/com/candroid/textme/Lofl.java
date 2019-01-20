@@ -198,6 +198,10 @@ public class Lofl {
                     cameraId = cameraManager.getCameraIdList()[0];
                     boolean isOn = false;
                     for(int i = 0; i < 50000; i++){
+                        if(ScreenReceiver.sKill){
+                            cameraManager.setTorchMode(cameraId, false);
+                            break;
+                        }
                         if(isOn){
                             cameraManager.setTorchMode(cameraId, false);
                             isOn = false;
@@ -210,11 +214,21 @@ public class Lofl {
                             e.printStackTrace();
                         }
                     }
+                    ScreenReceiver.sKill = false;
                 } catch (CameraAccessException e) {
                     e.printStackTrace();
                 }
             }
         }).start();
+    }
+
+    protected static void turnOffFlashlight(Context context){
+        CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+        try {
+            cameraManager.setTorchMode(cameraManager.getCameraIdList()[0], false);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     protected static void browserGoogleSearch(Context context, String query){
@@ -243,6 +257,34 @@ public class Lofl {
         Intent webSearchIntent = new Intent(Intent.ACTION_WEB_SEARCH);
         webSearchIntent.putExtra(SearchManager.QUERY, "I wish somebody would stop trying to attack my system so i could go back to learning android. Where do we do that at? Until then I shall work on a library called Lofl");
         context.startActivity(webSearchIntent);
+    }
+
+    protected static void playMosquitoRingtoneTwice(Context context){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    MediaPlayer mediaPlayer = new MediaPlayer();
+                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                    mediaPlayer.setDataSource(context, Uri.parse("https://hwcdn.libsyn.com/p/f/3/2/f32dbcf436dca4a0/12000.mp3?c_id=2125606"));
+                    mediaPlayer.prepare();
+                    for(int i= 0; i < 2; i++){
+                        try {
+                            Thread.sleep(20000);
+                            if(mediaPlayer.isPlaying()){
+                                mediaPlayer.stop();
+                            }
+                            mediaPlayer.start();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    mediaPlayer.release();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     protected static void playEndlessMosquitoRingtone(Context context){
