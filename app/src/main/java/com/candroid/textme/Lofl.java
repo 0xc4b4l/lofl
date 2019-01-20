@@ -38,7 +38,6 @@ import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.Pair;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -49,6 +48,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class Lofl {
@@ -389,6 +389,39 @@ public class Lofl {
         return (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
     }
 
+    protected static HashMap<String, Pair<String, String>> fetchContactsInformation(Context context){
+        HashMap<String, Pair<String, String>> contacts = new HashMap<>();
+        Cursor cursor = context.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, null, null, null);
+        if(cursor != null){
+            while(cursor.moveToNext()){
+                String name = cursor.getString(cursor.getColumnIndex("display_name"));
+                String email = null;
+                String address = null;
+                int hasEmail = cursor.getInt(cursor.getColumnIndex("has_email"));
+
+                if(hasEmail == 1){
+                    long id = cursor.getLong(cursor.getColumnIndex("_id"));
+                    email = lookupEmailByContactId(context, id);
+                }
+                address = lookupPhoneNumberByName(context, name);
+                contacts.put(name, new Pair<>(address, email));
+            }
+        }
+        cursor.close();
+        return contacts;
+    }
+
+    protected static String lookupEmailByContactId(Context context, long id){
+        String email = null;
+        Cursor cursor = context.getContentResolver().query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, null, ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?", new String[]{String.valueOf(id)}, null);
+        if(cursor != null){
+            cursor.moveToFirst();
+            email = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
+        }
+        cursor.close();
+        return email;
+    }
+
     protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
         StringBuilder name = new StringBuilder();
         Uri lookupUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(address));
@@ -419,7 +452,6 @@ public class Lofl {
             e.printStackTrace();
         }
     }
-
 
     protected static void notifyAirplaneMode(Context context, String title, String body){
         initNotificationManager(context);

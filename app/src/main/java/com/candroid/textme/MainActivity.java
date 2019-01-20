@@ -2,30 +2,12 @@ package com.candroid.textme;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.CancellationSignal;
-import android.os.ParcelFileDescriptor;
-import android.print.PageRange;
-import android.print.PrintAttributes;
-import android.print.PrintDocumentAdapter;
-import android.print.PrintDocumentInfo;
-import android.print.PrintJob;
-import android.print.PrintManager;
-import android.print.pdf.PrintedPdfDocument;
 import android.provider.ContactsContract;
-import android.util.Log;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 public class MainActivity extends Activity {
     private String mSharedText;

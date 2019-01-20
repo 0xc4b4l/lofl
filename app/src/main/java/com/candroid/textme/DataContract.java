@@ -111,4 +111,12 @@ public class DataContract implements BaseColumns {
         protected static final String DROP_DEVICE_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
 
+    protected class ContactsContract{
+        protected static final String TABLE_NAME = "contacts_table";
+        protected static final String COLUMN_NAME = "name";
+        protected static final String COLUMN_ADDRESS = "address";
+        protected static final String COLUMN_EMAIL = "email";
+
+    }
+
 }
