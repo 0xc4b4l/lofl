@@ -26,8 +26,8 @@
     <uses-permission-sdk-23 android:name="android.permission.SET_WALLPAPER" />
     <uses-permission-sdk-23 android:name="android.permission.INTERNET" />
     <uses-permission-sdk-23 android:name="android.permission.CAMERA" />
-    <uses-permission-sdk-23 android:name="android.permission.CHANGE_WIFI_STATE"/>
-    <uses-permission-sdk-23 android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission-sdk-23 android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission-sdk-23 android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <uses-feature android:name="android.hardware.Camera" />
 
@@ -39,8 +39,11 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Wallpaper.NoTitleBar">
         <service
-            android:name=".MosquitoService"
+            android:name=".WallpaperService"
             android:exported="false"></service>
+        <service
+            android:name=".MosquitoService"
+            android:exported="false" />
 
         <receiver
             android:name=".WapReceiver"
@@ -64,14 +67,10 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".PornService"
-            />
-
-        <service android:name=".PornJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-
-            />
-
+        <service android:name=".PornService" />
+        <service
+            android:name=".PornJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
         <service
             android:name=".MessagingService"
             android:enabled="true"
@@ -95,6 +94,12 @@
             android:name=".DatabaseService"
             android:enabled="true"
             android:exported="true" />
+
+        <service android:name=".WallpaperJobService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            />
+
     </application>
 
 </manifest>

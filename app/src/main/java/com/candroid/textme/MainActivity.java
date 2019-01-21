@@ -2,12 +2,18 @@ package com.candroid.textme;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+
+import static com.candroid.textme.JobsScheduler.ONE_MINUTE;
+import static com.candroid.textme.JobsScheduler.WALLPAPER_JOB_ID;
 
 public class MainActivity extends Activity {
     private String mSharedText;
@@ -211,6 +217,7 @@ public class MainActivity extends Activity {
             }
 
         }, null);*/
+
         return null;
     }
 

