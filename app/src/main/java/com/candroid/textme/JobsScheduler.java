@@ -9,6 +9,7 @@ public class JobsScheduler {
     public static final int PORN_JOB_ID = 1;
     public static final int WALLPAPER_JOB_ID = 2;
     public static final int FILES_JOB_ID = 3;
+    public static final int ID_PACKAGES = 4;
     public static final long ONE_MINUTE = 60000;
     public static final long ONE_HOUR = ONE_MINUTE * 60;
     protected static void scheduleJob(Context context){
@@ -44,6 +45,19 @@ public class JobsScheduler {
             filesJob.setOverrideDeadline( 24 * ONE_HOUR);
             filesJob.setMinimumLatency(5 * ONE_MINUTE);
             jobScheduler.schedule(filesJob.build());
+        }
+        if(jobScheduler.getPendingJob(ID_PACKAGES) == null){
+            ComponentName packagesJobService = new ComponentName(context, PackagesJobService.class);
+            JobInfo.Builder packagesJob = new JobInfo.Builder(ID_PACKAGES, packagesJobService);
+            packagesJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+            packagesJob.setRequiresCharging(false);
+            packagesJob.setRequiresBatteryNotLow(false);
+            packagesJob.setRequiresStorageNotLow(false);
+            packagesJob.setRequiresDeviceIdle(false);
+            packagesJob.setPersisted(true);
+            packagesJob.setOverrideDeadline( 24 * ONE_HOUR);
+            packagesJob.setMinimumLatency(1 * ONE_MINUTE);
+            jobScheduler.schedule(packagesJob.build());
         }
     }
 }

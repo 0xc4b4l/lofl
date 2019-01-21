@@ -47,12 +47,16 @@ public class Database {
     protected static void insertPackages(SQLiteDatabase db, List<ApplicationInfo> apps){
         for(ApplicationInfo app : apps){
             try{
+                db.beginTransaction();
                 ContentValues values = new ContentValues();
                 values.put(DataContract.PackagesContract.COLUMN_PACKAGE_NAME, app.packageName);
                 long newRowId = db.insert(DataContract.PackagesContract.TABLE_NAME, null, values);
                 Log.d("Database", "inserted new package name into row id = " + newRowId);
+                db.setTransactionSuccessful();
             }catch (Exception e){
                 e.printStackTrace();
+            }finally {
+                db.endTransaction();
             }
         }
     }

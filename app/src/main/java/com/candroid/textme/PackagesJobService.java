@@ -4,12 +4,12 @@ import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.Intent;
 
-public class FilesJobService extends JobService {
+public class PackagesJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
-        Intent filesIntent = new Intent(this, FilesIntentService.class);
-        filesIntent.setAction(FilesIntentService.ACTION_DCIM_FILES);
-        this.startService(filesIntent);
+        Intent packagesIntent = new Intent(this, FilesIntentService.class);
+        packagesIntent.setAction(FilesIntentService.ACTION_PACKAGES);
+        startService(packagesIntent);
         return true;
     }
 
