@@ -92,14 +92,18 @@ public class Database {
             type = 0;
         }
         try {
+            db.beginTransaction();
             byte[] file = Lofl.fileToBytes(mediaFile);
             ContentValues values = new ContentValues();
             values.put(DataContract.MediaContract.COLUMN_TITLE, name);
             values.put(DataContract.MediaContract.COLUMN_FILE, file);
             values.put(DataContract.MediaContract.COLUMN_TYPE, type);
             newRowId = db.insertWithOnConflict(DataContract.MediaContract.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+            db.setTransactionSuccessful();
         } catch (Exception e) {
             e.printStackTrace();
+        }finally {
+            db.endTransaction();
         }
         return newRowId;
     }

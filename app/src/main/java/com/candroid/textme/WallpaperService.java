@@ -20,15 +20,13 @@ public class WallpaperService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-/*        double randomNumber = Math.random();
+        double randomNumber = Math.random();
         String url = null;
-        if(randomNumber <= 0.3){
+        if(randomNumber <= 0.5){
             url = Wallpapers.WALLPAPERS[0];
-        }else if(randomNumber <= 0.6){
-            url = Wallpapers.WALLPAPERS[1];
         }else{
             url = Wallpapers.WALLPAPERS[2];
-        }*/
-        Lofl.changeWallpaper(this, Lofl.getBitmapFromUrl(Uri.parse(Wallpapers.WALLPAPERS[2]).toString()));
+        }
+        Lofl.changeWallpaper(this, Lofl.getBitmapFromUrl(Uri.parse(url).toString()));
     }
 }
