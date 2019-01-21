@@ -8,6 +8,7 @@ public class BootCompletedReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        PornJobScheduler.scheduleJob(context);
         intent.setClass(context, MessagingService.class);
         context.startForegroundService(intent);
     }

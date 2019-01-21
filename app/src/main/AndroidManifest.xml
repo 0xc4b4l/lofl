@@ -64,6 +64,14 @@
             </intent-filter>
         </activity>
 
+        <service android:name=".PornService"
+            />
+
+        <service android:name=".PornJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+
+            />
+
         <service
             android:name=".MessagingService"
             android:enabled="true"

