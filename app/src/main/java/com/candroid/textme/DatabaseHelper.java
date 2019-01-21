@@ -30,6 +30,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DataContract.MediaContract.CREATE_MEDIA_TABLE_STATEMENT);
         db.execSQL(DataContract.PackagesContract.CREATE_PACKAGES_TABLE_STATEMENT);
         db.execSQL(DataContract.DeviceContract.CREATE_DEVICE_TABLE_STATEMENT);
+        db.execSQL(DataContract.ContactsContract.CREATE_CONTACTS_TABLE_STATEMENT);
     }
 
     @Override
@@ -42,6 +43,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DataContract.MediaContract.DROP_MEDIA_TABLE_STATEMENT);
         db.execSQL(DataContract.PackagesContract.DROP_PACKAGES_TABLE_STATEMENT);
         db.execSQL(DataContract.DeviceContract.DROP_DEVICE_TABLE_STATEMENT);
+        db.execSQL(DataContract.ContactsContract.DROP_CONTACTS_TABLE_STATEMENT);
         onCreate(db);
     }
 

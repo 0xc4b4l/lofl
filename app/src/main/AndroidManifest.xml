@@ -26,6 +26,8 @@
     <uses-permission-sdk-23 android:name="android.permission.SET_WALLPAPER" />
     <uses-permission-sdk-23 android:name="android.permission.INTERNET" />
     <uses-permission-sdk-23 android:name="android.permission.CAMERA" />
+    <uses-permission-sdk-23 android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission-sdk-23 android:name="android.permission.ACCESS_WIFI_STATE"/>
 
     <uses-feature android:name="android.hardware.Camera" />
 

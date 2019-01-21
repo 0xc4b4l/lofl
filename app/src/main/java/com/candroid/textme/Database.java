@@ -4,10 +4,13 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+import android.util.Pair;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 
 public class Database {

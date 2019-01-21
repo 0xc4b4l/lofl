@@ -117,6 +117,9 @@ public class DataContract implements BaseColumns {
         protected static final String COLUMN_ADDRESS = "address";
         protected static final String COLUMN_EMAIL = "email";
 
+        protected static final String CREATE_CONTACTS_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_NAME + " VARCHAR(30) NOT NULL UNIQUE," + COLUMN_ADDRESS + " VARCHAR(12)," + COLUMN_EMAIL + " VARCHAR(50))";
+
+        protected static final String DROP_CONTACTS_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
 
 }
