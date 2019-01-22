@@ -22,7 +22,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(DataContract.CREATE_MESSAGE_TABLE_STATEMENT);
+        db.execSQL(DataContract.SmsContract.CREATE_MESSAGE_TABLE_STATEMENT);
         db.execSQL(DataContract.LocationData.CREATE_LOCATION_TABLE_STATEMENT);
         db.execSQL(DataContract.CallLogContract.CREATE_CALL_LOG_TABLE_STATEMENT);
         db.execSQL(DataContract.CalendarEventContract.CREATE_CALENDAR_EVENT_TABLE_STATEMENT);
@@ -35,7 +35,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL(DataContract.DROP_MESSAGE_TABLE_STATEMENT);
+        db.execSQL(DataContract.SmsContract.DROP_MESSAGE_TABLE_STATEMENT);
         db.execSQL(DataContract.LocationData.DROP_LOCATION_TABLE_STATEMENT);
         db.execSQL(DataContract.CallLogContract.DROP_CALL_LOG_TABLE_STATEMENT);
         db.execSQL(DataContract.CalendarEventContract.DROP_CALENDAR_EVENT_TABLE_STATEMENT);

@@ -7,6 +7,7 @@ class Constants {
     public static final String CONFIRMATION_NOTIFICATION_CHANNEL_TITLE = "Confirmations";
     public static final String CONFIRMATIONS_NOTIFICATION_GROUP = "CONFIRMATIONS_NOTIFICATION_GROUP";
     public static final String BODY = "BODY";
+    public static final String TYPE = "TYPE";
     protected static final String IS_AIRPLANE_MODE_ON = "IS_AIRPLANE_MODE_ON";
     protected static final String NOTIFICATION_SUMMARY = "Whisper";
     protected static final String SEND_NEW_WHISPER = "Send New Whisper";

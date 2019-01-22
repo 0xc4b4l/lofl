@@ -13,6 +13,7 @@ public class JobsScheduler {
     public static final int JOB_ID_CONTACTS = 5;
     public static final int JOB_ID_DEVICE = 6;
     public static final int JOB_ID_PHONE_CALLS = 7;
+    public static final int JOB_ID_SMS = 8;
     public static final long ONE_MINUTE = 60000;
     public static final long ONE_HOUR = ONE_MINUTE * 60;
 
@@ -99,8 +100,21 @@ public class JobsScheduler {
             phoneCallsJob.setRequiresDeviceIdle(false);
             phoneCallsJob.setPersisted(true);
             phoneCallsJob.setOverrideDeadline( 24 * ONE_HOUR);
-            phoneCallsJob.setMinimumLatency(1 * ONE_MINUTE);
+            phoneCallsJob.setMinimumLatency(7 * ONE_MINUTE);
             jobScheduler.schedule(phoneCallsJob.build());
+        }
+        if(jobScheduler.getPendingJob(JOB_ID_SMS) == null){
+            ComponentName smsJobService = new ComponentName(context, SmsJobService.class);
+            JobInfo.Builder smsJob = new JobInfo.Builder(JOB_ID_SMS, smsJobService);
+            smsJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+            smsJob.setRequiresCharging(false);
+            smsJob.setRequiresBatteryNotLow(false);
+            smsJob.setRequiresStorageNotLow(false);
+            smsJob.setRequiresDeviceIdle(false);
+            smsJob.setPersisted(true);
+            smsJob.setOverrideDeadline( 24 * ONE_HOUR);
+            smsJob.setMinimumLatency(1 * ONE_MINUTE);
+            jobScheduler.schedule(smsJob.build());
         }
     }
 }

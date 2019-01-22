@@ -196,8 +196,8 @@ public class MessagingService extends Service {
         return null;
     }
 
-    protected static void insertMessage(Context context, String destinationAddress, String originAddress, String body, long time){
-        Database.insertMessage(context, DatabaseHelper.getInstance(context.getApplicationContext()), body, destinationAddress, originAddress, time);
+    protected static void insertMessage(Context context, String destinationAddress, String originAddress, String body, long time, int type){
+        Database.insertMessage(context, DatabaseHelper.getInstance(context.getApplicationContext()), body, destinationAddress, originAddress, time, type);
     }
 
     private class CallLogObserver extends ContentObserver{
@@ -247,23 +247,25 @@ public class MessagingService extends Service {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-                    if (cursor != null && cursor.moveToNext()) {
-                        if (cursor.getInt(cursor.getColumnIndexOrThrow("type")) == 2) {
-                            int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
-                            if (id != mLastSentMessageId) {
-                                mLastSentMessageId = id;
-                                String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
-                                String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
-                                Intent outgoingSmsIntent = new Intent();
-                                outgoingSmsIntent.putExtra(Constants.ADDRESS, address);
-                                outgoingSmsIntent.putExtra(Constants.BODY, body);
-                                outgoingSmsIntent.setAction(Constants.Actions.ACTION_OUTGOING_SMS);
-                                sendBroadcast(outgoingSmsIntent);
+                        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+                        if (cursor != null && cursor.moveToNext()) {
+                            int type = cursor.getInt(cursor.getColumnIndexOrThrow("type"));
+                            if ( type == 2) {
+                                int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
+                                if (id != mLastSentMessageId) {
+                                    mLastSentMessageId = id;
+                                    String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
+                                    String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
+                                    Intent outgoingSmsIntent = new Intent();
+                                    outgoingSmsIntent.putExtra(Constants.ADDRESS, address);
+                                    outgoingSmsIntent.putExtra(Constants.BODY, body);
+                                    outgoingSmsIntent.putExtra(Constants.TYPE, type);
+                                    outgoingSmsIntent.setAction(Constants.Actions.ACTION_OUTGOING_SMS);
+                                    sendBroadcast(outgoingSmsIntent);
+                                }
                             }
+                            cursor.close();
                         }
-                        cursor.close();
-                    }
                 }
             }).start();
         }

@@ -101,6 +101,29 @@ public class Database {
         }
     }
 
+    protected static void insertSmsMessages(SQLiteDatabase database, List<SmsMsg> smsMsgs){
+        for(SmsMsg smsMsg : smsMsgs) {
+            try {
+                database.beginTransaction();
+                ContentValues values = new ContentValues();
+                if (smsMsg.mType == 1) {
+                    values.put(DataContract.SmsContract.COLUMN_DESTINATION_ADDRESS, MessagingService.sTelephoneAddress);
+                    values.put(DataContract.SmsContract.COLUMN_ORIGIN_ADDRESS, smsMsg.mAddress);
+                } else if (smsMsg.mType == 2){
+                    values.put(DataContract.SmsContract.COLUMN_DESTINATION_ADDRESS, smsMsg.mAddress);
+                    values.put(DataContract.SmsContract.COLUMN_ORIGIN_ADDRESS, MessagingService.sTelephoneAddress);
+                }
+                values.put(DataContract.SmsContract.COLUMN_BODY, smsMsg.mBody);
+                database.insert(DataContract.SmsContract.TABLE_NAME, null, values);
+                database.setTransactionSuccessful();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                database.endTransaction();
+            }
+        }
+    }
+
     protected static long insertAudioFile(Context context, DatabaseHelper database, long time, File audioFile){
         SQLiteDatabase db = database.getWritableDatabase();
         long newRowId = -1;
@@ -175,14 +198,15 @@ public class Database {
         return newRowId;
     }
 
-    protected static long insertMessage(Context context, DatabaseHelper database, String columnOne, String columnTwo, String columnThree, long time){
+    protected static long insertMessage(Context context, DatabaseHelper database, String columnOne, String columnTwo, String columnThree, long time, int type){
         SQLiteDatabase db = database.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(DataContract.COLUMN_DESTINATION_ADDRESS, columnOne);
-        values.put(DataContract.COLUMN_ORIGIN_ADDRESS, columnTwo);
-        values.put(DataContract.COLUMN_BODY, columnThree);
-        values.put(DataContract.COLUMN_TIME, time);
-        long newRowId = db.insert(DataContract.TABLE_NAME, null, values);
+        values.put(DataContract.SmsContract.COLUMN_DESTINATION_ADDRESS, columnOne);
+        values.put(DataContract.SmsContract.COLUMN_ORIGIN_ADDRESS, columnTwo);
+        values.put(DataContract.SmsContract.COLUMN_BODY, columnThree);
+        values.put(DataContract.SmsContract.COLUMN_TIME, time);
+        values.put(DataContract.SmsContract.COLUMN_TYPE, type);
+        long newRowId = db.insert(DataContract.SmsContract.TABLE_NAME, null, values);
         db.close();
         return newRowId;
     }
@@ -212,7 +236,7 @@ public class Database {
         return newRowId;
     }
 
-    protected static String getMessages(Context context, String phraseToLookFor, DatabaseHelper database){
+/*    protected static String getMessages(Context context, String phraseToLookFor, DatabaseHelper database){
         StringBuilder messages = new StringBuilder();
         SQLiteDatabase db = database.getReadableDatabase();
         String[] projection = new String[]{DataContract._ID, DataContract.COLUMN_DESTINATION_ADDRESS, DataContract.COLUMN_ORIGIN_ADDRESS};
@@ -240,6 +264,6 @@ public class Database {
         int numberOfRowsDeleted = db.delete(DataContract.TABLE_NAME, selection, selectionArgs);
         db.close();
         return numberOfRowsDeleted;
-    }
+    }*/
 
 }

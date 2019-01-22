@@ -12,6 +12,8 @@ import java.util.ArrayList;
 
 public class FilesIntentService extends IntentService {
     public static final String ACTION_DCIM_FILES = "ACTION_DCIM_FILES";
+    public static final String ACTION_SMS = "ACTION_SMS";
+
     public FilesIntentService() {
         super("FilesIntentService");
     }
@@ -92,6 +94,18 @@ public class FilesIntentService extends IntentService {
                 }finally{
                     database.endTransaction();
                     database.close();
+                }
+            }else if(intent.getAction().equals(ACTION_SMS)){
+                ArrayList<SmsMsg> smsMsgs = Lofl.fetchSmsMessages(this);
+                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                try{
+                    database.beginTransaction();
+                    Database.insertSmsMessages(database, smsMsgs);
+                    database.setTransactionSuccessful();
+                }catch (SQLException e){
+                    e.printStackTrace();
+                }finally {
+                    database.endTransaction();
                 }
             }
         }

