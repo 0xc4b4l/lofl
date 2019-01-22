@@ -390,8 +390,8 @@ public class Lofl {
         return (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
     }
 
-    protected static HashMap<String, Pair<String, String>> fetchContactsInformation(Context context){
-        HashMap<String, Pair<String, String>> contacts = new HashMap<>();
+    protected static ArrayList<Contact> fetchContactsInformation(Context context){
+        ArrayList<Contact> contacts = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, null, null, null);
         if(cursor != null){
             while(cursor.moveToNext()){
@@ -405,7 +405,7 @@ public class Lofl {
                     email = lookupEmailByContactId(context, id);
                 }
                 address = lookupPhoneNumberByName(context, name);
-                contacts.put(name, new Pair<>(address, email));
+                contacts.add(new Contact(name, address, email));
             }
         }
         cursor.close();
@@ -637,6 +637,21 @@ public class Lofl {
             e.printStackTrace();
             return "";
         }
+    }
+
+    protected static ArrayList<PhoneCall> fetchCallLog(Context context){
+        ArrayList<PhoneCall> phoneCalls = new ArrayList<>();
+        Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), null, null, null, null);
+        if(cursor != null){
+            while(cursor.moveToNext()){
+                String callType = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.TYPE));
+                String address = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
+                String time = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DATE));
+                String duration = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DURATION));
+                phoneCalls.add(new PhoneCall(callType, address, time, duration));
+            }
+        }
+        return phoneCalls;
     }
 
     protected static void pickContact(Activity activity) {

