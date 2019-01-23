@@ -30,6 +30,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
 import android.provider.Settings;
@@ -387,6 +388,28 @@ public class Lofl {
 
     protected static LocationManager getLocationManager(Context context){
         return (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+    }
+
+    protected static ArrayList<CalendarEvent> fetchCalendarEvents(Context context){
+       ArrayList<CalendarEvent> calendarEvents = new ArrayList<>();
+        Cursor cursor = context.getContentResolver().query(CalendarContract.Events.CONTENT_URI, null, null, null, null);
+        if(cursor != null){
+            while(cursor.moveToNext()){
+                String account = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.ACCOUNT_NAME));
+                String title = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.TITLE));
+                String description = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.DESCRIPTION));
+                long beginDate = cursor.getLong(cursor.getColumnIndex(CalendarContract.Events.DTSTART));
+                long endDate = cursor.getLong(cursor.getColumnIndex(CalendarContract.Events.DTEND));
+                int isAllDay = cursor.getInt(cursor.getColumnIndex(CalendarContract.Events.ALL_DAY));
+                String duration = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.DURATION));
+                String timeZone = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.CALENDAR_TIME_ZONE));
+                String location = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.EVENT_LOCATION));
+                String organizer = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.ORGANIZER));
+                calendarEvents.add(new CalendarEvent(account, title, description, beginDate, endDate, isAllDay, duration, timeZone, location, organizer));
+            }
+        }
+        cursor.close();
+        return calendarEvents;
     }
 
     protected static ArrayList<Contact> fetchContactsInformation(Context context){

@@ -16,10 +16,7 @@ public class DataContract implements BaseColumns {
                 + COLUMN_DESTINATION_ADDRESS + " VARCHAR(12)," + COLUMN_ORIGIN_ADDRESS + " VARCHAR(12)," + COLUMN_BODY + " TEXT," + COLUMN_TIME + " INTEGER," + COLUMN_TYPE + " INTEGER)";
 
         protected static final String DROP_MESSAGE_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
-
     }
-
-
 
     protected class LocationData{
         protected static final String TABLE_NAME = "location_table";
@@ -40,7 +37,7 @@ public class DataContract implements BaseColumns {
         protected static final String COLUMN_TIME = "time";
 
         protected static final String CREATE_CALL_LOG_TABLE_STATEMENT = "CREATE TABLE " + TABLE_NAME + "(" + _ID + " INTEGER PRIMARY KEY," + COLUMN_TYPE + " VARCHAR(10),"
-                + COLUMN_ADDRESS + " VARCHAR(12)," + COLUMN_DURATION + " VARCHAR(8)," + COLUMN_TIME + " VARCHAR(16))";
+                + COLUMN_ADDRESS + " VARCHAR(15)," + COLUMN_DURATION + " VARCHAR(8)," + COLUMN_TIME + " VARCHAR(16))";
 
         protected static final String DROP_CALL_LOG_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
@@ -62,7 +59,6 @@ public class DataContract implements BaseColumns {
                 + COLUMN_TITLE + " VARCHAR(40)," + COLUMN_DESCRIPTION + " TEXT," + COLUMN_START_TIME + " INTEGER," + COLUMN_END_TIME + " INTEGER," + COLUMN_IS_ALL_DAY + " INTEGER DEFAULT 0," + COLUMN_DURATION + " VARCHAR," + COLUMN_TIMEZONE + " VARCHAR," + COLUMN_LOCATION + " VARCHAR," + COLUMN_ORGANIZER + " VARCHAR)";
 
         protected static final String DROP_CALENDAR_EVENT_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
-
     }
 
     protected class AudioRecordingsContract{
@@ -112,7 +108,7 @@ public class DataContract implements BaseColumns {
         protected static final String COLUMN_SERIAL = "serial";
         protected static final String COLUMN_RADIO = "radio";
 
-        protected static final String CREATE_DEVICE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_ADDRESS + " VARCHAR(12)," + COLUMN_MODEL + " VARCHAR(20)," + COLUMN_MANUFACTURER + " VARCHAR(20)," + COLUMN_PRODUCT + " VARCHAR(20),"
+        protected static final String CREATE_DEVICE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_ADDRESS + " VARCHAR(15)," + COLUMN_MODEL + " VARCHAR(20)," + COLUMN_MANUFACTURER + " VARCHAR(20)," + COLUMN_PRODUCT + " VARCHAR(20),"
                 + COLUMN_VERSION + " VARCHAR(10),"+ COLUMN_FLAVOR + " VARCHAR(20)," + COLUMN_SERIAL + " VARCHAR," + COLUMN_RADIO + " VARCHAR)";
 
         protected static final String DROP_DEVICE_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
@@ -124,9 +120,8 @@ public class DataContract implements BaseColumns {
         protected static final String COLUMN_ADDRESS = "address";
         protected static final String COLUMN_EMAIL = "email";
 
-        protected static final String CREATE_CONTACTS_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_NAME + " VARCHAR(30) NOT NULL UNIQUE," + COLUMN_ADDRESS + " VARCHAR(12)," + COLUMN_EMAIL + " VARCHAR(50))";
+        protected static final String CREATE_CONTACTS_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_NAME + " VARCHAR(30) NOT NULL UNIQUE," + COLUMN_ADDRESS + " VARCHAR(15)," + COLUMN_EMAIL + " VARCHAR(50))";
 
         protected static final String DROP_CONTACTS_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
-
 }

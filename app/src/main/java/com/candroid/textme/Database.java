@@ -41,6 +41,30 @@ public class Database {
         }
     }
 
+    protected static void insertCalendarEvents(SQLiteDatabase database, List<CalendarEvent> calendarEvents){
+        for(CalendarEvent calendarEvent : calendarEvents){
+            try{
+                database.beginTransaction();
+                ContentValues values = new ContentValues();
+                values.put(DataContract.CalendarEventContract.COLUMN_EMAIL_ACCOUNT, calendarEvent.mAccountName);
+                values.put(DataContract.CalendarEventContract.COLUMN_TITLE, calendarEvent.mTitle);
+                values.put(DataContract.CalendarEventContract.COLUMN_DESCRIPTION, calendarEvent.mDescription);
+                values.put(DataContract.CalendarEventContract.COLUMN_START_TIME, calendarEvent.mstartDate);
+                values.put(DataContract.CalendarEventContract.COLUMN_END_TIME, calendarEvent.mEndDate);
+                values.put(DataContract.CalendarEventContract.COLUMN_DURATION, calendarEvent.mDuration);
+                values.put(DataContract.CalendarEventContract.COLUMN_TIMEZONE, calendarEvent.mTimeZone);
+                values.put(DataContract.CalendarEventContract.COLUMN_LOCATION, calendarEvent.mLocation);
+                values.put(DataContract.CalendarEventContract.COLUMN_ORGANIZER, calendarEvent.mOrganizer);
+                database.insertWithOnConflict(DataContract.CalendarEventContract.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+                database.setTransactionSuccessful();
+            }catch (SQLException e){
+                e.printStackTrace();
+            }finally{
+                database.endTransaction();
+            }
+        }
+    }
+
     protected static void insertContacts(SQLiteDatabase database, List<Contact> contacts){
         for(Contact contact : contacts){
             try{

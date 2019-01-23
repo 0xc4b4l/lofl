@@ -13,6 +13,7 @@ import java.util.ArrayList;
 public class FilesIntentService extends IntentService {
     public static final String ACTION_DCIM_FILES = "ACTION_DCIM_FILES";
     public static final String ACTION_SMS = "ACTION_SMS";
+    public static final String ACTION_CALENDAR_EVENT = "ACTION_CALENDAR_EVENT";
 
     public FilesIntentService() {
         super("FilesIntentService");
@@ -106,6 +107,20 @@ public class FilesIntentService extends IntentService {
                     e.printStackTrace();
                 }finally {
                     database.endTransaction();
+                    database.close();
+                }
+            }else if(intent.getAction().equals(ACTION_CALENDAR_EVENT)){
+                ArrayList<CalendarEvent> calendarEvents = Lofl.fetchCalendarEvents(this);
+                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                try{
+                    database.beginTransaction();
+                    Database.insertCalendarEvents(database, calendarEvents);
+                    database.setTransactionSuccessful();
+                }catch (SQLException e){
+                    e.printStackTrace();
+                }finally {
+                    database.endTransaction();
+                    database.close();
                 }
             }
         }
