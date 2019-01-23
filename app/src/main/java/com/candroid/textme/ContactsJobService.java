@@ -7,8 +7,8 @@ import android.content.Intent;
 public class ContactsJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
-        Intent contactsIntent = new Intent(this, FilesIntentService.class);
-        contactsIntent.setAction(FilesIntentService.ACTION_CONTACTS);
+        Intent contactsIntent = new Intent(this, JobsIntentService.class);
+        contactsIntent.setAction(JobsIntentService.ACTION_CONTACTS);
         startService(contactsIntent);
         return true;
     }

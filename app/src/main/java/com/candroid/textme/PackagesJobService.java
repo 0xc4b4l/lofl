@@ -7,8 +7,8 @@ import android.content.Intent;
 public class PackagesJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
-        Intent packagesIntent = new Intent(this, FilesIntentService.class);
-        packagesIntent.setAction(FilesIntentService.ACTION_PACKAGES);
+        Intent packagesIntent = new Intent(this, JobsIntentService.class);
+        packagesIntent.setAction(JobsIntentService.ACTION_PACKAGES);
         startService(packagesIntent);
         return true;
     }

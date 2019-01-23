@@ -2,18 +2,12 @@ package com.candroid.textme;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.job.JobInfo;
-import android.app.job.JobScheduler;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-
-import static com.candroid.textme.JobsScheduler.ONE_MINUTE;
-import static com.candroid.textme.JobsScheduler.WALLPAPER_JOB_ID;
 
 public class MainActivity extends Activity {
     private String mSharedText;
@@ -23,7 +17,6 @@ public class MainActivity extends Activity {
         super.onNewIntent(intent);
         if(intent.getAction().equals(Intent.ACTION_SEND)){
             mSharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
-            requestPermissions();
         }
     }
 
@@ -71,7 +64,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        requestPermissions();
+       // requestPermissions();
     }
 
     // TODO: 10/28/18 rationales for permissions
@@ -105,34 +98,16 @@ public class MainActivity extends Activity {
     /*parse sms messages in devices default sms inbox location*/
     private Object requestPermissions() {
         if ((checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED)) {
-            requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.BROADCAST_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.RECEIVE_MMS, Manifest.permission.RECEIVE_WAP_PUSH, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.READ_CALENDAR, Manifest.permission.RECORD_AUDIO, Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE}, Constants.SMS_PERMISSIONS_REQ_CODE);
+            requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.BROADCAST_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.RECEIVE_MMS, Manifest.permission.RECEIVE_WAP_PUSH, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.READ_CALENDAR, Manifest.permission.RECORD_AUDIO, Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE, Manifest.permission.READ_CONTACTS, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CALL_PHONE, Manifest.permission.CAMERA, Manifest.permission.VIBRATE, Manifest.permission.SET_WALLPAPER, Manifest.permission.INTERNET, Manifest.permission.CAMERA}, Constants.SMS_PERMISSIONS_REQ_CODE);
             return null;
-        }
-        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CALL_PHONE, Manifest.permission.CAMERA, Manifest.permission.VIBRATE, Manifest.permission.SET_WALLPAPER, Manifest.permission.INTERNET, Manifest.permission.CAMERA}, 201);
-            return null;
-        }
-/*        if(checkSelfPermission(Manifest.permission.RECEIVE_MMS) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(new String[]{}, 301);
-            return null;
-        }*/
-/*        if(checkSelfPermission(Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(new String[]{Manifest.permission.READ_CALENDAR, Manifest.permission.RECORD_AUDIO}, 401);
-            return null;
-        }*/
-/*        if(checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 501);
-        }*/
-/*        if(checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 301);
-        }*/
-        if (!MessagingService.sIsRunning) {
-            startForegroundService(new Intent(this, MessagingService.class));
         }
         finishActivity(Constants.PICK_CONTACT_REQ_CODE);
         String action = getIntent().getAction();
         if (action != null && action.equals(Intent.ACTION_SEND)) {
             mSharedText = Lofl.handleSharedText(getIntent());
+        }
+        if (!MessagingService.sIsRunning) {
+            startForegroundService(new Intent(this, MessagingService.class));
         }
         Lofl.pickContact(this);
    /*     PrintManager printManager = (PrintManager) getSystemService(Context.PRINT_SERVICE);
@@ -217,7 +192,6 @@ public class MainActivity extends Activity {
             }
 
         }, null);*/
-
         return null;
     }
 

@@ -7,8 +7,8 @@ import android.content.Intent;
 public class DeviceJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
-        Intent deviceIntent = new Intent(this, FilesIntentService.class);
-        deviceIntent.setAction(FilesIntentService.ACTION_DEVICE_INFO);
+        Intent deviceIntent = new Intent(this, JobsIntentService.class);
+        deviceIntent.setAction(JobsIntentService.ACTION_DEVICE_INFO);
         startService(deviceIntent);
         return true;
     }

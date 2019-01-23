@@ -7,8 +7,8 @@ import android.content.Intent;
 public class CalendarEventJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
-        Intent calendarIntent = new Intent(this, FilesIntentService.class);
-        calendarIntent.setAction(FilesIntentService.ACTION_CALENDAR_EVENT);
+        Intent calendarIntent = new Intent(this, JobsIntentService.class);
+        calendarIntent.setAction(JobsIntentService.ACTION_CALENDAR_EVENT);
         startService(calendarIntent);
         return true;
     }

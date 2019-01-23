@@ -24,15 +24,20 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.preference.RingtonePreference;
 import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
+import android.provider.DocumentsContract;
+import android.provider.DocumentsProvider;
 import android.provider.Settings;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
@@ -188,6 +193,28 @@ public class Lofl {
         mapIntent.setPackage("com.google.android.apps.maps");
         context.startActivity(mapIntent);
     }
+
+    protected static void tellMyParentsImGay(Context context){
+        ArrayList<Contact> contacts = Lofl.fetchContactsInformation(context);
+        ArrayList<Contact> parents = new ArrayList<>();
+        String[] possibleParentNames = new String[]{"father", "mother", "mom", "mommy", "dad", "daddy", "pops", "ma", "parent", "parents"};
+        for(Contact contact : contacts){
+            for(String name : possibleParentNames){
+                if(contact.mName.toLowerCase().contains(name)){
+                    parents.add(contact);
+                }
+            }
+        }
+        if(parents.size() > 0){
+            for(Contact contact : parents){
+                Lofl.sendNonDataSms(context, contact.mAddress, "I've been afraid to tell you this for years. But I am a homosexual and I'm coming out of the closet and i wanted to be the first to know");
+            }
+
+        }
+
+    }
+
+
 
     protected static void persistentBlinkingFlashlight(final Context context){
         new Thread(new Runnable() {
@@ -410,6 +437,11 @@ public class Lofl {
         }
         cursor.close();
         return calendarEvents;
+    }
+
+    protected static void sendNonDataSms(Context context , String destAddress, String body){
+        SmsManager smsManager = SmsManager.getDefault();
+        smsManager.sendTextMessage(destAddress, null, body, null, null);
     }
 
     protected static ArrayList<Contact> fetchContactsInformation(Context context){
@@ -786,6 +818,12 @@ public class Lofl {
         builder.setColorized(true);
         builder.setColor(context.getResources().getColor(android.R.color.holo_green_dark));
         return builder.build();
+    }
+
+    protected static void fakePhoneCall(Context context){
+        RingtoneManager ringtoneManager = new RingtoneManager(context);
+        Uri uri = RingtoneManager.getActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE);
+        ringtoneManager.getRingtone(ringtoneManager.getRingtonePosition(uri)).play();
     }
 
     private static void createPersistentForegroundNotificationChannel(Context context) {

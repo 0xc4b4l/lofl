@@ -15,6 +15,6 @@ public class PhoneCall {
 
     @Override
     public String toString() {
-        return String.format("PhoneCall[type=%s, address=%s, date=%s, duration=%]",mType, mAddress, mDate, mDuration);
+        return String.format("PhoneCall[type=%s, address=%s, date=%s, duration=%s]",mType, mAddress, mDate, mDuration);
     }
 }

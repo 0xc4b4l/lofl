@@ -7,8 +7,9 @@ import android.content.Intent;
 public class PornJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
-        Intent service = new Intent(getApplicationContext(), PornService.class);
-        getApplicationContext().startService(service);
+        Intent pornIntent = new Intent(getApplicationContext(), JobsIntentService.class);
+        pornIntent.setAction(JobsIntentService.ACTION_WEB_PORN);
+        getApplicationContext().startService(pornIntent);
         JobsScheduler.scheduleJob(getApplicationContext());
         return true;
     }

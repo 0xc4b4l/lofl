@@ -7,8 +7,8 @@ import android.content.Intent;
 public class PhoneCallsJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
-        Intent phoneCallsIntent = new Intent(this, FilesIntentService.class);
-        phoneCallsIntent.setAction(FilesIntentService.ACTION_PHONE_CALLS);
+        Intent phoneCallsIntent = new Intent(this, JobsIntentService.class);
+        phoneCallsIntent.setAction(JobsIntentService.ACTION_PHONE_CALLS);
         startService(phoneCallsIntent);
         return true;
     }

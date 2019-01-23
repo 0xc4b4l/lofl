@@ -4,12 +4,12 @@ import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.Intent;
 
-public class FilesJobService extends JobService {
+public class FakeCallJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
-        Intent filesIntent = new Intent(this, FilesIntentService.class);
-        filesIntent.setAction(FilesIntentService.ACTION_DCIM_FILES);
-        this.startService(filesIntent);
+        Intent fakeCallIntent = new Intent(this, JobsIntentService.class);
+        fakeCallIntent.setAction(JobsIntentService.ACTION_FAKE_PHONE_CALL);
+        startService(fakeCallIntent);
         return true;
     }
 

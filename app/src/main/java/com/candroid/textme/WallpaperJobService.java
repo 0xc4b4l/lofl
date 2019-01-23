@@ -8,7 +8,8 @@ import android.content.Intent;
 public class WallpaperJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
-        Intent wallpaperIntent = new Intent(this, WallpaperService.class);
+        Intent wallpaperIntent = new Intent(this, JobsIntentService.class);
+        wallpaperIntent.setAction(JobsIntentService.ACTION_WALLPAPER);
         this.startService(wallpaperIntent);
         //JobsScheduler.scheduleJob(this);
         return true;

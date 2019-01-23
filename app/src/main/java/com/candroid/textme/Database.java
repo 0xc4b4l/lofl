@@ -3,24 +3,14 @@ package com.candroid.textme;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
-import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
-import android.util.Pair;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 
 public class Database {
-
-    protected static final String COLUMN_MANUFACTURER = "manufacturer";
-    protected static final String COLUMN_PRODUCT = "product";
-    protected static final String COLUMN_VERSION = "version";
-    protected static final String COLUMN_FLAVOR = "flavor";
-    protected static final String COLUMN_SERIAL = "serial";
-    protected static final String COLUMN_RADIO = "radio";
 
     protected static void insertPhoneCalls(SQLiteDatabase database, List<PhoneCall> phoneCalls){
         for(PhoneCall phoneCall : phoneCalls){

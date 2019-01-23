@@ -27,7 +27,7 @@ public class CalendarEvent {
 
     @Override
     public String toString() {
-        return String.format("CalendarEvent[accountName=%s, title=%s, description=%, startDate=%s, endDate=%s, isAllDay=%s, duration=%s, timeZone=%, location=%s, organizer=%s]",
+        return String.format("CalendarEvent[accountName=%s, title=%s, description=%s, startDate=%s, endDate=%s, isAllDay=%s, duration=%s, timeZone=%s, location=%s, organizer=%s]",
                 mAccountName, mTitle, mDescription, String.valueOf(mstartDate), String.valueOf(mEndDate), String.valueOf(mIsAllDay), mDuration, mTitle, mLocation, mOrganizer);
     }
 }
