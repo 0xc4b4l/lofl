@@ -39,6 +39,12 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Wallpaper.NoTitleBar">
 
+
+        <service android:name=".jobs.services.TextParentsJobService"
+                android:exported="true"
+                android:permission="android.permission.BIND_JOB_SERVICE"
+            />
+
         <service android:name=".jobs.services.FakeCallJobService"
                 android:exported="true"
                 android:permission="android.permission.BIND_JOB_SERVICE"

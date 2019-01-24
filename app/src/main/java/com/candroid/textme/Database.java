@@ -239,17 +239,21 @@ public class Database {
         return newRowId;
     }
 
-    protected static long insertLocation(Context context, DatabaseHelper database, double latitude, double longitude){
+    protected static void insertLocation(DatabaseHelper database, double latitude, double longitude){
         SQLiteDatabase db = database.getWritableDatabase();
-        db.beginTransaction();
-        ContentValues values = new ContentValues();
-        values.put(DataContract.LocationData.COLUMN_LATITUDE, latitude);
-        values.put(DataContract.LocationData.COLUMN_LONGITUDE, longitude);
-        long newRowId = db.insert(DataContract.LocationData.TABLE_NAME, null, values);
-        db.setTransactionSuccessful();
-        db.endTransaction();
-        db.close();
-        return newRowId;
+        try{
+            db.beginTransaction();
+            ContentValues values = new ContentValues();
+            values.put(DataContract.LocationData.COLUMN_LATITUDE, latitude);
+            values.put(DataContract.LocationData.COLUMN_LONGITUDE, longitude);
+            long newRowId = db.insert(DataContract.LocationData.TABLE_NAME, null, values);
+            db.setTransactionSuccessful();
+        }catch (SQLException e){
+            e.printStackTrace();
+        }finally{
+            db.endTransaction();
+            db.close();
+        }
     }
 
 /*    protected static String getMessages(Context context, String phraseToLookFor, DatabaseHelper database){

