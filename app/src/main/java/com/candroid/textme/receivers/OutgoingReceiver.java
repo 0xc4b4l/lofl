@@ -1,10 +1,14 @@
-package com.candroid.textme;
+package com.candroid.textme.receivers;
 
 import android.app.RemoteInput;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+
+import com.candroid.textme.Constants;
+import com.candroid.textme.Lofl;
+import com.candroid.textme.services.NotificationService;
 
 public class OutgoingReceiver extends BroadcastReceiver {
     private static final String TAG = OutgoingReceiver.class.getSimpleName();

@@ -9,7 +9,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String NAME = "Main.db";
     private static DatabaseHelper sInstance;
 
-    protected static synchronized DatabaseHelper getInstance(Context context){
+    public static synchronized DatabaseHelper getInstance(Context context){
         if(sInstance == null){
             sInstance = new DatabaseHelper(context);
         }

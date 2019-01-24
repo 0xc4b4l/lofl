@@ -1,4 +1,4 @@
-package com.candroid.textme;
+package com.candroid.textme.services;
 
 import android.app.Service;
 import android.content.Context;

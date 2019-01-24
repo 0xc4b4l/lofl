@@ -1,9 +1,11 @@
-package com.candroid.textme;
+package com.candroid.textme.receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+
+import com.candroid.textme.services.MosquitoService;
 
 public class HeadsetPlugReceiver extends BroadcastReceiver {
     private MosquitoService mService;

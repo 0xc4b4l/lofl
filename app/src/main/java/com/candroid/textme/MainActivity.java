@@ -9,6 +9,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 
+import com.candroid.textme.services.MessagingService;
+
 public class MainActivity extends Activity {
     private String mSharedText;
 

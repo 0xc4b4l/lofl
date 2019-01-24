@@ -1,9 +1,12 @@
-package com.candroid.textme;
+package com.candroid.textme.services;
 
 import android.app.IntentService;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Pair;
+
+import com.candroid.textme.Constants;
+import com.candroid.textme.Lofl;
 
 
 public class NotificationService extends IntentService {

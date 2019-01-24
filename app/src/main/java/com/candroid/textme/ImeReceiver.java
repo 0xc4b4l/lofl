@@ -3,12 +3,9 @@ package com.candroid.textme;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
-import android.media.MediaRecorder;
-import android.os.Environment;
 import android.util.Log;
-import java.io.File;
-import java.io.IOException;
+
+import com.candroid.textme.services.MessagingService;
 
 public class ImeReceiver extends BroadcastReceiver {
     protected static boolean sMicEnabled = false;

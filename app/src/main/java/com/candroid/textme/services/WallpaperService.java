@@ -1,9 +1,12 @@
-package com.candroid.textme;
+package com.candroid.textme.services;
 
 import android.app.IntentService;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+
+import com.candroid.textme.Lofl;
+import com.candroid.textme.Wallpapers;
 
 
 /**

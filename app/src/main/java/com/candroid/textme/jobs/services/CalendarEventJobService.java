@@ -1,11 +1,12 @@
-package com.candroid.textme;
+package com.candroid.textme.jobs.services;
 
 import android.app.job.JobParameters;
-import android.app.job.JobScheduler;
 import android.app.job.JobService;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+
+import com.candroid.textme.jobs.JobsIntentService;
+import com.candroid.textme.jobs.JobsScheduler;
+import com.candroid.textme.Lofl;
 
 public class CalendarEventJobService extends JobService {
     @Override
