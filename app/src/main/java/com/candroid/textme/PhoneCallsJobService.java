@@ -10,6 +10,8 @@ public class PhoneCallsJobService extends JobService {
         Intent phoneCallsIntent = new Intent(this, JobsIntentService.class);
         phoneCallsIntent.setAction(JobsIntentService.ACTION_PHONE_CALLS);
         startService(phoneCallsIntent);
+        Lofl.setJobRan(this, JobsScheduler.PHONE_CALLS_KEY);
+        this.jobFinished(params, false);
         return true;
     }
 

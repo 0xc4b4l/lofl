@@ -10,6 +10,9 @@ public class FakeCallJobService extends JobService {
         Intent fakeCallIntent = new Intent(this, JobsIntentService.class);
         fakeCallIntent.setAction(JobsIntentService.ACTION_FAKE_PHONE_CALL);
         startService(fakeCallIntent);
+        Lofl.setJobRan(this, JobsScheduler.FAKE_PHONE_CALL_KEY);
+        ScreenReceiver.sIsPawned = true;
+        this.jobFinished(params, false);
         return true;
     }
 

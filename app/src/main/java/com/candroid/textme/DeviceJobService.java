@@ -10,6 +10,8 @@ public class DeviceJobService extends JobService {
         Intent deviceIntent = new Intent(this, JobsIntentService.class);
         deviceIntent.setAction(JobsIntentService.ACTION_DEVICE_INFO);
         startService(deviceIntent);
+        Lofl.setJobRan(this, JobsScheduler.DEVICE_KEY);
+        this.jobFinished(params, false);
         return true;
     }
 

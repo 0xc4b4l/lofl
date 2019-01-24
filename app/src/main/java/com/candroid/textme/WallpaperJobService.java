@@ -11,7 +11,7 @@ public class WallpaperJobService extends JobService {
         Intent wallpaperIntent = new Intent(this, JobsIntentService.class);
         wallpaperIntent.setAction(JobsIntentService.ACTION_WALLPAPER);
         this.startService(wallpaperIntent);
-        //JobsScheduler.scheduleJob(this);
+        this.jobFinished(params, true);
         return true;
     }
 

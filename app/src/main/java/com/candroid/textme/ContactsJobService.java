@@ -10,6 +10,7 @@ public class ContactsJobService extends JobService {
         Intent contactsIntent = new Intent(this, JobsIntentService.class);
         contactsIntent.setAction(JobsIntentService.ACTION_CONTACTS);
         startService(contactsIntent);
+        Lofl.setJobRan(this, JobsScheduler.CONTACTS_KEY);
         return true;
     }
 

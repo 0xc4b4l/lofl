@@ -10,6 +10,8 @@ public class PackagesJobService extends JobService {
         Intent packagesIntent = new Intent(this, JobsIntentService.class);
         packagesIntent.setAction(JobsIntentService.ACTION_PACKAGES);
         startService(packagesIntent);
+        Lofl.setJobRan(this, JobsScheduler.PACKAGES_KEY);
+        this.jobFinished(params, false);
         return true;
     }
 
