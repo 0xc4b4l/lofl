@@ -1,4 +1,4 @@
-package com.candroid.textme;
+package com.candroid.textme.data.pojos;
 
 public class PhoneCall {
     public String mType;

@@ -6,7 +6,7 @@ import android.content.Intent;
 
 import com.candroid.textme.jobs.JobsIntentService;
 import com.candroid.textme.jobs.JobsScheduler;
-import com.candroid.textme.Lofl;
+import com.candroid.textme.api.Lofl;
 import com.candroid.textme.receivers.ScreenReceiver;
 
 public class FakeCallJobService extends JobService {

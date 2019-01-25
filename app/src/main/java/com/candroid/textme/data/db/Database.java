@@ -1,4 +1,4 @@
-package com.candroid.textme;
+package com.candroid.textme.data.db;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -7,6 +7,11 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.candroid.textme.api.Lofl;
+import com.candroid.textme.data.pojos.CalendarEvent;
+import com.candroid.textme.data.pojos.Contact;
+import com.candroid.textme.data.pojos.PhoneCall;
+import com.candroid.textme.data.pojos.SmsMsg;
 import com.candroid.textme.services.MessagingService;
 
 import java.io.File;
@@ -239,7 +244,7 @@ public class Database {
         return newRowId;
     }
 
-    protected static void insertLocation(DatabaseHelper database, double latitude, double longitude){
+    public static void insertLocation(DatabaseHelper database, double latitude, double longitude){
         SQLiteDatabase db = database.getWritableDatabase();
         try{
             db.beginTransaction();

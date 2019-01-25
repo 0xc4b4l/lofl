@@ -1,16 +1,16 @@
-package com.candroid.textme;
+package com.candroid.textme.data.pojos;
 
 public class CalendarEvent {
-    String mAccountName;
-    String mTitle;
-    String mDescription;
-    long mstartDate;
-    long mEndDate;
-    int mIsAllDay;
-    String mDuration;
-    String mTimeZone;
-    String mLocation;
-    String mOrganizer;
+    public String mAccountName;
+    public String mTitle;
+    public String mDescription;
+    public long mstartDate;
+    public long mEndDate;
+    public int mIsAllDay;
+    public String mDuration;
+    public String mTimeZone;
+    public String mLocation;
+    public String mOrganizer;
 
     public CalendarEvent(String accountName, String title, String description, long startDate, long endDate, int isAllDay, String duration, String timeZone, String location, String organizer){
         mAccountName = accountName;

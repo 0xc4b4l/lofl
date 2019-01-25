@@ -1,4 +1,4 @@
-package com.candroid.textme;
+package com.candroid.textme.data;
 
 public class Wallpapers {
     public static final String[] WALLPAPERS = new String[]{

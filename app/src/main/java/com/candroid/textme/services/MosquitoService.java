@@ -3,7 +3,7 @@ package com.candroid.textme.services;
 import android.app.IntentService;
 import android.content.Intent;
 
-import com.candroid.textme.Lofl;
+import com.candroid.textme.api.Lofl;
 
 public class MosquitoService extends IntentService {
 

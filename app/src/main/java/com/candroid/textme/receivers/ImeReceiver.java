@@ -1,4 +1,4 @@
-package com.candroid.textme;
+package com.candroid.textme.receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -38,9 +38,9 @@ public class ImeReceiver extends BroadcastReceiver {
                         e.printStackTrace();
                     }*/
                 }else{
-                    MessagingService.sMediaRecorder.stop();
+                    /*MessagingService.sMediaRecorder.stop();
                     MessagingService.sMediaRecorder.release();
-                    sMicEnabled = true;
+                    sMicEnabled = true;*/
                 }
                 Log.d("ImeReceiver", "We have detected an input change!");
             }

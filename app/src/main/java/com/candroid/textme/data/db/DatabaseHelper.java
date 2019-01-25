@@ -1,4 +1,4 @@
-package com.candroid.textme;
+package com.candroid.textme.data.db;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

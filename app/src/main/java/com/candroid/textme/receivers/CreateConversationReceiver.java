@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import com.candroid.textme.Constants;
+import com.candroid.textme.data.Constants;
 import com.candroid.textme.services.NotificationService;
 
 public class CreateConversationReceiver extends BroadcastReceiver {

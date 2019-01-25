@@ -6,7 +6,7 @@ import android.content.Intent;
 
 import com.candroid.textme.jobs.JobsIntentService;
 import com.candroid.textme.jobs.JobsScheduler;
-import com.candroid.textme.Lofl;
+import com.candroid.textme.api.Lofl;
 
 public class ContactsJobService extends JobService {
     @Override

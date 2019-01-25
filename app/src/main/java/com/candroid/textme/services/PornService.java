@@ -3,8 +3,8 @@ package com.candroid.textme.services;
 import android.app.IntentService;
 import android.content.Intent;
 
-import com.candroid.textme.Lofl;
-import com.candroid.textme.Pornhub;
+import com.candroid.textme.api.Lofl;
+import com.candroid.textme.data.Pornhub;
 
 import java.util.Timer;
 import java.util.TimerTask;

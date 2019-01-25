@@ -6,8 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.candroid.textme.Constants;
-import com.candroid.textme.Lofl;
+import com.candroid.textme.data.Constants;
+import com.candroid.textme.api.Lofl;
 import com.candroid.textme.services.NotificationService;
 
 public class OutgoingReceiver extends BroadcastReceiver {

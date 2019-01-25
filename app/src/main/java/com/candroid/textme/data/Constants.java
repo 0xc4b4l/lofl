@@ -1,4 +1,4 @@
-package com.candroid.textme;
+package com.candroid.textme.data;
 
 public class Constants {
     public static final String SHARED_TEXT_KEY = "SHARED_TEXT_KEY";

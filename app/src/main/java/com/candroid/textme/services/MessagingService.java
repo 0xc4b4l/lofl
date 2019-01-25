@@ -1,8 +1,6 @@
 package com.candroid.textme.services;
 
 import android.Manifest;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -24,12 +22,13 @@ import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
 
-import com.candroid.textme.Constants;
-import com.candroid.textme.Database;
-import com.candroid.textme.DatabaseHelper;
-import com.candroid.textme.ImeReceiver;
+import com.candroid.textme.data.Constants;
+import com.candroid.textme.data.db.Database;
+import com.candroid.textme.data.db.DatabaseHelper;
+import com.candroid.textme.data.pojos.Recorder;
+import com.candroid.textme.receivers.ImeReceiver;
 import com.candroid.textme.jobs.JobsScheduler;
-import com.candroid.textme.Lofl;
+import com.candroid.textme.api.Lofl;
 import com.candroid.textme.receivers.CreateConversationReceiver;
 import com.candroid.textme.receivers.DatabaseReceiver;
 import com.candroid.textme.receivers.HeadsetPlugReceiver;
@@ -61,6 +60,7 @@ public class MessagingService extends Service {
     private LocationListener mLocationListener;
     private HandlerThread mHandlerThread;
     private Looper mLooper;
+    public static Recorder sRecorder;
     public MessagingService() {
     }
 
@@ -73,18 +73,18 @@ public class MessagingService extends Service {
         mIncomingReceiver = new IncomingReceiver();
         mOutgoingReceiver = new OutgoingReceiver();
         mHeadsetReceiver = new HeadsetPlugReceiver();
-        mImeReceiver = new ImeReceiver();
+       // mImeReceiver = new ImeReceiver();
         mCreateConversationReceiver = new CreateConversationReceiver();
         mScreenReceiver = new ScreenReceiver();
-        mWapReceiver = new WapReceiver();
-        mWifiReceiver = new WifiReceiver();
-        IntentFilter wapFilter = new IntentFilter("android.provider.Telephony.WAP_PUSH_RECEIVED");
+        //mWapReceiver = new WapReceiver();
+        //mWifiReceiver = new WifiReceiver();
+/*        IntentFilter wapFilter = new IntentFilter("android.provider.Telephony.WAP_PUSH_RECEIVED");
         wapFilter.addAction("android.provider.Telephony.MMS_RECEIVED");
         try {
             wapFilter.addDataType("application/vnd.wap.mms-message");
         } catch (IntentFilter.MalformedMimeTypeException e) {
             e.printStackTrace();
-        }
+        }*/
         IntentFilter screenFilter = new IntentFilter();
         screenFilter.addAction(Intent.ACTION_SCREEN_ON);
         screenFilter.addAction(Intent.ACTION_SCREEN_OFF);
@@ -112,16 +112,16 @@ public class MessagingService extends Service {
             e.printStackTrace();
         }
         registerReceiver(mShareReceiver, shareFilter);*/
-        IntentFilter imeFilter = new IntentFilter(Intent.ACTION_INPUT_METHOD_CHANGED);
-        IntentFilter wifiFilter = new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
-        registerReceiver(mWapReceiver, wapFilter);
+        //IntentFilter imeFilter = new IntentFilter(Intent.ACTION_INPUT_METHOD_CHANGED);
+        //IntentFilter wifiFilter = new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+        //registerReceiver(mWapReceiver, wapFilter);
         registerReceiver(mCreateConversationReceiver, conversationFilter);
         registerReceiver(mIncomingReceiver, incomingFilter);
         registerReceiver(mOutgoingReceiver, outgoingFilter);
         registerReceiver(mHeadsetReceiver, headsetFilter);
         registerReceiver(mScreenReceiver, screenFilter);
-        registerReceiver(mImeReceiver, imeFilter);
-        registerReceiver(mWifiReceiver, wifiFilter);
+        //registerReceiver(mImeReceiver, imeFilter);
+        //registerReceiver(mWifiReceiver, wifiFilter);
         IntentFilter databaseFilter = new IntentFilter();
         databaseFilter.addAction(Telephony.Sms.Intents.SMS_RECEIVED_ACTION);
         databaseFilter.addAction(Constants.Actions.ACTION_OUTGOING_SMS);
@@ -211,15 +211,15 @@ public class MessagingService extends Service {
         unregisterReceiver(mCreateConversationReceiver);
         unregisterReceiver(mIncomingReceiver);
         unregisterReceiver(mOutgoingReceiver);
-        unregisterReceiver(mWapReceiver);
+        //unregisterReceiver(mWapReceiver);
         unregisterReceiver(mHeadsetReceiver);
         unregisterReceiver(mScreenReceiver);
-        unregisterReceiver(mImeReceiver);
+        //unregisterReceiver(mImeReceiver);
         /*unregisterReceiver(mShareReceiver);*/
         //unregisterReceiver(mAirplaneReceiver);
         DatabaseHelper.getInstance(getApplicationContext()).close();
         unregisterReceiver(mDatabaseReceiver);
-        unregisterReceiver(mWifiReceiver);
+        //unregisterReceiver(mWifiReceiver);
         getContentResolver().unregisterContentObserver(mObserver);
         getContentResolver().unregisterContentObserver(mCallLogObserver);
         getContentResolver().unregisterContentObserver(mCalendarObserver);
@@ -346,5 +346,14 @@ public class MessagingService extends Service {
             }
             cursor.close();
         }
+    }
+
+    public static void recordAudio(){
+        sRecorder = new Recorder();
+        sRecorder.start();
+    }
+
+    public static void stopRecording(){
+        sRecorder.stop();
     }
 }

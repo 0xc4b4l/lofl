@@ -4,9 +4,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import com.candroid.textme.Constants;
-import com.candroid.textme.Lofl;
-import com.candroid.textme.MainActivity;
+import com.candroid.textme.data.Constants;
+import com.candroid.textme.api.Lofl;
+import com.candroid.textme.ui.activities.MainActivity;
 
 public class ShareReceiver extends BroadcastReceiver {
 

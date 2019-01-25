@@ -7,6 +7,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 
+import com.candroid.textme.data.Constants;
+
 public class OutgoingSmsObserver extends ContentObserver {
     private Context mContext;
     /**
