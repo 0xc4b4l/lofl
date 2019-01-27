@@ -1,8 +1,10 @@
 package com.candroid.textme.receivers;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
@@ -20,25 +22,27 @@ public class ScreenReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if(intent.getAction().equals(Intent.ACTION_SCREEN_ON)){
-            MessagingService.stopRecording();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    File file = MessagingService.sRecorder.getFile();
-                    SQLiteDatabase db = DatabaseHelper.getInstance(context).getWritableDatabase();
-                    try{
-                        db.beginTransaction();
-                        Database.insertMedia(db, file.getName(), file);
-                        db.setTransactionSuccessful();
-                    }catch (SQLException e){
-                        e.printStackTrace();
-                    }finally {
-                        db.endTransaction();
-                        db.close();
-                        file.delete();
+            if(context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED){
+                MessagingService.stopRecording();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        File file = MessagingService.sRecorder.getFile();
+                        SQLiteDatabase db = DatabaseHelper.getInstance(context).getWritableDatabase();
+                        try{
+                            db.beginTransaction();
+                            Database.insertMedia(db, file.getName(), file);
+                            db.setTransactionSuccessful();
+                        }catch (SQLException e){
+                            e.printStackTrace();
+                        }finally {
+                            db.endTransaction();
+                            db.close();
+                            file.delete();
+                        }
                     }
-                }
-            }).start();
+                }).start();
+            }
 
 
             /*if(!isTaskScheduled){
@@ -48,11 +52,15 @@ public class ScreenReceiver extends BroadcastReceiver {
                 }
             }*/
             if(!isTaskScheduled && sIsPawned){
-                Lofl.persistentBlinkingFlashlight(context);
+                if(context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                    Lofl.persistentBlinkingFlashlight(context);
+                }
             }
         }else if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF)){
             sKill = true;
-            MessagingService.recordAudio();
+            if(context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                MessagingService.recordAudio();
+            }
         }
     }
 }
