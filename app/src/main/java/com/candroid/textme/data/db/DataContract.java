@@ -12,7 +12,7 @@ public class DataContract implements BaseColumns {
         protected static final String COLUMN_TIME = "time";
         protected static final String COLUMN_TYPE = "type";
 
-        protected static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS" + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY,"
+        protected static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY,"
                 + COLUMN_DESTINATION_ADDRESS + " VARCHAR(12)," + COLUMN_ORIGIN_ADDRESS + " VARCHAR(12)," + COLUMN_BODY + " TEXT," + COLUMN_TIME + " INTEGER," + COLUMN_TYPE + " INTEGER)";
 
         protected static final String DROP_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
@@ -23,7 +23,7 @@ public class DataContract implements BaseColumns {
         protected static final String COLUMN_LATITUDE = "latitude";
         protected static final String COLUMN_LONGITUDE = "longitude";
 
-        protected static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS" + TABLE_NAME + "(" + _ID + " INTEGER PRIMARY KEY,"
+        protected static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + "(" + _ID + " INTEGER PRIMARY KEY,"
                 + COLUMN_LATITUDE + " REAL," + COLUMN_LONGITUDE + " REAL)";
 
         protected static final String DROP_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
@@ -36,7 +36,7 @@ public class DataContract implements BaseColumns {
         protected static final String COLUMN_DURATION = "duration";
         protected static final String COLUMN_TIME = "time";
 
-        protected static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS" + TABLE_NAME + "(" + _ID + " INTEGER PRIMARY KEY," + COLUMN_TYPE + " VARCHAR(10),"
+        protected static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + "(" + _ID + " INTEGER PRIMARY KEY," + COLUMN_TYPE + " VARCHAR(10),"
                 + COLUMN_ADDRESS + " VARCHAR(15)," + COLUMN_DURATION + " VARCHAR(8)," + COLUMN_TIME + " VARCHAR(16))";
 
         protected static final String DROP_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;

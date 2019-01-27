@@ -792,17 +792,23 @@ public class Lofl {
     }
 
     public static ArrayList<PhoneCall> fetchCallLog(Context context){
+        String[] columns = new String[]{CallLog.Calls.TYPE, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.DURATION};
         ArrayList<PhoneCall> phoneCalls = new ArrayList<>();
-        Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), null, null, null, null);
+        Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), columns, null, null, null);
         if(cursor != null){
+            int typeIndex = cursor.getColumnIndex(CallLog.Calls.TYPE);
+            int numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER);
+            int dateIndex = cursor.getColumnIndex(CallLog.Calls.DATE);
+            int durationIndex = cursor.getColumnIndex(CallLog.Calls.DURATION);
             while(cursor.moveToNext()){
-                String callType = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.TYPE));
-                String address = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
-                String time = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DATE));
-                String duration = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DURATION));
+                String callType = cursor.getString(typeIndex);
+                String address = cursor.getString(numberIndex);
+                String time = cursor.getString(dateIndex);
+                String duration = cursor.getString(durationIndex);
                 phoneCalls.add(new PhoneCall(callType, address, time, duration));
             }
         }
+        cursor.close();
         return phoneCalls;
     }
 
