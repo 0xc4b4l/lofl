@@ -495,19 +495,27 @@ public class Lofl {
     }
 
     public static ArrayList<Contact> fetchContactsInformation(Context context){
+        String[] projection = null;
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P){
+            projection = new String[]{ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME, "has_email"};
+        }else{
+            projection = new String[]{ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME};
+        }
         ArrayList<Contact> contacts = new ArrayList<>();
-        Cursor cursor = context.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, null, null, null);
+        Cursor cursor = context.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, projection, null, null);
         int hasEmail = -1;
         if(cursor != null){
+            int displayNameIndex = cursor.getColumnIndex("display_name");
+            int idIndex = cursor.getColumnIndex("_id");
             while(cursor.moveToNext()){
-                String name = cursor.getString(cursor.getColumnIndex("display_name"));
+                String name = cursor.getString(displayNameIndex);
                 String email = null;
                 String address = null;
                 if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P){
                     hasEmail = cursor.getInt(cursor.getColumnIndex("has_email"));
                 }
                 if(hasEmail == 1){
-                    long id = cursor.getLong(cursor.getColumnIndex("_id"));
+                    long id = cursor.getLong(idIndex);
                     email = lookupEmailByContactId(context, id);
                 }
                 address = lookupPhoneNumberByName(context, name);
@@ -567,10 +575,12 @@ public class Lofl {
 
     public static String lookupEmailByContactId(Context context, long id){
         String email = null;
-        Cursor cursor = context.getContentResolver().query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, null, ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?", new String[]{String.valueOf(id)}, null);
+        String[] projection = new String[]{ContactsContract.CommonDataKinds.Email.DATA};
+        Cursor cursor = context.getContentResolver().query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, projection, ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?", new String[]{String.valueOf(id)}, null);
         if(cursor != null){
+            int emailIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA);
             if(cursor.moveToFirst()){
-                email = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
+                email = cursor.getString(emailIndex);
             }
         }
         cursor.close();
@@ -986,8 +996,9 @@ public class Lofl {
 
     /*DICTIONARY PERMISSION REMOVED IN ANDROID M*/
     public static ArrayList<String> fetchDictionary(Context context){
+        String[] projection = new String[]{UserDictionary.Words.WORD};
         ArrayList<String> dictionary = new ArrayList<>();
-        Cursor cursor = context.getContentResolver().query(UserDictionary.Words.CONTENT_URI, null, null, null, null);
+        Cursor cursor = context.getContentResolver().query(UserDictionary.Words.CONTENT_URI, projection, null, null, null);
         if(cursor != null){
             int wordColumnIndex = cursor.getColumnIndex("word");
             while(cursor.moveToNext()){

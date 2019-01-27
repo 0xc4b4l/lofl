@@ -216,7 +216,7 @@ public class MessagingService extends Service {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ArrayList<CalendarEvent> events = Lofl.fetchCalendarEvents(MessagingService.this);
+                ArrayList<Contact> contacts = Lofl.fetchContactsInformation(MessagingService.this);
             }
         }).start();
     }
