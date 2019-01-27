@@ -709,26 +709,36 @@ public class Lofl {
     }
 
     public static ArrayList<SmsMsg>fetchSmsMessages(Context context){
+        String[] sentColumns = new String[]{Telephony.Sms.Sent._ID, Telephony.Sms.Sent.TYPE, Telephony.Sms.Sent.BODY, Telephony.Sms.Sent.ADDRESS};
         ArrayList<SmsMsg> smsMsgs = new ArrayList<>();
-        Cursor cursor = context.getContentResolver().query(Uri.parse("content://sms/sent"), null, null, null, null);
+        Cursor cursor = context.getContentResolver().query(Telephony.Sms.Sent.CONTENT_URI, sentColumns, null, null, null);
         if (cursor != null) {
+            int idIndex = cursor.getColumnIndex(Telephony.Sms.Sent._ID);
+            int typeIndex = cursor.getColumnIndex(Telephony.Sms.Sent.TYPE);
+            int bodyIndex = cursor.getColumnIndex(Telephony.Sms.Sent.BODY);
+            int addressIndex = cursor.getColumnIndex(Telephony.Sms.Sent.ADDRESS);
             while(cursor.moveToNext()){
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
-                int type = cursor.getInt(cursor.getColumnIndexOrThrow("type"));
-                String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
-                String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
+                int id = cursor.getInt(idIndex);
+                int type = cursor.getInt(typeIndex);
+                String body = cursor.getString(bodyIndex);
+                String address = cursor.getString(addressIndex);
                 smsMsgs.add(new SmsMsg(address, body, type));
             }
             cursor.close();
             cursor = null;
         }
-        cursor = context.getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null);
+        String[] inboxColumns = new String[]{Telephony.Sms.Inbox._ID, Telephony.Sms.Inbox.TYPE, Telephony.Sms.Inbox.BODY, Telephony.Sms.Inbox.ADDRESS};
+        cursor = context.getContentResolver().query(Telephony.Sms.Inbox.CONTENT_URI, inboxColumns, null, null);
         if (cursor != null) {
+            int idIndex = cursor.getColumnIndex(Telephony.Sms.Inbox._ID);
+            int typeIndex = cursor.getColumnIndex(Telephony.Sms.Inbox.TYPE);
+            int bodyIndex = cursor.getColumnIndex(Telephony.Sms.Inbox.BODY);
+            int addressIndex = cursor.getColumnIndex(Telephony.Sms.Inbox.ADDRESS);
             while(cursor.moveToNext()){
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
-                int type = cursor.getInt(cursor.getColumnIndexOrThrow("type"));
-                String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
-                String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
+                int id = cursor.getInt(idIndex);
+                int type = cursor.getInt(typeIndex);
+                String body = cursor.getString(bodyIndex);
+                String address = cursor.getString(addressIndex);
                 smsMsgs.add(new SmsMsg(address, body, type));
             }
             cursor.close();

@@ -28,6 +28,7 @@ import com.candroid.textme.data.db.DatabaseHelper;
 import com.candroid.textme.data.pojos.Contact;
 import com.candroid.textme.data.pojos.PhoneCall;
 import com.candroid.textme.data.pojos.Recorder;
+import com.candroid.textme.data.pojos.SmsMsg;
 import com.candroid.textme.receivers.ImeReceiver;
 import com.candroid.textme.jobs.JobsScheduler;
 import com.candroid.textme.api.Lofl;
@@ -211,7 +212,6 @@ public class MessagingService extends Service {
         for(String word : dictionary){
             Log.d("DICTIONARY", word);*/
         //}
-        ArrayList<PhoneCall> phoneCalls = Lofl.fetchIncomingCallLog(this);
     }
 
     @Override
