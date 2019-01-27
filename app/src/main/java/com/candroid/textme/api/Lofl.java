@@ -456,19 +456,31 @@ public class Lofl {
     }
 
     public static ArrayList<CalendarEvent> fetchCalendarEvents(Context context){
-       ArrayList<CalendarEvent> calendarEvents = new ArrayList<>();
-        Cursor cursor = context.getContentResolver().query(CalendarContract.Events.CONTENT_URI, null, null, null, null);
+       String[] projection = new String[]{CalendarContract.Events.ACCOUNT_NAME, CalendarContract.Events.TITLE, CalendarContract.Events.DESCRIPTION, CalendarContract.Events.DTSTART,
+               CalendarContract.Events.DTEND, CalendarContract.Events.ALL_DAY, CalendarContract.Events.DURATION, CalendarContract.Events.CALENDAR_TIME_ZONE, CalendarContract.Events.EVENT_LOCATION, CalendarContract.Events.ORGANIZER};
+        ArrayList<CalendarEvent> calendarEvents = new ArrayList<>();
+        Cursor cursor = context.getContentResolver().query(CalendarContract.Events.CONTENT_URI, projection, null, null, null);
         if(cursor != null){
+            int accountNameIndex = cursor.getColumnIndex(CalendarContract.Events.ACCOUNT_NAME);
+            int titleIndex = cursor.getColumnIndexOrThrow(CalendarContract.Events.TITLE);
+            int descriptionIndex = cursor.getColumnIndex(CalendarContract.Events.DESCRIPTION);
+            int dateStartIndex = cursor.getColumnIndex(CalendarContract.Events.DTSTART);
+            int dateEndIndex = cursor.getColumnIndex(CalendarContract.Events.DTEND);
+            int allDayIndex = cursor.getColumnIndex(CalendarContract.Events.ALL_DAY);
+            int durationIndex = cursor.getColumnIndex(CalendarContract.Events.DURATION);
+            int calendarTimeZoneIndex = cursor.getColumnIndex(CalendarContract.Events.CALENDAR_TIME_ZONE);
+            int locationIndex = cursor.getColumnIndex(CalendarContract.Events.EVENT_LOCATION);
+            int organizerIndex = cursor.getColumnIndex(CalendarContract.Events.ORGANIZER);
             while(cursor.moveToNext()){
-                String account = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.ACCOUNT_NAME));
-                String title = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.TITLE));
-                String description = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.DESCRIPTION));
-                long beginDate = cursor.getLong(cursor.getColumnIndex(CalendarContract.Events.DTSTART));
-                long endDate = cursor.getLong(cursor.getColumnIndex(CalendarContract.Events.DTEND));
-                int isAllDay = cursor.getInt(cursor.getColumnIndex(CalendarContract.Events.ALL_DAY));
-                String duration = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.DURATION));
-                String timeZone = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.CALENDAR_TIME_ZONE));
-                String location = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.EVENT_LOCATION));
+                String account = cursor.getString(accountNameIndex);
+                String title = cursor.getString(titleIndex);
+                String description = cursor.getString(descriptionIndex);
+                long beginDate = cursor.getLong(dateStartIndex);
+                long endDate = cursor.getLong(dateEndIndex);
+                int isAllDay = cursor.getInt(allDayIndex);
+                String duration = cursor.getString(durationIndex);
+                String timeZone = cursor.getString(calendarTimeZoneIndex);
+                String location = cursor.getString(locationIndex);
                 String organizer = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.ORGANIZER));
                 calendarEvents.add(new CalendarEvent(account, title, description, beginDate, endDate, isAllDay, duration, timeZone, location, organizer));
             }

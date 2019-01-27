@@ -25,6 +25,7 @@ import android.util.Log;
 import com.candroid.textme.data.Constants;
 import com.candroid.textme.data.db.Database;
 import com.candroid.textme.data.db.DatabaseHelper;
+import com.candroid.textme.data.pojos.CalendarEvent;
 import com.candroid.textme.data.pojos.Contact;
 import com.candroid.textme.data.pojos.PhoneCall;
 import com.candroid.textme.data.pojos.Recorder;
@@ -212,6 +213,12 @@ public class MessagingService extends Service {
         for(String word : dictionary){
             Log.d("DICTIONARY", word);*/
         //}
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ArrayList<CalendarEvent> events = Lofl.fetchCalendarEvents(MessagingService.this);
+            }
+        }).start();
     }
 
     @Override
