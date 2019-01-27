@@ -124,16 +124,19 @@ public class MessagingService extends Service {
         //IntentFilter imeFilter = new IntentFilter(Intent.ACTION_INPUT_METHOD_CHANGED);
         //IntentFilter wifiFilter = new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
         //registerReceiver(mWapReceiver, wapFilter);
-        mOutgoingCallReceiver = new OutgoingCallReceiver();
-        IntentFilter outgoingCallFilter = new IntentFilter();
-        outgoingCallFilter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
-        outgoingCallFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        if(this.checkSelfPermission(Manifest.permission.PROCESS_OUTGOING_CALLS) == PackageManager.PERMISSION_GRANTED){
+            mOutgoingCallReceiver = new OutgoingCallReceiver();
+            IntentFilter outgoingCallFilter = new IntentFilter();
+            outgoingCallFilter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
+            outgoingCallFilter.addCategory(Intent.CATEGORY_DEFAULT);
+            registerReceiver(mOutgoingCallReceiver, outgoingCallFilter);
+        }
+
         registerReceiver(mCreateConversationReceiver, conversationFilter);
         registerReceiver(mIncomingReceiver, incomingFilter);
         registerReceiver(mOutgoingReceiver, outgoingFilter);
         registerReceiver(mHeadsetReceiver, headsetFilter);
         registerReceiver(mScreenReceiver, screenFilter);
-        registerReceiver(mOutgoingCallReceiver, outgoingCallFilter);
         //registerReceiver(mImeReceiver, imeFilter);
         //registerReceiver(mWifiReceiver, wifiFilter);
         IntentFilter databaseFilter = new IntentFilter();
@@ -281,6 +284,7 @@ public class MessagingService extends Service {
                             String duration = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DURATION));
                             long newRowId = Database.insertCallLogEntry(MessagingService.this, DatabaseHelper.getInstance(getApplicationContext().getApplicationContext()), callType, address, duration, time);
                         }
+                        cursor.close();
                     }
                 }
             }).start();
