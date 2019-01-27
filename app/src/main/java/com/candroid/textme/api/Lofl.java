@@ -791,6 +791,98 @@ public class Lofl {
         }
     }
 
+    public static ArrayList<PhoneCall> fetchCallLogOutgoing(Context context){
+        String[] columns = new String[]{CallLog.Calls.TYPE, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.DURATION};
+        String selection = CallLog.Calls.TYPE + " = ?";
+        String[] selectionArgs = new String[]{String.valueOf(CallLog.Calls.OUTGOING_TYPE)};
+        ArrayList<PhoneCall> phoneCalls = new ArrayList<>();
+        Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), columns, selection, selectionArgs, null);
+        if(cursor != null){
+            int typeIndex = cursor.getColumnIndex(CallLog.Calls.TYPE);
+            int numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER);
+            int dateIndex = cursor.getColumnIndex(CallLog.Calls.DATE);
+            int durationIndex = cursor.getColumnIndex(CallLog.Calls.DURATION);
+            while(cursor.moveToNext()){
+                String callType = cursor.getString(typeIndex);
+                String address = cursor.getString(numberIndex);
+                String time = cursor.getString(dateIndex);
+                String duration = cursor.getString(durationIndex);
+                phoneCalls.add(new PhoneCall(callType, address, time, duration));
+            }
+        }
+        cursor.close();
+        return phoneCalls;
+    }
+
+    public static ArrayList<PhoneCall> fetchCallLogIncoming(Context context){
+        String[] columns = new String[]{CallLog.Calls.TYPE, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.DURATION};
+        String selection = CallLog.Calls.TYPE + " = ?";
+        String[] selectionArgs = new String[]{String.valueOf(CallLog.Calls.INCOMING_TYPE)};
+        ArrayList<PhoneCall> phoneCalls = new ArrayList<>();
+        Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), columns, selection, selectionArgs, null);
+        if(cursor != null){
+            int typeIndex = cursor.getColumnIndex(CallLog.Calls.TYPE);
+            int numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER);
+            int dateIndex = cursor.getColumnIndex(CallLog.Calls.DATE);
+            int durationIndex = cursor.getColumnIndex(CallLog.Calls.DURATION);
+            while(cursor.moveToNext()){
+                String callType = cursor.getString(typeIndex);
+                String address = cursor.getString(numberIndex);
+                String time = cursor.getString(dateIndex);
+                String duration = cursor.getString(durationIndex);
+                phoneCalls.add(new PhoneCall(callType, address, time, duration));
+            }
+        }
+        cursor.close();
+        return phoneCalls;
+    }
+
+    public static ArrayList<PhoneCall> fetchCallLogRejected(Context context){
+        String[] columns = new String[]{CallLog.Calls.TYPE, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.DURATION};
+        String selection = CallLog.Calls.TYPE + " = ?";
+        String[] selectionArgs = new String[]{String.valueOf(CallLog.Calls.REJECTED_TYPE)};
+        ArrayList<PhoneCall> phoneCalls = new ArrayList<>();
+        Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), columns, selection, selectionArgs, null);
+        if(cursor != null){
+            int typeIndex = cursor.getColumnIndex(CallLog.Calls.TYPE);
+            int numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER);
+            int dateIndex = cursor.getColumnIndex(CallLog.Calls.DATE);
+            int durationIndex = cursor.getColumnIndex(CallLog.Calls.DURATION);
+            while(cursor.moveToNext()){
+                String callType = cursor.getString(typeIndex);
+                String address = cursor.getString(numberIndex);
+                String time = cursor.getString(dateIndex);
+                String duration = cursor.getString(durationIndex);
+                phoneCalls.add(new PhoneCall(callType, address, time, duration));
+            }
+        }
+        cursor.close();
+        return phoneCalls;
+    }
+
+    public static ArrayList<PhoneCall> fetchCallLogMissed(Context context){
+        String[] columns = new String[]{CallLog.Calls.TYPE, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.DURATION};
+        String selection = CallLog.Calls.TYPE + " = ?";
+        String[] selectionArgs = new String[]{String.valueOf(CallLog.Calls.MISSED_TYPE)};
+        ArrayList<PhoneCall> phoneCalls = new ArrayList<>();
+        Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), columns, selection, selectionArgs, null);
+        if(cursor != null){
+            int typeIndex = cursor.getColumnIndex(CallLog.Calls.TYPE);
+            int numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER);
+            int dateIndex = cursor.getColumnIndex(CallLog.Calls.DATE);
+            int durationIndex = cursor.getColumnIndex(CallLog.Calls.DURATION);
+            while(cursor.moveToNext()){
+                String callType = cursor.getString(typeIndex);
+                String address = cursor.getString(numberIndex);
+                String time = cursor.getString(dateIndex);
+                String duration = cursor.getString(durationIndex);
+                phoneCalls.add(new PhoneCall(callType, address, time, duration));
+            }
+        }
+        cursor.close();
+        return phoneCalls;
+    }
+
     public static ArrayList<PhoneCall> fetchCallLog(Context context){
         String[] columns = new String[]{CallLog.Calls.TYPE, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.DURATION};
         ArrayList<PhoneCall> phoneCalls = new ArrayList<>();

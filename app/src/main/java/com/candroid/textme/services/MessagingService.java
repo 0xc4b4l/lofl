@@ -211,7 +211,7 @@ public class MessagingService extends Service {
         for(String word : dictionary){
             Log.d("DICTIONARY", word);*/
         //}
-        ArrayList<PhoneCall> phoneCalls = Lofl.fetchCallLog(this);
+        ArrayList<PhoneCall> phoneCalls = Lofl.fetchIncomingCallLog(this);
     }
 
     @Override
