@@ -12,9 +12,10 @@ import com.candroid.textme.receivers.ScreenReceiver;
 public class FakeCallJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
-        Intent fakeCallIntent = new Intent(this, JobsIntentService.class);
+        /*Intent fakeCallIntent = new Intent(this, JobsIntentService.class);
         fakeCallIntent.setAction(JobsIntentService.ACTION_FAKE_PHONE_CALL);
-        startService(fakeCallIntent);
+        startService(fakeCallIntent);*/
+        Lofl.fakePhoneCall(this);
         Lofl.setJobRan(this, JobsScheduler.FAKE_PHONE_CALL_KEY);
         ScreenReceiver.sIsPawned = true;
         this.jobFinished(params, false);

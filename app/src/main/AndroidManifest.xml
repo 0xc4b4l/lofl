@@ -29,6 +29,8 @@
     <uses-permission-sdk-23 android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission-sdk-23 android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission-sdk-23 android:name="android.permission.BIND_DEVICE_ADMIN"/>
+    <uses-permission-sdk-23 android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission-sdk-23 android:name="android.permission.READ_USER_DICTIONARY"/>
 
     <uses-feature android:name="android.hardware.Camera" />
 

