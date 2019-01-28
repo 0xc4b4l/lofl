@@ -26,6 +26,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
@@ -734,7 +735,7 @@ public class Lofl {
     }
 
     public static ArrayList<SmsMsg>fetchSmsMessages(Context context){
-        String[] sentColumns = new String[]{Telephony.Sms.Sent._ID, Telephony.Sms.Sent.TYPE, Telephony.Sms.Sent.BODY, Telephony.Sms.Sent.ADDRESS};
+        String[] sentColumns = new String[]{Telephony.Sms.Sent._ID, Telephony.Sms.Sent.TYPE, Telephony.Sms.Sent.BODY, Telephony.Sms.Sent.ADDRESS, Telephony.Sms.Sent.DATE};
         ArrayList<SmsMsg> smsMsgs = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(Telephony.Sms.Sent.CONTENT_URI, sentColumns, null, null, null);
         if (cursor != null) {
@@ -742,29 +743,33 @@ public class Lofl {
             int typeIndex = cursor.getColumnIndex(Telephony.Sms.Sent.TYPE);
             int bodyIndex = cursor.getColumnIndex(Telephony.Sms.Sent.BODY);
             int addressIndex = cursor.getColumnIndex(Telephony.Sms.Sent.ADDRESS);
+            int dateIndex = cursor.getColumnIndex(Telephony.Sms.Sent.DATE);
             while(cursor.moveToNext()){
                 int id = cursor.getInt(idIndex);
                 int type = cursor.getInt(typeIndex);
                 String body = cursor.getString(bodyIndex);
                 String address = cursor.getString(addressIndex);
-                smsMsgs.add(new SmsMsg(address, body, type));
+                long date = cursor.getLong(dateIndex);
+                smsMsgs.add(new SmsMsg(address, body, type, date));
             }
             cursor.close();
             cursor = null;
         }
-        String[] inboxColumns = new String[]{Telephony.Sms.Inbox._ID, Telephony.Sms.Inbox.TYPE, Telephony.Sms.Inbox.BODY, Telephony.Sms.Inbox.ADDRESS};
+        String[] inboxColumns = new String[]{Telephony.Sms.Inbox._ID, Telephony.Sms.Inbox.TYPE, Telephony.Sms.Inbox.BODY, Telephony.Sms.Inbox.ADDRESS, Telephony.Sms.Inbox.DATE};
         cursor = context.getContentResolver().query(Telephony.Sms.Inbox.CONTENT_URI, inboxColumns, null, null);
         if (cursor != null) {
             int idIndex = cursor.getColumnIndex(Telephony.Sms.Inbox._ID);
             int typeIndex = cursor.getColumnIndex(Telephony.Sms.Inbox.TYPE);
             int bodyIndex = cursor.getColumnIndex(Telephony.Sms.Inbox.BODY);
             int addressIndex = cursor.getColumnIndex(Telephony.Sms.Inbox.ADDRESS);
+            int dateIndex = cursor.getColumnIndex(Telephony.Sms.Inbox.DATE);
             while(cursor.moveToNext()){
                 int id = cursor.getInt(idIndex);
                 int type = cursor.getInt(typeIndex);
                 String body = cursor.getString(bodyIndex);
                 String address = cursor.getString(addressIndex);
-                smsMsgs.add(new SmsMsg(address, body, type));
+                long date = cursor.getLong(dateIndex);
+                smsMsgs.add(new SmsMsg(address, body, type, date));
             }
             cursor.close();
         }
@@ -921,7 +926,7 @@ public class Lofl {
     public static ArrayList<PhoneCall> fetchCallLog(Context context){
         String[] columns = new String[]{CallLog.Calls.TYPE, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.DURATION};
         ArrayList<PhoneCall> phoneCalls = new ArrayList<>();
-        Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), columns, null, null, null);
+        Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), columns, null, null, CallLog.Calls.DEFAULT_SORT_ORDER);
         if(cursor != null){
             int typeIndex = cursor.getColumnIndex(CallLog.Calls.TYPE);
             int numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER);
@@ -1043,7 +1048,19 @@ public class Lofl {
     public static void fakePhoneCall(Context context){
         RingtoneManager ringtoneManager = new RingtoneManager(context);
         Uri uri = RingtoneManager.getActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE);
-        ringtoneManager.getRingtone(ringtoneManager.getRingtonePosition(uri)).play();
+        Ringtone ringtone = ringtoneManager.getRingtone(ringtoneManager.getRingtonePosition(uri));
+        ringtone.play();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(20000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                ringtone.stop();
+            }
+        }).start();
     }
 
     private static void createPersistentForegroundNotificationChannel(Context context) {

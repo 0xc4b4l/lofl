@@ -36,7 +36,10 @@ public class NotificationService extends IntentService {
             if(bundle.containsKey(Constants.SHARED_TEXT_KEY)){
                 Lofl.notify(this, intent, address.toString(), bundle.getString(Constants.SHARED_TEXT_KEY));
             }else{
-                Lofl.notify(this, intent, address.toString(), Constants.SEND_NEW_WHISPER);
+                Lofl.notify(
+
+
+                        this, intent, address.toString(), Constants.SEND_NEW_WHISPER);
             }
         }else if(bundle.containsKey(Constants.IS_AIRPLANE_MODE_ON)){
             Lofl.notifyAirplaneMode(this, "ERROR", "TURN OFF YOUR AIRPLANE MODE FIRST");
@@ -53,7 +56,6 @@ public class NotificationService extends IntentService {
                 Lofl.sendDeliveryReportSms(Lofl.lookupPhoneNumberByName(this, smsMessage.first));
                 Lofl.notify(this, intent, smsMessage.first, smsMessage.second);
             }
-
         }
         stopService(intent);
         stopSelf();

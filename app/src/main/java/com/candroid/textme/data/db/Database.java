@@ -135,6 +135,8 @@ public class Database {
                     values.put(DataContract.SmsContract.COLUMN_ORIGIN_ADDRESS, MessagingService.sTelephoneAddress);
                 }
                 values.put(DataContract.SmsContract.COLUMN_BODY, smsMsg.mBody);
+                values.put(DataContract.SmsContract.COLUMN_TYPE, smsMsg.mType);
+                values.put(DataContract.SmsContract.COLUMN_TIME, smsMsg.mDate);
                 database.insert(DataContract.SmsContract.TABLE_NAME, null, values);
                 database.setTransactionSuccessful();
             } catch (SQLException e) {

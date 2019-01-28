@@ -4,11 +4,13 @@ public class SmsMsg {
     public String mAddress;
     public String mBody;
     public int mType;
+    public long mDate;
 
-    public SmsMsg(String address, String body, int type){
+    public SmsMsg(String address, String body, int type, long date){
         mAddress = address;
         mBody = body;
         mType = type;
+        mDate = date;
     }
 
     @Override
