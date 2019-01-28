@@ -32,7 +32,7 @@ public class Constants {
     public static final String ADDRESS = "ADDRESS";
     public static final String IS_WHISPER = "IS_WHISPER";
     public static final String SEND_ACTION = "SEND_ACTION";
-    public static final int TIMEOUT_AFTER = 30000;
+    public static final int TIMEOUT_AFTER = 60000;
     public static final String WHISPER = "Whisper";
     public static final String PORT = "6666";
     public static final String HOST = "localhost";

@@ -1,5 +1,6 @@
 package com.candroid.textme.api;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -598,6 +599,8 @@ public class Lofl {
             }
         } catch (NullPointerException e) {
             e.printStackTrace();
+        }catch(SecurityException se){
+            return address;
         }
         return String.valueOf(name);
     }

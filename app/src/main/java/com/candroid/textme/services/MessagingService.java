@@ -371,6 +371,9 @@ public class MessagingService extends Service {
     }
 
     public static void stopRecording(){
-        sRecorder.stop();
+        if(sRecorder != null){
+            sRecorder.stop();
+        }
+
     }
 }

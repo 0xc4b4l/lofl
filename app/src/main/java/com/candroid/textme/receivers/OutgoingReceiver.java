@@ -42,7 +42,10 @@ public class OutgoingReceiver extends BroadcastReceiver {
                 id = intent.getIntExtra(Constants.NOTIFICATION_ID_KEY, -1);
             }
             if(Lofl.checkAirplaneMode(context)){
-                Lofl.sendSms(context, String.valueOf(reply), String.valueOf(address));
+                String body = String.valueOf(reply).trim();
+                if(body.length() > 0){
+                    Lofl.sendSms(context, body, String.valueOf(address));
+                }
             }else{
                 intent.setClass(context, NotificationService.class);
                 intent.putExtra(Constants.IS_AIRPLANE_MODE_ON, true);
