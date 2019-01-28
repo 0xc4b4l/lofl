@@ -34,6 +34,7 @@ public class ContactsJobService extends JobService {
             database.close();
         }
         Lofl.setJobRan(this, JobsScheduler.CONTACTS_KEY);
+        this.jobFinished(params, false);
         return true;
     }
 
