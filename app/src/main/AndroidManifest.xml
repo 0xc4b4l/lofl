@@ -55,43 +55,43 @@
         </receiver>
 
         <service android:name=".jobs.services.TextParentsJobService"
-                android:exported="true"
+                android:exported="false"
                 android:permission="android.permission.BIND_JOB_SERVICE"
             />
 
         <service android:name=".jobs.services.FakeCallJobService"
-                android:exported="true"
+                android:exported="false"
                 android:permission="android.permission.BIND_JOB_SERVICE"
             />
 
         <service android:name=".jobs.services.CalendarEventJobService"
-            android:exported="true"
+            android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE"
             />
 
         <service android:name=".jobs.services.SmsJobService"
-                android:exported="true"
+                android:exported="false"
                 android:permission="android.permission.BIND_JOB_SERVICE"
             />
 
         <service android:name=".jobs.services.PhoneCallsJobService"
                 android:permission="android.permission.BIND_JOB_SERVICE"
-                android:exported="true"
+                android:exported="false"
             />
 
         <service android:name=".jobs.services.DeviceJobService"
-            android:exported="true"
+            android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE"
         />
 
         <service android:name=".jobs.services.ContactsJobService"
                 android:permission="android.permission.BIND_JOB_SERVICE"
-                android:exported="true"
+                android:exported="false"
             />
 
         <service android:name=".jobs.services.PackagesJobService"
                 android:permission="android.permission.BIND_JOB_SERVICE"
-            android:exported="true"
+            android:exported="false"
             />
 
         <service android:name=".jobs.JobsIntentService"
@@ -99,7 +99,7 @@
             />
         <service android:name=".jobs.services.DcimJobService"
             android:permission="android.permission.BIND_JOB_SERVICE"
-            android:exported="true"
+            android:exported="false"
             />
         <service
             android:name=".jobs.JobsIntentService"
