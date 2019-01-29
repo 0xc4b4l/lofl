@@ -1,6 +1,12 @@
 package com.candroid.textme.data.pojos;
 
+import android.util.Log;
+
+import java.util.Date;
+
+
 public class SmsMsg {
+    public static final String TAG = SmsMsg.class.getSimpleName();
     public String mAddress;
     public String mBody;
     public int mType;
@@ -11,6 +17,7 @@ public class SmsMsg {
         mBody = body;
         mType = type;
         mDate = date;
+        Log.d(TAG, new Date(date).toString());
     }
 
     @Override

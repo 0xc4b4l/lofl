@@ -274,6 +274,8 @@ public class Lofl {
                         sIsFlaghlightOn = false;
                     } catch (CameraAccessException e1) {
                         e1.printStackTrace();
+                    }catch (IllegalArgumentException e){
+                        e.printStackTrace();
                     }
                 }else{
                     try {
@@ -281,6 +283,8 @@ public class Lofl {
                         sIsFlaghlightOn = true;
                     } catch (CameraAccessException e1) {
                         e1.printStackTrace();
+                    }catch (IllegalArgumentException e){
+                        e.printStackTrace();
                     }
                 }
             }

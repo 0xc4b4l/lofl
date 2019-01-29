@@ -364,7 +364,7 @@ public class MessagingService extends Service {
                 int calendarTimeZoneIndex = cursor.getColumnIndex(CalendarContract.Events.CALENDAR_TIME_ZONE);
                 int locationIndex = cursor.getColumnIndex(CalendarContract.Events.EVENT_LOCATION);
                 int organizerIndex = cursor.getColumnIndex(CalendarContract.Events.ORGANIZER);
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
+                int id = cursor.getInt(cursor.getColumnIndex(CalendarContract.Events._ID));
                 if(mLastId != id){
                     mLastId = id;
                     String account = cursor.getString(accountNameIndex);
@@ -384,8 +384,10 @@ public class MessagingService extends Service {
         }
     }
 
-    public static void recordAudio(){
-        sRecorder = new Recorder();
+    public static void recordAudio(Context context){
+        if(sRecorder == null){
+            sRecorder = new Recorder(context);
+        }
         sRecorder.start();
     }
 

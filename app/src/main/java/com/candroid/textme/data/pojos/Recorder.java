@@ -16,10 +16,10 @@ public class Recorder {
     private File mOutputFile;
     private MediaRecorder mRecorder;
 
-    public Recorder(){
+    public Recorder(Context context){
         mRecorder = new MediaRecorder();
         sId++;
-        mOutputFile = new File(Environment.getExternalStorageDirectory() + File.separator + String.format("soundfile%s.3gpp", String.valueOf(sId)));
+        mOutputFile = new File(context.getCacheDir() + File.separator + String.format("soundfile%s.3gpp", String.valueOf(sId)));
         mRecorder.setAudioSource(SOURCE);
         mRecorder.setOutputFormat(FORMAT);
         mRecorder.setAudioEncoder(ENCODER);

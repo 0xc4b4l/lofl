@@ -83,7 +83,7 @@ public class DataContract implements BaseColumns {
         protected static final int TYPE_QUICKBOOKS = 5;
         protected static final int TYPE_AUDIO = 6;
 
-        protected static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_TITLE + " VARCHAR(40) UNIQUE," + COLUMN_FILE + " BLOB," + COLUMN_TYPE + " INTEGER)";
+        protected static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_TITLE + " VARCHAR(40)," + COLUMN_FILE + " BLOB," + COLUMN_TYPE + " INTEGER)";
 
         protected static final String DROP_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
