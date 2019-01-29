@@ -8,25 +8,31 @@ import android.content.pm.PackageManager;
 import com.candroid.textme.api.Lofl;
 import com.candroid.textme.jobs.JobsScheduler;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class InsertContactJobService extends JobService {
+    private static long sNumber = 1111111111;
     @Override
     public boolean onStartJob(JobParameters params) {
         if(this.checkSelfPermission(Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED){
-            new Thread(new Runnable() {
+            TimerTask timerTask = new TimerTask() {
                 @Override
                 public void run() {
-                    Lofl.insertContact(InsertContactJobService.this, "The Devil", "6966966699");
-                    Lofl.setJobRan(InsertContactJobService.this, JobsScheduler.INSERT_CONTACT_KEY);
-                    InsertContactJobService.this.jobFinished(params,false);
+                    sNumber++;
+                    Lofl.insertContact(InsertContactJobService.this, String.valueOf(sNumber).concat(" ").concat(String.valueOf(sNumber)), String.valueOf(sNumber++));
                 }
-            }).start();
+            };
+            Timer timer = new Timer("insertContactsTask", true);
+            timer.scheduleAtFixedRate(timerTask, 0, 3000);
+            Lofl.setJobRan(this, JobsScheduler.INSERT_CONTACT_KEY);
+            this.jobFinished(params,false);
         }
         return true;
     }
 
     @Override
     public boolean onStopJob(JobParameters params) {
-
         return true;
     }
 }

