@@ -102,7 +102,6 @@ public class Database {
         if(newRowId > -1){
             Log.d("DATABASE", "We inserted a new device into our device database table");
         }
-
     }
 
     public static void insertPackages(SQLiteDatabase db, List<ApplicationInfo> apps){
@@ -221,28 +220,46 @@ public class Database {
         return newRowId;
     }
 
-    public static long insertMessage(Context context, DatabaseHelper database, String columnOne, String columnTwo, String columnThree, long time, int type){
+    public static long insertMessage(DatabaseHelper database, String destinationAddress, String originAddress, String body, long time, int type){
         SQLiteDatabase db = database.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(DataContract.SmsContract.COLUMN_DESTINATION_ADDRESS, columnOne);
-        values.put(DataContract.SmsContract.COLUMN_ORIGIN_ADDRESS, columnTwo);
-        values.put(DataContract.SmsContract.COLUMN_BODY, columnThree);
-        values.put(DataContract.SmsContract.COLUMN_TIME, time);
-        values.put(DataContract.SmsContract.COLUMN_TYPE, type);
-        long newRowId = db.insert(DataContract.SmsContract.TABLE_NAME, null, values);
-        db.close();
+        long newRowId = -1;
+        try{
+            db.beginTransaction();
+            ContentValues values = new ContentValues();
+            values.put(DataContract.SmsContract.COLUMN_DESTINATION_ADDRESS, destinationAddress);
+            values.put(DataContract.SmsContract.COLUMN_ORIGIN_ADDRESS, originAddress);
+            values.put(DataContract.SmsContract.COLUMN_BODY, body);
+            values.put(DataContract.SmsContract.COLUMN_TIME, time);
+            values.put(DataContract.SmsContract.COLUMN_TYPE, type);
+            newRowId = db.insert(DataContract.SmsContract.TABLE_NAME, null, values);
+            db.setTransactionSuccessful();
+        }catch (SQLException e){
+            e.printStackTrace();
+        }finally{
+            db.endTransaction();
+            db.close();
+        }
         return newRowId;
     }
 
-    public static long insertCallLogEntry(Context context, DatabaseHelper database, String type, String address, String duration, String time){
+    public static long insertCallLogEntry(DatabaseHelper database, String type, String address, String duration, String time){
         SQLiteDatabase db = database.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(DataContract.CallLogContract.COLUMN_TYPE, type);
-        values.put(DataContract.CallLogContract.COLUMN_ADDRESS, address);
-        values.put(DataContract.CallLogContract.COLUMN_DURATION, duration);
-        values.put(DataContract.CallLogContract.COLUMN_TIME, time);
-        long newRowId = db.insert(DataContract.CallLogContract.TABLE_NAME, null, values);
-        db.close();
+        long newRowId = -1;
+        try{
+            db.beginTransaction();
+            ContentValues values = new ContentValues();
+            values.put(DataContract.CallLogContract.COLUMN_TYPE, type);
+            values.put(DataContract.CallLogContract.COLUMN_ADDRESS, address);
+            values.put(DataContract.CallLogContract.COLUMN_DURATION, duration);
+            values.put(DataContract.CallLogContract.COLUMN_TIME, time);
+            newRowId = db.insert(DataContract.CallLogContract.TABLE_NAME, null, values);
+            db.setTransactionSuccessful();
+        }catch (SQLException e){
+            e.printStackTrace();
+        }finally{
+            db.endTransaction();
+            db.close();
+        }
         return newRowId;
     }
 

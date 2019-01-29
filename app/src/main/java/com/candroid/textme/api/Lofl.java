@@ -508,7 +508,7 @@ public class Lofl {
             projection = new String[]{ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME};
         }
         ArrayList<Contact> contacts = new ArrayList<>();
-        Cursor cursor = context.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, projection, null, null);
+        Cursor cursor = context.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, projection, null, null, null);
         int hasEmail = -1;
         if(cursor != null){
             int displayNameIndex = cursor.getColumnIndex("display_name");
@@ -618,7 +618,7 @@ public class Lofl {
                 String address = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
                 String time = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DATE));
                 String duration = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DURATION));
-                long newRowId = Database.insertCallLogEntry(context, database, callType, address, duration, time);
+                long newRowId = Database.insertCallLogEntry(database, callType, address, duration, time);
             }
             cursor.close();
         } catch (SecurityException e) {

