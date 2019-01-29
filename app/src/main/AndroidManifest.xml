@@ -32,7 +32,7 @@
     <uses-permission-sdk-23 android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission-sdk-23 android:name="android.permission.READ_USER_DICTIONARY"/>
     <uses-permission-sdk-23 android:name="android.permission.PROCESS_OUTGOING_CALLS"/>
-
+    <uses-permission-sdk-23 android:name="android.permission.WRITE_CONTACTS"/>
     <uses-feature android:name="android.hardware.Camera" />
 
     <application

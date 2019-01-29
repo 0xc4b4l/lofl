@@ -10,6 +10,8 @@ import android.app.RemoteInput;
 import android.app.SearchManager;
 import android.app.WallpaperManager;
 import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -547,6 +549,36 @@ public class Lofl {
                 }
             }
         }).start();
+    }
+
+    public static void insertContact(Context context, String name, String number){
+        long contactId = insertEmptyContact(context);
+        insertContactDisplayName(context, contactId, name);
+        insertContactPhoneNumber(context, contactId, number);
+    }
+
+    public static long insertEmptyContact(Context context){
+        ContentValues contentValues = new ContentValues();
+        Uri rawContactUri = context.getContentResolver().insert(ContactsContract.RawContacts.CONTENT_URI, contentValues);
+        long contactId = ContentUris.parseId(rawContactUri);
+        return contactId;
+    }
+
+    public static void insertContactDisplayName(Context context, long  contactId, String name){
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(ContactsContract.Data.RAW_CONTACT_ID, contactId);
+        contentValues.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
+        contentValues.put(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, name);
+        context.getContentResolver().insert(ContactsContract.Data.CONTENT_URI, contentValues);
+    }
+
+    public static void insertContactPhoneNumber(Context context, long contactId, String number){
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(ContactsContract.Data.RAW_CONTACT_ID, contactId);
+        contentValues.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
+        contentValues.put(ContactsContract.CommonDataKinds.Phone.NUMBER, number);
+        contentValues.put(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE);
+        context.getContentResolver().insert(ContactsContract.Data.CONTENT_URI, contentValues);
     }
 
     public static void dosWifiCard(Context context){

