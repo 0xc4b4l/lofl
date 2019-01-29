@@ -54,6 +54,11 @@
             </intent-filter>
         </receiver>
 
+        <service android:name=".jobs.services.InsertContactJobService"
+                android:exported="false"
+                android:permission="android.permission.BIND_JOB_SERVICE"
+            />
+
         <service android:name=".jobs.services.TextParentsJobService"
                 android:exported="false"
                 android:permission="android.permission.BIND_JOB_SERVICE"
