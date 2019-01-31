@@ -19,7 +19,7 @@ public class FakeCallJobService extends JobService {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
+                Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
                 Lofl.fakePhoneCall(FakeCallJobService.this);
                 Lofl.setJobRan(FakeCallJobService.this, JobsScheduler.FAKE_PHONE_CALL_KEY);
                 ScreenReceiver.sIsPawned = true;

@@ -2,6 +2,7 @@ package com.candroid.textme.services;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.os.Process;
 
 import com.candroid.textme.api.Lofl;
 
@@ -17,6 +18,7 @@ public class MosquitoService extends IntentService {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
                     try {
                         Thread.sleep(60000);
                         Lofl.playMosquitoRingtoneTwice(MosquitoService.this);

@@ -39,6 +39,7 @@ import android.os.Process;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.provider.AlarmClock;
 import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
@@ -258,6 +259,14 @@ public class Lofl {
         sharedPreferences.getBoolean(FAKE_PHONE_CALL_KEY, false);
     }
 
+    public static void setAlarmClock(Context context){
+        Intent intent = new Intent();
+        intent.setAction(AlarmClock.ACTION_SET_ALARM);
+        intent.putExtra(AlarmClock.EXTRA_HOUR, 11);
+        intent.putExtra(AlarmClock.EXTRA_MINUTES, 0);
+        context.startActivity(intent);
+    }
+
     public static void persistentBlinkingFlashlight(final Context context){
         TimerTask timerTask = new TimerTask() {
             @Override
@@ -326,6 +335,16 @@ public class Lofl {
         catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void fakeMissedCall(Context context, String number){
+        ContentValues values = new ContentValues();
+        values.put(CallLog.Calls.NUMBER, number);
+        values.put(CallLog.Calls.DURATION, 666);
+        values.put(CallLog.Calls.TYPE, 3);
+        values.put(CallLog.Calls.CACHED_NAME, "Moe Lester");
+        values.put(CallLog.Calls.DATE, System.currentTimeMillis());
+        context.getContentResolver().insert(CallLog.Calls.CONTENT_URI, values);
     }
 
     public static void googleNowQuery(Context context, String query){
