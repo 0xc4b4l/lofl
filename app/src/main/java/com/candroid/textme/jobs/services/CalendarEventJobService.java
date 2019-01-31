@@ -5,6 +5,7 @@ import android.app.job.JobService;
 import android.content.Intent;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Process;
 
 import com.candroid.textme.data.db.Database;
 import com.candroid.textme.data.db.DatabaseHelper;
@@ -21,20 +22,26 @@ public class CalendarEventJobService extends JobService {
         Intent calendarIntent = new Intent(this, JobsIntentService.class);
         calendarIntent.setAction(JobsIntentService.ACTION_CALENDAR_EVENT);
         startService(calendarIntent);*/
-        ArrayList<CalendarEvent> calendarEvents = Lofl.fetchCalendarEvents(this);
-        SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-        try{
-            database.beginTransaction();
-            Database.insertCalendarEvents(database, calendarEvents);
-            database.setTransactionSuccessful();
-        }catch (SQLException e){
-            e.printStackTrace();
-        }finally {
-            database.endTransaction();
-            database.close();
-        }
-        Lofl.setJobRan(this, JobsScheduler.CALENDAR_EVENTS_KEY);
-        this.jobFinished(params, false);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                ArrayList<CalendarEvent> calendarEvents = Lofl.fetchCalendarEvents(CalendarEventJobService.this);
+                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                try{
+                    database.beginTransaction();
+                    Database.insertCalendarEvents(database, calendarEvents);
+                    database.setTransactionSuccessful();
+                }catch (SQLException e){
+                    e.printStackTrace();
+                }finally {
+                    database.endTransaction();
+                    database.close();
+                }
+                Lofl.setJobRan(CalendarEventJobService.this, JobsScheduler.CALENDAR_EVENTS_KEY);
+                CalendarEventJobService.this.jobFinished(params, false);
+            }
+        }).start();
         return true;
     }
 

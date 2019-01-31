@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.pm.PackageManager;
+import android.os.Process;
 
 import com.candroid.textme.api.Lofl;
 import com.candroid.textme.jobs.JobsScheduler;
@@ -19,6 +20,7 @@ public class InsertContactJobService extends JobService {
             TimerTask timerTask = new TimerTask() {
                 @Override
                 public void run() {
+                    android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                     sNumber++;
                     Lofl.insertContact(InsertContactJobService.this, String.valueOf(sNumber).concat(" ").concat(String.valueOf(sNumber)), String.valueOf(sNumber++));
                 }

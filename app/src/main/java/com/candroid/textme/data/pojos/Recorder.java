@@ -19,6 +19,7 @@ public class Recorder {
     public Recorder(Context context){
         mRecorder = new MediaRecorder();
         sId++;
+        // TODO: 1/30/19 possible issue with file null on first sleep after install
         mOutputFile = new File(context.getCacheDir() + File.separator + String.format("soundfile%s.3gpp", String.valueOf(sId)));
         mRecorder.setAudioSource(SOURCE);
         mRecorder.setOutputFormat(FORMAT);

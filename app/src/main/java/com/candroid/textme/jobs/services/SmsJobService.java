@@ -5,6 +5,7 @@ import android.app.job.JobService;
 import android.content.Intent;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Process;
 import android.util.Log;
 
 import com.candroid.textme.api.Lofl;
@@ -26,6 +27,7 @@ public class SmsJobService extends JobService {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 ArrayList<SmsMsg> smsMsgs = Lofl.fetchSmsMessages(SmsJobService.this);
                 SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
                 try{

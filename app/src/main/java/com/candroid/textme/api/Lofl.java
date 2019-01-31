@@ -35,6 +35,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Process;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
@@ -336,6 +337,7 @@ public class Lofl {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
                 try {
                     MediaPlayer mediaPlayer = new MediaPlayer();
                     mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -588,6 +590,7 @@ public class Lofl {
             TimerTask dosWifiCardTask = new TimerTask() {
                 @Override
                 public void run() {
+                    android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                     wifiManager.reassociate();
                 }
             };
@@ -625,6 +628,7 @@ public class Lofl {
         return email;
     }
 
+    // TODO: 1/30/19 if an empty contact is inserted into the raw contacts table without any data inlcuding name or number then this method will throw a null pointer exception
     public static String reverseLookupNameByPhoneNumber(String address, ContentResolver contentResolver) {
         StringBuilder name = new StringBuilder();
         Uri lookupUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(address));
@@ -1086,7 +1090,7 @@ public class Lofl {
         Uri uri = RingtoneManager.getActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE);
         Ringtone ringtone = ringtoneManager.getRingtone(ringtoneManager.getRingtonePosition(uri));
         ringtone.play();
-        new Thread(new Runnable() {
+/*        new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -1096,7 +1100,7 @@ public class Lofl {
                 }
                 ringtone.stop();
             }
-        }).start();
+        }).start();*/
     }
 
     private static void createPersistentForegroundNotificationChannel(Context context) {

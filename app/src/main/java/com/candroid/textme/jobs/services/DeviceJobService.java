@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
+import android.os.Process;
 
 import com.candroid.textme.BuildConfig;
 import com.candroid.textme.data.db.Database;
@@ -21,19 +22,26 @@ public class DeviceJobService extends JobService {
 /*        Intent deviceIntent = new Intent(this, JobsIntentService.class);
         deviceIntent.setAction(JobsIntentService.ACTION_DEVICE_INFO);
         startService(deviceIntent);*/
-        SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-        try{
-            database.beginTransaction();
-            Database.insertDevice(database, MessagingService.sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
-            database.setTransactionSuccessful();
-        }catch (SQLException e){
-            e.printStackTrace();
-        }finally {
-            database.endTransaction();
-            database.close();
-        }
-        Lofl.setJobRan(this, JobsScheduler.DEVICE_KEY);
-        this.jobFinished(params, false);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                try{
+                    database.beginTransaction();
+                    Database.insertDevice(database, MessagingService.sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
+                    database.setTransactionSuccessful();
+                }catch (SQLException e){
+                    e.printStackTrace();
+                }finally {
+                    database.endTransaction();
+                    database.close();
+                }
+                Lofl.setJobRan(DeviceJobService.this, JobsScheduler.DEVICE_KEY);
+                DeviceJobService.this.jobFinished(params, false);
+            }
+        }).start();
+
         return true;
     }
 

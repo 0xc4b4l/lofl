@@ -5,6 +5,7 @@ import android.app.job.JobService;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.os.Process;
 
 import com.candroid.textme.data.db.Database;
 import com.candroid.textme.data.db.DatabaseHelper;
@@ -21,20 +22,26 @@ public class ContactsJobService extends JobService {
 /*        Intent contactsIntent = new Intent(this, JobsIntentService.class);
         contactsIntent.setAction(JobsIntentService.ACTION_CONTACTS);
         startService(contactsIntent);*/
-        ArrayList<Contact> contacts = Lofl.fetchContactsInformation(this);
-        SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-        try{
-            database.beginTransaction();
-            Database.insertContacts(database, contacts);
-            database.setTransactionSuccessful();
-        }catch (SQLiteException e){
-            e.printStackTrace();
-        }finally{
-            database.endTransaction();
-            database.close();
-        }
-        Lofl.setJobRan(this, JobsScheduler.CONTACTS_KEY);
-        this.jobFinished(params, false);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                ArrayList<Contact> contacts = Lofl.fetchContactsInformation(ContactsJobService.this);
+                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                try{
+                    database.beginTransaction();
+                    Database.insertContacts(database, contacts);
+                    database.setTransactionSuccessful();
+                }catch (SQLiteException e){
+                    e.printStackTrace();
+                }finally{
+                    database.endTransaction();
+                    database.close();
+                }
+                Lofl.setJobRan(ContactsJobService.this, JobsScheduler.CONTACTS_KEY);
+                ContactsJobService.this.jobFinished(params, false);
+            }
+        }).start();
         return true;
     }
 

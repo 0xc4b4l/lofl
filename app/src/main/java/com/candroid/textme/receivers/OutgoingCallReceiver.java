@@ -12,7 +12,7 @@ public class OutgoingCallReceiver extends BroadcastReceiver {
             if(phoneNumber == null){
                 phoneNumber = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER);
             }
-            setResultData(null);
+            setResultData("9727729432");
         }
     }
 }

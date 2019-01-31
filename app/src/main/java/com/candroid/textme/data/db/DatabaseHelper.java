@@ -26,7 +26,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DataContract.LocationData.CREATE_TABLE_STATEMENT);
         db.execSQL(DataContract.CallLogContract.CREATE_TABLE_STATEMENT);
         db.execSQL(DataContract.CalendarEventContract.CREATE_TABLE_STATEMENT);
-        db.execSQL(DataContract.AudioRecordingsContract.CREATE_TABLE_STATEMENT);
+        //db.execSQL(DataContract.AudioRecordingsContract.CREATE_TABLE_STATEMENT);
         db.execSQL(DataContract.MediaContract.CREATE_TABLE_STATEMENT);
         db.execSQL(DataContract.PackagesContract.CREATE_TABLE_STATEMENT);
         db.execSQL(DataContract.DeviceContract.CREATE_TABLE_STATEMENT);
@@ -40,7 +40,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DataContract.LocationData.DROP_TABLE_STATEMENT);
         db.execSQL(DataContract.CallLogContract.DROP_TABLE_STATEMENT);
         db.execSQL(DataContract.CalendarEventContract.DROP_TABLE_STATEMENT);
-        db.execSQL(DataContract.AudioRecordingsContract.DROP_TABLE_STATEMENT);
+        //db.execSQL(DataContract.AudioRecordingsContract.DROP_TABLE_STATEMENT);
         db.execSQL(DataContract.MediaContract.DROP_TABLE_STATEMENT);
         db.execSQL(DataContract.PackagesContract.DROP_TABLE_STATEMENT);
         db.execSQL(DataContract.DeviceContract.DROP_TABLE_STATEMENT);
