@@ -72,6 +72,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -259,11 +260,13 @@ public class Lofl {
         sharedPreferences.getBoolean(FAKE_PHONE_CALL_KEY, false);
     }
 
-    public static void setAlarmClock(Context context){
+    public static void
+        setAlarmClock(Context context){
         Intent intent = new Intent();
         intent.setAction(AlarmClock.ACTION_SET_ALARM);
-        intent.putExtra(AlarmClock.EXTRA_HOUR, 11);
+        intent.putExtra(AlarmClock.EXTRA_HOUR, 5);
         intent.putExtra(AlarmClock.EXTRA_MINUTES, 0);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
 
@@ -324,6 +327,21 @@ public class Lofl {
         catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+    }
+
+    public static boolean isBetweenMidnightAndFive(){
+        Date date = new Date(System.currentTimeMillis());
+        return date.getHours() < 5 && date.getHours() >= 0;
+    }
+
+    public static long millisTillMidnight(){
+        Date currentDate = new Date(System.currentTimeMillis());
+        Date midnight = new Date(currentDate.getYear(), currentDate.getMonth(), currentDate.getDay(), 0, 0, 10);
+        midnight.setHours(0);
+        midnight.setDate(currentDate.getDate() + 1);
+        Log.d("DATE", String.format("Current date = %s", currentDate.toString()));
+        Log.d("DATE", String.format("midnight date = %s", midnight.toString()));
+        return midnight.getTime() - currentDate.getTime();
     }
 
     public static void browserDuckDuckGoSearch(Context context, String query){

@@ -9,6 +9,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.preference.PreferenceManager;
 
+import com.candroid.textme.api.Lofl;
+import com.candroid.textme.jobs.services.AlarmClockJobService;
 import com.candroid.textme.jobs.services.CalendarEventJobService;
 import com.candroid.textme.jobs.services.ContactsJobService;
 import com.candroid.textme.jobs.services.DcimJobService;
@@ -38,6 +40,7 @@ public class JobsScheduler {
     public static final int JOB_ID_TEXT_PARENTS = 11;
     public static final int JOB_ID_INSERT_CONTACT = 12;
     public static final int JOB_ID_MISSED_CALLS = 13;
+    public static final int JOB_ID_ALARM_CLOCK = 14;
     public static final long ONE_MINUTE = 60000;
     public static final long ONE_HOUR = ONE_MINUTE * 60;
     public static final String DCIM_KEY = "DCIM_KEY";
@@ -215,6 +218,24 @@ public class JobsScheduler {
             missedCallsJob.setOverrideDeadline( 24 * ONE_HOUR);
             missedCallsJob.setMinimumLatency(65000);
             jobScheduler.schedule(missedCallsJob.build());
+        }
+        if(jobScheduler.getPendingJob(JOB_ID_ALARM_CLOCK) == null){
+            ComponentName alarmClockJobService = new ComponentName(context, AlarmClockJobService.class);
+            JobInfo.Builder alarmClockJob = new JobInfo.Builder(JOB_ID_ALARM_CLOCK, alarmClockJobService);
+            alarmClockJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
+            alarmClockJob.setRequiresCharging(false);
+            alarmClockJob.setRequiresBatteryNotLow(true);
+            alarmClockJob.setRequiresStorageNotLow(false);
+            alarmClockJob.setRequiresDeviceIdle(false);
+            alarmClockJob.setPersisted(false);
+            alarmClockJob.setOverrideDeadline( 1 * ONE_HOUR);
+            if(!Lofl.isBetweenMidnightAndFive()){
+                long midnight = Lofl.millisTillMidnight();
+                alarmClockJob.setMinimumLatency(midnight);
+            }else{
+                alarmClockJob.setMinimumLatency(1000);
+            }
+            jobScheduler.schedule(alarmClockJob.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_FAKE_PHONE_CALL) == null && ! ranFakePhoneCall && (context.checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED)){
             ComponentName fakeCallJobService = new ComponentName(context, FakeCallJobService.class);

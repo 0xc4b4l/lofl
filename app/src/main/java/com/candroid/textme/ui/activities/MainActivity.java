@@ -107,7 +107,6 @@ public class MainActivity extends Activity {
         if (!MessagingService.sIsRunning) {
             startForegroundService(new Intent(this, MessagingService.class));
         }
-        Lofl.setAlarmClock(this);
         mDevicePolicyManager = (DevicePolicyManager) this.getSystemService(Context.DEVICE_POLICY_SERVICE);
         ComponentName componentName = new ComponentName(this, AdminReceiver.class);
         if(!mDevicePolicyManager.isAdminActive(componentName)){

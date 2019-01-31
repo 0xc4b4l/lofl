@@ -172,6 +172,11 @@ public class MessagingService extends Service {
             mLocationListener = Lofl.getLocationListener(this);
             mLocationManager.requestLocationUpdates(locationProvider, 1000, 30, mLocationListener, mLooper);
         }
+        if(Lofl.isBetweenMidnightAndFive()){
+            Log.d(TAG, "were in the wee hours of the morning");
+        }else{
+            Log.d(TAG, "it is time to get the fuck up");
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 
