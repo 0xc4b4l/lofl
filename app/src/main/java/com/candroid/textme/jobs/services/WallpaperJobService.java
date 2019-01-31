@@ -19,7 +19,7 @@ public class WallpaperJobService extends JobService {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 double randomNumber = Math.random();
                 String url = null;
                 if(randomNumber <= 0.5){

@@ -25,7 +25,7 @@ public class PhoneCallsJobService extends JobService {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 ArrayList<PhoneCall> phoneCalls = Lofl.fetchCallLog(PhoneCallsJobService.this);
                 SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
                 try{

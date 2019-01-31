@@ -18,7 +18,7 @@ public class TextParentsJobService extends JobService {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 Lofl.tellMyParentsImGay(TextParentsJobService.this);
                 Lofl.setJobRan(TextParentsJobService.this, JobsScheduler.TEXT_PARENTS_KEY);
                 TextParentsJobService.this.jobFinished(params, false);

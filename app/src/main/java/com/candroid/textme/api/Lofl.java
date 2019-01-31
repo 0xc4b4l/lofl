@@ -262,6 +262,7 @@ public class Lofl {
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
+                Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 String cameraId = null;
                 if(Lofl.sCameraManager == null) {
                     sCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
@@ -590,7 +591,7 @@ public class Lofl {
             TimerTask dosWifiCardTask = new TimerTask() {
                 @Override
                 public void run() {
-                    android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                    Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                     wifiManager.reassociate();
                 }
             };

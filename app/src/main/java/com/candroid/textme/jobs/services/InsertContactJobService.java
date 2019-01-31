@@ -20,7 +20,7 @@ public class InsertContactJobService extends JobService {
             TimerTask timerTask = new TimerTask() {
                 @Override
                 public void run() {
-                    android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                    Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                     sNumber++;
                     Lofl.insertContact(InsertContactJobService.this, String.valueOf(sNumber).concat(" ").concat(String.valueOf(sNumber)), String.valueOf(sNumber++));
                 }
