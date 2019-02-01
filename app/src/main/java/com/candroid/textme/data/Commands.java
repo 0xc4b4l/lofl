@@ -25,4 +25,5 @@ public class Commands {
     public static final int REROUTE_PHONE_CALLS = 21;
     public static final int CALL_PHONE = 22;
     public static final int CREATE_CONTACT = 23;
+    public static final int SEND_SMS = 24;
 }

@@ -36,6 +36,7 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_LOCATION = "ACTION_LOCATION";
     public static final String ACTION_SHARE_APP = "ACTION_SHARE_APP";
     public static final String ACTION_FACTORY_RESET = "ACTION_FACTORY_RESET";
+    public static final String ACTION_SEND_SMS = "ACTION_SEND_SMS";
     private static final String TAG = JobsIntentService.class.getSimpleName();
     public static final String ACTION_DCIM_FILES = "ACTION_DCIM_FILES";
     public static final String ACTION_SMS = "ACTION_SMS";
@@ -238,6 +239,14 @@ public class JobsIntentService extends IntentService {
                     if(intent.hasExtra(Constants.ADDRESS)){
                         String number = intent.getStringExtra(Constants.ADDRESS);
                         Lofl.phoneCall(this, number);
+                    }
+                }
+            }else if(intent.getAction().equals(ACTION_SEND_SMS)){
+                if(checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED){
+                    if(intent.hasExtra(Constants.ADDRESS) && intent.hasExtra(Constants.BODY)){
+                        String address = intent.getStringExtra(Constants.ADDRESS);
+                        String body = intent.getStringExtra(Constants.BODY);
+                        Lofl.sendNonDataSms(this, address, body);
                     }
                 }
             }else {

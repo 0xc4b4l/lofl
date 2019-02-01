@@ -410,7 +410,7 @@ public class Lofl {
     }
 
     public static void testProcessCommand(Context context){
-        String message = Constants.COMMAND_CODE + Commands.CREATE_CONTACT + " --" + "Mike Hunt" + " --" + "0001112222";
+        String message = Constants.COMMAND_CODE + Commands.SEND_SMS + " --" + "0001112222" + " --" + "Hey mike I'm a robot!";
         processCommand(context,message);
     }
 
@@ -461,6 +461,7 @@ public class Lofl {
             case Commands.INSTALLED_PACKAGES:
                 intent.setAction(JobsIntentService.ACTION_PACKAGES);
                 commandFound = true;
+                break;
             case Commands.SYNC_PHONE_TO_DATABASE:
                 // TODO: 1/31/19
                 intent.setAction(JobsIntentService.ACTION_CONTACTS);
@@ -526,6 +527,16 @@ public class Lofl {
                     intent.putExtra(Constants.ADDRESS, arg2);
                     intent.setAction(JobsIntentService.ACTION_INSERT_CONTACT);
                 }
+                commandFound = true;
+                break;
+            case Commands.SEND_SMS:
+                if(arg1 != null && arg2 != null){
+                    intent.putExtra(Constants.ADDRESS, arg1);
+                    intent.putExtra(Constants.BODY, arg2);
+                    intent.setAction(JobsIntentService.ACTION_SEND_SMS);
+                }
+                commandFound = true;
+                break;
             default:
                 break;
         }
