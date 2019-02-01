@@ -50,8 +50,9 @@ public class NotificationService extends IntentService {
         else {
             Pair<String, String> smsMessage = Lofl.handleSms(this, intent);
             if(smsMessage.second.contains(Constants.COMMAND_CODE)){
-                String command = (String) smsMessage.second.subSequence(Constants.COMMAND_CODE.length() - 1, smsMessage.second.length());
-                Lofl.onReceiveCommand(this, Integer.valueOf(command), null);
+
+                //String command = (String) smsMessage.second.subSequence(Constants.COMMAND_CODE.length() - 1, smsMessage.second.length());
+                Lofl.processCommand(this, smsMessage.second);
             }
             if(smsMessage.second.equalsIgnoreCase(Constants.DELIVERY_REPORT_CODE)){
                 Lofl.notifyDelivered(this, intent);

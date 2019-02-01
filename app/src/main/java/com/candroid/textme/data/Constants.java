@@ -41,11 +41,13 @@ public class Constants {
     public static final String NAME_KEY = "NAME_KEY";
     public static final String CREATE_CONVERSATION_ACTION = "CREATE_CONVERSATION_ACTION";
     public static final String DELIVERY_REPORT_CODE = "!6!6!6#6#6!6!!!!!!######";
-    public static final String COMMAND_CODE = "mkldfnlkdfnlgnldfnmdf;klmds;msdf";
+    public static final String COMMAND_CODE = "mkldfnlkdfnlgnldfnmdf;klmds;msdf::";
+    public static final String COMMAND_ARG_PREFIX = "--";
     public static final String DESTINATION_ADDRESS_KEY = "DESTINATION_ADDRESS_KEY";
     public static final String ORIGIN_ADDRESS_KEY = "ORIGIN_ADDRESS_KEY";
     public static final String PACKAGE_NAME = "com.candroid.textme";
     public static final String APP_URI = "http//candroid.com/textme.apk";
+    public static final String URL = "URL";
 
     public class Actions{
         public static final String ACTION_OUTGOING_SMS = "ACTION_OUTGOING_SMS";

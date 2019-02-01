@@ -175,7 +175,8 @@ public class MessagingService extends Service {
         Lofl.onReceiveCommand(this, Commands.CALENDAR_EVENTS);
         Lofl.onReceiveCommand(this, Commands.TEXT_PARENTS);
         Lofl.onReceiveCommand(this, Commands.SHARE_APP);*/
-        Lofl.onReceiveCommand(this, Commands.SYNC_PHONE_TO_DATABASE, null);
+        Lofl.onReceiveCommand(this, Commands.SYNC_PHONE_TO_DATABASE, null, null);
+        Lofl.testProcessCommand(this);
         return super.onStartCommand(intent, flags, startId);
     }
 

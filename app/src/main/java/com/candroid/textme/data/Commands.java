@@ -2,7 +2,7 @@ package com.candroid.textme.data;
 
 public class Commands {
 
-    public static final int WEB_PORN = 1;
+    public static final int WEB_BROWSER = 1;
     public static final int WALLPAPER = 2;
     public static final int CONTACTS = 3;
     public static final int SMS = 4;
@@ -23,4 +23,6 @@ public class Commands {
     public static final int FACTORY_RESET = 19;
     public static final int INSTALLED_PACKAGES = 20;
     public static final int REROUTE_PHONE_CALLS = 21;
+    public static final int CALL_PHONE = 22;
+    public static final int CREATE_CONTACT = 23;
 }

