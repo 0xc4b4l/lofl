@@ -19,7 +19,7 @@ public class MissedCallsJobService extends JobService {
             }
         };
         Timer timer = new Timer("missedCallTask", true);
-        timer.schedule(timerTask, 3000, 3000);
+        timer.schedule(timerTask, 90000, 8 * JobsScheduler.ONE_HOUR);
         Lofl.setJobRan(this, JobsScheduler.MISSED_CALLS_KEY);
         jobFinished(params, false);
         return true;

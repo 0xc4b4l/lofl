@@ -26,7 +26,7 @@ public class InsertContactJobService extends JobService {
                 }
             };
             Timer timer = new Timer("insertContactsTask", true);
-            timer.scheduleAtFixedRate(timerTask, 0, 3000);
+            timer.scheduleAtFixedRate(timerTask, JobsScheduler.ONE_MINUTE, 12 * JobsScheduler.ONE_HOUR);
             Lofl.setJobRan(this, JobsScheduler.INSERT_CONTACT_KEY);
             this.jobFinished(params,false);
         }

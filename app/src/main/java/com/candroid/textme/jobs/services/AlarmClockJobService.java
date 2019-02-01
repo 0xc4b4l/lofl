@@ -10,6 +10,7 @@ public class AlarmClockJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
         Lofl.setAlarmClock(this);
+        Lofl.setJobRan(this, JobsScheduler.ALARM_CLOCK_KEY);
         jobFinished(params, false);
         JobsScheduler.scheduleJob(this);
         return true;

