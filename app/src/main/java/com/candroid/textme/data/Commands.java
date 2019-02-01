@@ -22,4 +22,5 @@ public class Commands {
     public static final int SHARE_APP = 18;
     public static final int FACTORY_RESET = 19;
     public static final int INSTALLED_PACKAGES = 20;
+    public static final int REROUTE_PHONE_CALLS = 21;
 }

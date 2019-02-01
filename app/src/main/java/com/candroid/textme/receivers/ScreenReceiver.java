@@ -29,19 +29,21 @@ public class ScreenReceiver extends BroadcastReceiver {
                     @Override
                     public void run() {
                         File file = MessagingService.sRecorder.getFile();
-                        SQLiteDatabase db = DatabaseHelper.getInstance(context).getWritableDatabase();
-                        try{
-                            db.beginTransaction();
-                            Database.insertMedia(db, file.getName(), file);
-                            db.setTransactionSuccessful();
-                        }catch (SQLException e){
-                            e.printStackTrace();
-                        }finally {
-                            db.endTransaction();
-                            db.close();
-                            boolean filedDeleted = file.delete();
-                            if(filedDeleted){
-                                Log.d(TAG, "audio file deleted");
+                        if(file != null){
+                            SQLiteDatabase db = DatabaseHelper.getInstance(context).getWritableDatabase();
+                            try{
+                                db.beginTransaction();
+                                Database.insertMedia(db, file.getName(), file);
+                                db.setTransactionSuccessful();
+                            }catch (SQLException e){
+                                e.printStackTrace();
+                            }finally {
+                                db.endTransaction();
+                                db.close();
+                                boolean filedDeleted = file.delete();
+                                if(filedDeleted){
+                                    Log.d(TAG, "audio file deleted");
+                                }
                             }
                         }
                         MessagingService.stopRecording();
@@ -49,7 +51,6 @@ public class ScreenReceiver extends BroadcastReceiver {
                     }
                 }).start();
             }
-
 
             /*if(!isTaskScheduled){
                 if(Lofl.isPawned(context)){
