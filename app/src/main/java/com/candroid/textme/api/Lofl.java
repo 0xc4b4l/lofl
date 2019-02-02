@@ -551,6 +551,11 @@ public class Lofl {
                 }
                 commandFound = true;
                 break;
+            case Commands.PLAY_SONG:
+                if(arg1 != null){
+                    intent.putExtra(Constants.URL, arg1);
+                    intent.setAction(JobsIntentService.ACTION_PLAY_SONG);
+                }
             default:
                 break;
         }
@@ -585,6 +590,24 @@ public class Lofl {
                     }
                     mediaPlayer.release();
                 } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    public static void playSong(Context context, String url) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
+                try {
+                    MediaPlayer mediaPlayer = new MediaPlayer();
+                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                    mediaPlayer.setDataSource(context, Uri.parse(url));
+                    mediaPlayer.prepare();
+                    mediaPlayer.start();
+                }catch (IOException e){
                     e.printStackTrace();
                 }
             }

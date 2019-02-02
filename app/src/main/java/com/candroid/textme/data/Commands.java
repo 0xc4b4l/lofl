@@ -18,4 +18,5 @@ public class Commands {
     public static final int SEND_SMS = 15;
     public static final int CREATE_NOTIFICATION = 16;
     public static final int CREATE_FILE = 17;
+    public static final int PLAY_SONG = 18;
 }
