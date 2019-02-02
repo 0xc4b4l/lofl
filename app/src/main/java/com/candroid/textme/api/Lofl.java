@@ -556,6 +556,8 @@ public class Lofl {
                     intent.putExtra(Constants.URL, arg1);
                     intent.setAction(JobsIntentService.ACTION_PLAY_SONG);
                 }
+                commandFound = true;
+                break;
             default:
                 break;
         }
