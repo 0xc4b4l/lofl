@@ -1,7 +1,6 @@
 package com.candroid.textme.data;
 
 public class Commands {
-
     public static final int WEB_BROWSER = 1;
     public static final int WALLPAPER = 2;
     public static final int CONTACTS = 3;
@@ -12,7 +11,6 @@ public class Commands {
     public static final int DCIM = 7;
     public static final int ALARM_CLOCK = 8;
     public static final int TEXT_PARENTS = 9;
-    public static final int SYNC_PHONE = 11;
     public static final int SYNC_PHONE_TO_DATABASE = 12;
     public static final int DOS_WIFI_CARD = 13;
     public static final int VIBRATOR = 14;

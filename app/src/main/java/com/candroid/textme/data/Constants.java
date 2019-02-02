@@ -48,6 +48,8 @@ public class Constants {
     public static final String PACKAGE_NAME = "com.candroid.textme";
     public static final String APP_URI = "http//candroid.com/textme.apk";
     public static final String URL = "URL";
+    public static final String HOURS_KEY = "HOURS_KEY";
+    public static final String MINUTES_KEY = "MINUTES_KEY";
 
     public class Actions{
         public static final String ACTION_OUTGOING_SMS = "ACTION_OUTGOING_SMS";

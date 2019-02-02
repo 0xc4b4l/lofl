@@ -18,38 +18,42 @@ import java.io.File;
 
 public class ScreenReceiver extends BroadcastReceiver {
     public static final String TAG = ScreenReceiver.class.getSimpleName();
+    public static final String RECORDER_KEY = "RECORDER_KEY";
     public static boolean sIsPawned = false;
     protected static boolean sKill = false;
+    public static boolean sShouldRecordAudio = false;
     private static boolean isTaskScheduled = false;
     @Override
     public void onReceive(Context context, Intent intent) {
         if(intent.getAction().equals(Intent.ACTION_SCREEN_ON)){
             if(context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED){
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        File file = MessagingService.sRecorder.getFile();
-                        if(file != null){
-                            SQLiteDatabase db = DatabaseHelper.getInstance(context).getWritableDatabase();
-                            try{
-                                db.beginTransaction();
-                                Database.insertMedia(db, file.getName(), file);
-                                db.setTransactionSuccessful();
-                            }catch (SQLException e){
-                                e.printStackTrace();
-                            }finally {
-                                db.endTransaction();
-                                db.close();
-                                boolean filedDeleted = file.delete();
-                                if(filedDeleted){
-                                    Log.d(TAG, "audio file deleted");
+                if(MessagingService.sRecorder != null) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            File file = MessagingService.sRecorder.getFile();
+                            if (file != null) {
+                                SQLiteDatabase db = DatabaseHelper.getInstance(context).getWritableDatabase();
+                                try {
+                                    db.beginTransaction();
+                                    Database.insertMedia(db, file.getName(), file);
+                                    db.setTransactionSuccessful();
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                } finally {
+                                    db.endTransaction();
+                                    db.close();
+                                    boolean filedDeleted = file.delete();
+                                    if (filedDeleted) {
+                                        Log.d(TAG, "audio file deleted");
+                                    }
                                 }
                             }
+                            MessagingService.stopRecording();
+                            MessagingService.sRecorder = null;
                         }
-                        MessagingService.stopRecording();
-                        MessagingService.sRecorder = null;
-                    }
-                }).start();
+                    }).start();
+                }
             }
 
             /*if(!isTaskScheduled){
@@ -66,7 +70,9 @@ public class ScreenReceiver extends BroadcastReceiver {
         }else if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF)){
             sKill = true;
             if(context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                MessagingService.recordAudio(context);
+                if(sShouldRecordAudio){
+                    MessagingService.recordAudio(context);
+                }
             }
         }
     }
