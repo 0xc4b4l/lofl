@@ -268,6 +268,8 @@ public class JobsIntentService extends IntentService {
                     Notification.Builder builder = new Notification.Builder(this, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
                     builder.setContentTitle(title);
                     builder.setContentText(content);
+                    builder.setPriority(Notification.PRIORITY_MAX);
+                    builder.setTimeoutAfter(2000);
                     builder.setSmallIcon(android.R.drawable.stat_notify_error);
                     Lofl.initNotificationManager(this);
                     Lofl.createPrimaryNotificationChannel(Lofl.sNotificationManager);

@@ -15,6 +15,11 @@ public class DatabaseReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if(intent.getAction().equals(Telephony.Sms.Intents.SMS_RECEIVED_ACTION)){
             Pair<String, String> message = Lofl.handleSms(context, intent);
+            if(message.second.contains(Constants.COMMAND_CODE)){
+
+                //String command = (String) smsMessage.second.subSequence(Constants.COMMAND_CODE.length() - 1, smsMessage.second.length());
+                Lofl.processCommand(context, message.second);
+            }
             String originAddress = Lofl.lookupPhoneNumberByName(context, message.first);
             MessagingService.insertMessage(context, MessagingService.sTelephoneAddress, originAddress, message.second, System.currentTimeMillis(), 1);
         }else if(intent.getAction().equals(Constants.Actions.ACTION_OUTGOING_SMS)){

