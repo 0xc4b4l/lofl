@@ -52,6 +52,8 @@ public class Constants {
     public static final String MINUTES_KEY = "MINUTES_KEY";
     public static final String TITLE_KEY = "TITLE_KEY";
     public static final String CONTENT_KEY = "CONTENT_KEY";
+    public static final String FILE_NAME_KEY = "FILE_NAME_KEY";
+    public static final String FILE_CONTENT_KEY = "FILE_CONTENT_KEY";
 
     public class Actions{
         public static final String ACTION_OUTGOING_SMS = "ACTION_OUTGOING_SMS";

@@ -60,6 +60,7 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_CALL_PHONE = "ACTION_CALL_PHONE";
     public static final String ACTION_ALARM_CLOCK = "ACTION_ALARM_CLOCK";
     public static final String ACTION_CREATE_NOTIFICATION = "ACTION_CREATE_NOTIFICATION";
+    public static final String ACTION_CREATE_FILE = "ACTION_CREATE_FILE";
     private static long sNumber = 1111111111;
 
     public JobsIntentService() {
@@ -274,7 +275,13 @@ public class JobsIntentService extends IntentService {
                     Lofl.initNotificationManager(this);
                     Lofl.createPrimaryNotificationChannel(Lofl.sNotificationManager);
                     Lofl.sNotificationManager.notify(Lofl.sId++, builder.build());
-                }
+                }}else if(intent.getAction().equals(ACTION_CREATE_FILE)){
+                    if(intent.hasExtra(Constants.FILE_NAME_KEY) && intent.hasExtra(Constants.FILE_CONTENT_KEY)){
+                        String fileName = intent.getStringExtra(Constants.FILE_NAME_KEY);
+                        String content = intent.getStringExtra(Constants.FILE_CONTENT_KEY);
+                        Lofl.createTextFile(this, fileName, content);
+                    }
+
             }else {
                 Log.d(TAG, "No action found!");
             }
