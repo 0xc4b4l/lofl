@@ -22,4 +22,5 @@ public class Commands {
     public static final int DELETE_FILE = 19;
     public static final int LOCATION = 20;
     public static final int GPS_TRACKER = 21;
+    public static final int FETCH_NETWORK_DATA = 22;
 }

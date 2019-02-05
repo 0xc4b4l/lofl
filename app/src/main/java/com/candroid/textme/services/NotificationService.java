@@ -32,19 +32,16 @@ public class NotificationService extends IntentService {
         Bundle bundle = intent.getExtras();
         StringBuilder address = new StringBuilder();
         if (bundle.containsKey(Constants.IS_NEW_CONVERSATION)) {
-            address.append(Lofl.reverseLookupNameByPhoneNumber(bundle.getString(Constants.ADDRESS), this.getContentResolver()));
-            if(bundle.containsKey(Constants.SHARED_TEXT_KEY)){
-                Lofl.notify(this, intent, address.toString(), bundle.getString(Constants.SHARED_TEXT_KEY));
+            address.append(Lofl.reverseLookupNameByPhoneNumber(bundle.getString(Constants.Keys.ADDRESS_KEY), this.getContentResolver()));
+            if(bundle.containsKey(Constants.Keys.SHARED_TEXT_KEY)){
+                Lofl.notify(this, intent, address.toString(), bundle.getString(Constants.Keys.SHARED_TEXT_KEY));
             }else{
-                Lofl.notify(
-
-
-                        this, intent, address.toString(), Constants.SEND_NEW_WHISPER);
+                Lofl.notify(this, intent, address.toString(), Constants.SEND_NEW_WHISPER);
             }
         }else if(bundle.containsKey(Constants.IS_AIRPLANE_MODE_ON)){
             Lofl.notifyAirplaneMode(this, "ERROR", "TURN OFF YOUR AIRPLANE MODE FIRST");
         }else if(bundle.containsKey(Constants.IS_CONFIRMATION)){
-            address.append(bundle.getString(Constants.ADDRESS));
+            address.append(bundle.getString(Constants.Keys.ADDRESS_KEY));
             Lofl.notifySent(this, Constants.CONFIRMATION_MESSAGE, intent);
         }
         else {

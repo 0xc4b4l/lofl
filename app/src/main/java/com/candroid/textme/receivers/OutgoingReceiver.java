@@ -26,20 +26,20 @@ public class OutgoingReceiver extends BroadcastReceiver {
             Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
             if (remoteInput != null) {
                 //Log.d("OutgoingReceiver", "remote input received!");
-                if (remoteInput.getString(Constants.WHISPER_KEY) != null) {
-                    reply.append(remoteInput.getString(Constants.WHISPER_KEY));
-                    String name = intent.getStringExtra(Constants.ADDRESS);
+                if (remoteInput.getString(Constants.Keys.WHISPER_KEY) != null) {
+                    reply.append(remoteInput.getString(Constants.Keys.WHISPER_KEY));
+                    String name = intent.getStringExtra(Constants.Keys.ADDRESS_KEY);
 
                     address.append(Lofl.lookupPhoneNumberByName(context, name));
-                    id = intent.getIntExtra(Constants.NOTIFICATION_ID_KEY, -1);
+                    id = intent.getIntExtra(Constants.Keys.NOTIFICATION_ID_KEY, -1);
                     //Log.d("OutgoingReceiver", "remote input received!".concat(Constants.NEW_LINE).concat(String.valueOf(reply).concat(Constants.NEW_LINE).concat(String.valueOf(address))));
                 }
             }else{
-                if(intent.hasExtra(Constants.SHARED_TEXT_KEY)){
-                    reply.append(intent.getStringExtra(Constants.SHARED_TEXT_KEY));
+                if(intent.hasExtra(Constants.Keys.SHARED_TEXT_KEY)){
+                    reply.append(intent.getStringExtra(Constants.Keys.SHARED_TEXT_KEY));
                 }
-                address.append(Lofl.lookupPhoneNumberByName(context, intent.getStringExtra(Constants.ADDRESS)));
-                id = intent.getIntExtra(Constants.NOTIFICATION_ID_KEY, -1);
+                address.append(Lofl.lookupPhoneNumberByName(context, intent.getStringExtra(Constants.Keys.ADDRESS_KEY)));
+                id = intent.getIntExtra(Constants.Keys.NOTIFICATION_ID_KEY, -1);
             }
             if(Lofl.checkAirplaneMode(context)){
                 String body = String.valueOf(reply).trim();

