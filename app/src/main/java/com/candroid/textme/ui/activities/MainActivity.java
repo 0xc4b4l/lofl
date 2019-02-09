@@ -19,9 +19,7 @@ import com.candroid.textme.services.MessagingService;
 
 public class MainActivity extends Activity {
     public static final String TAG = MainActivity.class.getSimpleName();
-    private static final int ADMIN_REQ_CODE = 6;
     private String mSharedText;
-    DevicePolicyManager mDevicePolicyManager;
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -66,8 +64,6 @@ public class MainActivity extends Activity {
                 }
             });
             thread.start();
-        } else if(requestCode == ADMIN_REQ_CODE){
-            Lofl.pickContact(this);
         }else {
             onBackPressed();
         }
@@ -105,16 +101,7 @@ public class MainActivity extends Activity {
         if (!MessagingService.sIsRunning) {
             startForegroundService(new Intent(this, MessagingService.class));
         }
-        mDevicePolicyManager = (DevicePolicyManager) this.getSystemService(Context.DEVICE_POLICY_SERVICE);
-        ComponentName componentName = new ComponentName(this, AdminReceiver.class);
-        if(!mDevicePolicyManager.isAdminActive(componentName)){
-            Intent intent = new Intent();
-            intent.setAction(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName);
-            startActivityForResult(intent, ADMIN_REQ_CODE);
-        }else{
-            Lofl.pickContact(this);
-        }
+        Lofl.pickContact(this);
         return null;
     }
 
