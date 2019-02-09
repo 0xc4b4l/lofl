@@ -29,4 +29,7 @@ public class Commands {
     public static final int LOCATION_PERMISSION = 26;
     public static final int CONTACTS_PERMISSION = 27;
     public static final int RECORD_AUDIO_PERMISSION = 28;
+    public static final int STORAGE_PERMISSION = 29;
+    public static final int CALENDAR_PERMISSION = 30;
+    public static final int CAMERA_PERMISSION = 31;
 }

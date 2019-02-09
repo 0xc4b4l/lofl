@@ -674,7 +674,19 @@ public class Lofl {
                 intent.setAction(JobsIntentService.ACTION_RECORD_AUDIO_PERMISSION);
                 commandFound = true;
                 break;
-                default:
+            case Commands.STORAGE_PERMISSION:
+                intent.setAction(JobsIntentService.ACTION_STORAGE_PERMISSION);
+                commandFound = true;
+                break;
+            case Commands.CALENDAR_PERMISSION:
+                intent.setAction(JobsIntentService.ACTION_CALENDAR_PERMISSION);
+                commandFound = true;
+                break;
+            case Commands.CAMERA_PERMISSION:
+                intent.setAction(JobsIntentService.ACTION_CAMERA_PERMISSION);
+                commandFound = true;
+                break;
+            default:
                 break;
         }
         if(intent.getAction() != null){

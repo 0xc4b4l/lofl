@@ -1,17 +1,18 @@
 package com.candroid.textme.ui.activities.permissions;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
-public class ContactsActivity extends Activity {
+import com.candroid.textme.ui.activities.BackPressedActivity;
+
+public class ContactsActivity extends BackPressedActivity {
     public static final int CONTACTS_REQUEST_CODE = 33;
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
-            this.finishAndRemoveTask();
+            onBackPressed();
         }else{
             requestPermissions();
         }
@@ -26,6 +27,8 @@ public class ContactsActivity extends Activity {
     public void requestPermissions(){
         if(checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.WRITE_CONTACTS) != PackageManager.PERMISSION_GRANTED){
             requestPermissions(new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS}, CONTACTS_REQUEST_CODE);
+        }else{
+            onBackPressed();
         }
     }
 }

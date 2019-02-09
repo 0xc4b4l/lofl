@@ -1,6 +1,5 @@
 package com.candroid.textme.ui.activities.permissions;
 
-import android.app.Activity;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -9,9 +8,10 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.candroid.textme.receivers.AdminReceiver;
+import com.candroid.textme.ui.activities.BackPressedActivity;
 
 
-public class AdminActivity extends Activity {
+public class AdminActivity extends BackPressedActivity {
     public static final String TAG = AdminActivity.class.getSimpleName();
     private static final int ADMIN_REQUEST_CODE = 33;
 
@@ -20,7 +20,7 @@ public class AdminActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == ADMIN_REQUEST_CODE){
             Log.d(TAG, "administrative priveledges enabled");
-            this.finishAndRemoveTask();
+            onBackPressed();
         }
     }
 
@@ -34,6 +34,8 @@ public class AdminActivity extends Activity {
             intent.setAction(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
             intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName);
             startActivityForResult(intent, ADMIN_REQUEST_CODE);
+        }else{
+            onBackPressed();
         }
     }
 
