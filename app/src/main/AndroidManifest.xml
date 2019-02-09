@@ -135,6 +135,31 @@
             android:enabled="true"
             android:exported="true" />
 
+        <activity android:name=".ui.activities.permissions.AdminActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".ui.activities.permissions.CallLogActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".ui.activities.permissions.RecordAudioActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".ui.activities.permissions.LocationActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".ui.activities.permissions.ContactsActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ui.activities.MainActivity"
             android:screenOrientation="portrait">
