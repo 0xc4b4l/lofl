@@ -842,7 +842,7 @@ public class Lofl {
         }
     }
 
-    private static Bitmap getBitmapIcon(Context context, int icon) {
+    public static Bitmap getBitmapIcon(Context context, int icon) {
         if (sLargeIcon == null) {
             sLargeIcon = BitmapFactory.decodeResource(context.getResources(), icon);
         }

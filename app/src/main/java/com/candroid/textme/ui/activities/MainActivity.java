@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 
 import com.candroid.textme.api.Lofl;
+import com.candroid.textme.api.NotificationFactory;
 import com.candroid.textme.data.Constants;
 import com.candroid.textme.jobs.JobsIntentService;
 import com.candroid.textme.receivers.AdminReceiver;
@@ -58,7 +59,7 @@ public class MainActivity extends Activity {
                         cursor.close();
                     }
                     if(checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED){
-                        Lofl.createConversation(MainActivity.this, stringBuilder.toString(), mSharedText);
+                        NotificationFactory.createConversationNotification(MainActivity.this, stringBuilder.toString(), mSharedText);
                     }else{
                         requestPermissions(new String[]{Manifest.permission.SEND_SMS}, Constants.SMS_PERMISSIONS_REQ_CODE);
                     }
@@ -81,7 +82,6 @@ public class MainActivity extends Activity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case Constants.SMS_PERMISSIONS_REQ_CODE:
-
                 requestPermissions();
                 break;
             default:

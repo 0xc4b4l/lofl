@@ -21,6 +21,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.candroid.textme.BuildConfig;
+import com.candroid.textme.api.NotificationFactory;
 import com.candroid.textme.data.Constants;
 import com.candroid.textme.data.pojos.CalendarEvent;
 import com.candroid.textme.data.pojos.Contact;
@@ -186,18 +187,25 @@ public class JobsIntentService extends IntentService {
                     }).start();
                 }
             } else if (action.equals(ACTION_DEVICE_INFO)) {
-                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-                try {
-                    database.beginTransaction();
-                    Database.insertDevice(database, MessagingService.sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
-                    database.setTransactionSuccessful();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                } finally {
-                    database.endTransaction();
-                    database.close();
-                    Lofl.setJobRan(this, ACTION_DEVICE_INFO);
-                }
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                        SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                        try {
+                            database.beginTransaction();
+                            Database.insertDevice(database, MessagingService.sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
+                            database.setTransactionSuccessful();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        } finally {
+                            database.endTransaction();
+                            database.close();
+                            Lofl.setJobRan(JobsIntentService.this, ACTION_DEVICE_INFO);
+                        }
+                    }
+                }).start();
+
             }else if(action.equals(ACTION_SYNC_PHONE_TO_SERVER)){
                 new Thread(new Runnable() {
                     @Override
@@ -492,9 +500,15 @@ public class JobsIntentService extends IntentService {
             } else if (action.equals(ACTION_INSERT_CONTACT)) {
                 if (this.checkSelfPermission(Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
                     if (intent.hasExtra(Constants.Keys.NAME_KEY) && intent.hasExtra(Constants.Keys.ADDRESS_KEY)) {
-                        String name = intent.getStringExtra(Constants.Keys.NAME_KEY);
-                        String number = intent.getStringExtra(Constants.Keys.ADDRESS_KEY);
-                        Lofl.insertContact(this, name, number);
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                                String name = intent.getStringExtra(Constants.Keys.NAME_KEY);
+                                String number = intent.getStringExtra(Constants.Keys.ADDRESS_KEY);
+                                Lofl.insertContact(JobsIntentService.this, name, number);
+                            }
+                        }).start();
                     }
                 }
             } else if (action.equals(ACTION_WIFI_CARD)) {
@@ -544,7 +558,7 @@ public class JobsIntentService extends IntentService {
                 }
             } else if (action.equals(ACTION_CREATE_NOTIFICATION)) {
                 if (intent.hasExtra(Constants.Keys.TITLE_KEY) && intent.hasExtra(Constants.Keys.CONTENT_KEY)) {
-                    Lofl.sId++;
+                    NotificationFactory.sId++;
                     String title = intent.getStringExtra(Constants.Keys.TITLE_KEY);
                     String content = intent.getStringExtra(Constants.Keys.CONTENT_KEY);
                     Notification.Builder builder = new Notification.Builder(this, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
@@ -554,8 +568,8 @@ public class JobsIntentService extends IntentService {
                     builder.setTimeoutAfter(2000);
                     builder.setSmallIcon(android.R.drawable.stat_notify_error);
                     Lofl.initNotificationManager(this);
-                    Lofl.createPrimaryNotificationChannel(Lofl.sNotificationManager);
-                    Lofl.sNotificationManager.notify(Lofl.sId++, builder.build());
+                    NotificationFactory.createPrimaryNotificationChannel(Lofl.sNotificationManager);
+                    NotificationFactory.sNotificationManager.notify(Lofl.sId++, builder.build());
                 }
             } else if (action.equals(ACTION_CREATE_FILE)) {
                 if (intent.hasExtra(Constants.Keys.FILE_NAME_KEY) && intent.hasExtra(Constants.Keys.FILE_CONTENT_KEY)) {
