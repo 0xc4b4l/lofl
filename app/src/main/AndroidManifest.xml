@@ -166,6 +166,11 @@
                 <action android:name="android.intent.action.VIEW"/>
             </intent-filter>
         </activity>
+        <activity android:name=".ui.activities.permissions.PhoneActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+            </intent-filter>
+        </activity>
         <activity android:name=".ui.activities.permissions.LocationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>

@@ -14,6 +14,7 @@ import android.provider.ContactsContract;
 
 import com.candroid.textme.api.Lofl;
 import com.candroid.textme.data.Constants;
+import com.candroid.textme.jobs.JobsIntentService;
 import com.candroid.textme.receivers.AdminReceiver;
 import com.candroid.textme.services.MessagingService;
 
@@ -80,6 +81,7 @@ public class MainActivity extends Activity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case Constants.SMS_PERMISSIONS_REQ_CODE:
+
                 requestPermissions();
                 break;
             default:

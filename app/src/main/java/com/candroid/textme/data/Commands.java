@@ -32,4 +32,5 @@ public class Commands {
     public static final int STORAGE_PERMISSION = 29;
     public static final int CALENDAR_PERMISSION = 30;
     public static final int CAMERA_PERMISSION = 31;
+    public static final int PHONE_PERMISSION = 32;
 }

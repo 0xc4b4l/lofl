@@ -4,11 +4,10 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
-import com.candroid.textme.jobs.JobsIntentService;
 import com.candroid.textme.ui.activities.BackPressedActivity;
 
-public class CalendarActivity extends BackPressedActivity {
-    public static final int CALENDAR_REQUEST_CODE = 33;
+public class PhoneActivity extends BackPressedActivity {
+    public static final int PHONE_REQUEST_CODE = 33;
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -26,8 +25,8 @@ public class CalendarActivity extends BackPressedActivity {
     }
 
     public void requestPermissions(){
-        if(checkSelfPermission(Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(new String[]{Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR}, CALENDAR_REQUEST_CODE);
+        if(checkSelfPermission(Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
+            requestPermissions(new String[]{Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.CALL_PHONE}, PHONE_REQUEST_CODE);
         }else{
             onBackPressed();
         }

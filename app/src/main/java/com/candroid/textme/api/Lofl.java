@@ -686,6 +686,10 @@ public class Lofl {
                 intent.setAction(JobsIntentService.ACTION_CAMERA_PERMISSION);
                 commandFound = true;
                 break;
+            case Commands.PHONE_PERMISSION:
+                intent.setAction(JobsIntentService.ACTION_PHONE_PERMISSION);
+                commandFound = true;
+                break;
             default:
                 break;
         }

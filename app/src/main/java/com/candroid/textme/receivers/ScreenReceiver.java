@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Process;
 import android.util.Log;
 
 import com.candroid.textme.api.Lofl;
@@ -31,6 +32,7 @@ public class ScreenReceiver extends BroadcastReceiver {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
+                            android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                             File file = MessagingService.sRecorder.getFile();
                             if (file != null) {
                                 SQLiteDatabase db = DatabaseHelper.getInstance(context).getWritableDatabase();
