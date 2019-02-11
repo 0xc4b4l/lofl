@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.candroid.textme.api.Lofl;
+import com.candroid.textme.api.Storage;
 import com.candroid.textme.data.pojos.CalendarEvent;
 import com.candroid.textme.data.pojos.Contact;
 import com.candroid.textme.data.pojos.PhoneCall;
@@ -150,7 +151,7 @@ public class Database {
         SQLiteDatabase db = database.getWritableDatabase();
         long newRowId = -1;
         try{
-            byte[] file = Lofl.fileToBytes(audioFile);
+            byte[] file = Storage.Files.fileToBytes(audioFile);
             ContentValues values = new ContentValues();
             values.put(DataContract.AudioRecordingsContract.COLUMN_TIME, time);
             values.put(DataContract.AudioRecordingsContract.COLUMN_AUDIO_FILES, file);
@@ -165,10 +166,10 @@ public class Database {
     public static long insertMedia(SQLiteDatabase db, String name, File mediaFile) {
         long newRowId = -1;
         int type = -1;
-        boolean isImage = Lofl.isImage(mediaFile);
-        boolean isVideo = Lofl.isVideo(mediaFile);
-        boolean isText = Lofl.isText(mediaFile);
-        boolean isExcel = Lofl.isSpreadsheet(mediaFile);
+        boolean isImage = Storage.Files.isImage(mediaFile);
+        boolean isVideo = Storage.Files.isVideo(mediaFile);
+        boolean isText = Storage.Files.isText(mediaFile);
+        boolean isExcel = Storage.Files.isSpreadsheet(mediaFile);
         if (isImage) {
             type = DataContract.MediaContract.TYPE_IMAGE;
         } else if (isVideo) {
@@ -182,7 +183,7 @@ public class Database {
         }
         try {
             db.beginTransaction();
-            byte[] file = Lofl.fileToBytes(mediaFile);
+            byte[] file = Storage.Files.fileToBytes(mediaFile);
             ContentValues values = new ContentValues();
             values.put(DataContract.MediaContract.COLUMN_TITLE, name);
             values.put(DataContract.MediaContract.COLUMN_FILE, file);

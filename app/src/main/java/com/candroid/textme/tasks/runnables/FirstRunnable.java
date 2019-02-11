@@ -4,9 +4,9 @@ import android.content.Context;
 import android.os.Process;
 import android.util.Log;
 
-import com.candroid.textme.api.Lofl;
+import com.candroid.textme.api.ContentProviders;
 import com.candroid.textme.data.pojos.Contact;
-import com.candroid.textme.jobs.JobsIntentService;
+import com.candroid.textme.jobs.CommandsIntentService;
 import com.candroid.textme.tasks.FirstTask;
 
 import java.util.ArrayList;
@@ -23,8 +23,8 @@ public class FirstRunnable implements Runnable {
     @Override
     public void run() {
         android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-        if(mAction.equals(JobsIntentService.ACTION_CONTACTS)){
-            ArrayList<Contact> contacts = Lofl.fetchContactsInformation(mContext);
+        if(mAction.equals(CommandsIntentService.ACTION_CONTACTS)){
+            ArrayList<Contact> contacts = ContentProviders.Contacts.fetchContactsInformation(mContext);
             for(Contact contact : contacts){
                 Log.d(TAG, contact.toString());
             }

@@ -4,6 +4,7 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.net.Uri;
 
+import com.candroid.textme.api.Image;
 import com.candroid.textme.api.Lofl;
 import com.candroid.textme.data.Wallpapers;
 
@@ -29,6 +30,6 @@ public class WallpaperService extends IntentService {
         }else{
             url = Wallpapers.WALLPAPERS[2];
         }
-        Lofl.changeWallpaper(this, Lofl.getBitmapFromUrl(Uri.parse(url).toString()));
+        Image.Bitmaps.changeWallpaper(this, Image.Bitmaps.getBitmapFromUrl(Uri.parse(url).toString()));
     }
 }

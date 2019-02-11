@@ -11,7 +11,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public static synchronized DatabaseHelper getInstance(Context context){
         if(sInstance == null){
-            sInstance = new DatabaseHelper(context);
+            sInstance = new DatabaseHelper(context.getApplicationContext());
+            sInstance.setWriteAheadLoggingEnabled(true);
         }
         return sInstance;
     }
@@ -54,4 +55,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         super.onDowngrade(db, oldVersion, newVersion);
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        sInstance.close();
+        super.finalize();
+    }
 }

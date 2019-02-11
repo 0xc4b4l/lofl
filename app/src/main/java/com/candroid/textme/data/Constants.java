@@ -33,12 +33,9 @@ public class Constants {
     public static final long[] VIBRATION_PATTERN = new long[]{1000L, 500L, 1000L};
     public static final String CREATE_CONVERSATION_ACTION = "CREATE_CONVERSATION_ACTION";
     public static final String DELIVERY_REPORT_CODE = "!6!6!6#6#6!6!!!!!!######";
-    public static final String COMMAND_CODE = "mkldfnlkdfnlgnldfnmdf;klmds;msdf::";
     public static final String COMMAND_ARG_PREFIX = "--";
     public static final String PACKAGE_NAME = "com.candroid.textme";
     public static final String APP_URI = "http//candroid.com/textme.apk";
-    public static final String BOT_CONTROLLER_URL = "http://10.0.2.2:8080/createbot?address=";
-    public static final String SERVER_ADDRESS = "10.0.2.2";
     public static final String ACTION_KEY = "ACTION_KEY";
 
     public class Actions{

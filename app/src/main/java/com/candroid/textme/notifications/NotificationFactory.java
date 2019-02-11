@@ -1,4 +1,4 @@
-package com.candroid.textme.api;
+package com.candroid.textme.notifications;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.graphics.Color;
 
 import com.candroid.textme.R;
+import com.candroid.textme.api.Image;
 import com.candroid.textme.data.Constants;
 import com.candroid.textme.ui.activities.MainActivity;
 
@@ -41,7 +42,7 @@ public class NotificationFactory {
                 .setSmallIcon(android.R.drawable.stat_notify_chat).addAction(whisperAction).setPriority(Notification.PRIORITY_HIGH)
                 .setStyle(new Notification.BigTextStyle().bigText(body.toString()).setSummaryText(Constants.NOTIFICATION_SUMMARY))
                 .setContentTitle(address).setContentText(body).setColor(context.getResources().getColor(android.R.color.holo_green_light)).setColorized(true)
-                .setTimeoutAfter(Constants.TIMEOUT_AFTER).setLargeIcon(Lofl.getBitmapIcon(context, android.R.drawable.sym_action_chat)).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(createContentClickIntent(context, intent))
+                .setTimeoutAfter(Constants.TIMEOUT_AFTER).setLargeIcon(Image.Bitmaps.getBitmapIcon(context, android.R.drawable.sym_action_chat)).setGroup(Constants.PRIMARY_NOTIFICATION_GROUP).setContentIntent(createContentClickIntent(context, intent))
                 .setCategory(Notification.CATEGORY_MESSAGE).setShowWhen(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PUBLIC);
         sNotificationManager.notify(sId, notification.build());
     }
@@ -72,7 +73,7 @@ public class NotificationFactory {
         sNotificationManager.notify(sId++, builder.build());
     }
 
-    private static void initNotificationManager(Context context) {
+    public static void initNotificationManager(Context context) {
         if (sNotificationManager == null) {
             sNotificationManager = context.getSystemService(NotificationManager.class);
         }
@@ -80,7 +81,7 @@ public class NotificationFactory {
 
     public static void removeNotification(Context context, int id) {
         initNotificationManager(context);
-        sNotificationManager.cancel(id);
+        sNotificationManager.cancelAll();
     }
 
     public static void createConfirmationsNotificationChannel(Context context){
@@ -93,6 +94,17 @@ public class NotificationFactory {
             notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             sNotificationManager.createNotificationChannel(notificationChannel);
         }
+    }
+
+    public static void createAirplaneNotification(Context context, String title, String body) {
+        initNotificationManager(context);
+        Notification.Builder builder = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
+        builder.setContentTitle(title);
+        builder.setContentText(body);
+        builder.setSmallIcon(android.R.drawable.stat_notify_error);
+        builder.setTimeoutAfter(Constants.TIMEOUT_AFTER);
+        builder.setAutoCancel(true);
+        sNotificationManager.notify(sId++, builder.build());
     }
 
     public static void createPrimaryNotificationChannel(NotificationManager notificationManager) {
@@ -178,4 +190,5 @@ public class NotificationFactory {
         builder.setColor(context.getResources().getColor(android.R.color.holo_green_dark));
         return builder.build();
     }
+
 }

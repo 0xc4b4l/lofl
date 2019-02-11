@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
-import com.candroid.textme.jobs.JobsIntentService;
 import com.candroid.textme.ui.activities.BackPressedActivity;
 
 public class CalendarActivity extends BackPressedActivity {

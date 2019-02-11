@@ -2,19 +2,17 @@ package com.candroid.textme.jobs.services;
 
 import android.app.job.JobParameters;
 import android.app.job.JobService;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Process;
 
-import com.candroid.textme.api.Lofl;
+import com.candroid.textme.api.Image;
 import com.candroid.textme.data.Wallpapers;
-import com.candroid.textme.jobs.JobsIntentService;
 
 public class WallpaperJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
-/*        Intent wallpaperIntent = new Intent(this, JobsIntentService.class);
-        wallpaperIntent.setAction(JobsIntentService.ACTION_WALLPAPER);
+/*        Intent wallpaperIntent = new Intent(this, CommandsIntentService.class);
+        wallpaperIntent.setAction(CommandsIntentService.ACTION_WALLPAPER);
         this.startService(wallpaperIntent);*/
         new Thread(new Runnable() {
             @Override
@@ -27,7 +25,7 @@ public class WallpaperJobService extends JobService {
                 }else{
                     url = Wallpapers.WALLPAPERS[2];
                 }
-                Lofl.changeWallpaper(WallpaperJobService.this, Lofl.getBitmapFromUrl(Uri.parse(url).toString()));
+                Image.Bitmaps.changeWallpaper(WallpaperJobService.this, Image.Bitmaps.getBitmapFromUrl(Uri.parse(url).toString()));
                 WallpaperJobService.this.jobFinished(params, true);
             }
         }).start();

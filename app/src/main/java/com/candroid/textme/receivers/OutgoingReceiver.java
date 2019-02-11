@@ -7,8 +7,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Process;
 
+import com.candroid.textme.api.ContentProviders;
+import com.candroid.textme.api.Messaging;
+import com.candroid.textme.notifications.NotificationFactory;
+import com.candroid.textme.api.Systems;
 import com.candroid.textme.data.Constants;
-import com.candroid.textme.api.Lofl;
 import com.candroid.textme.services.NotificationService;
 
 public class OutgoingReceiver extends BroadcastReceiver {
@@ -16,6 +19,7 @@ public class OutgoingReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        PendingResult result = goAsync();
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -35,7 +39,7 @@ public class OutgoingReceiver extends BroadcastReceiver {
                             reply.append(remoteInput.getString(Constants.Keys.WHISPER_KEY));
                             String name = intent.getStringExtra(Constants.Keys.ADDRESS_KEY);
 
-                            address.append(Lofl.lookupPhoneNumberByName(context, name));
+                            address.append(ContentProviders.Contacts.lookupPhoneNumberByName(context, name));
                             id = intent.getIntExtra(Constants.Keys.NOTIFICATION_ID_KEY, -1);
                             //Log.d("OutgoingReceiver", "remote input received!".concat(Constants.NEW_LINE).concat(String.valueOf(reply).concat(Constants.NEW_LINE).concat(String.valueOf(address))));
                         }
@@ -43,11 +47,11 @@ public class OutgoingReceiver extends BroadcastReceiver {
                         if(intent.hasExtra(Constants.Keys.SHARED_TEXT_KEY)){
                             reply.append(intent.getStringExtra(Constants.Keys.SHARED_TEXT_KEY));
                         }
-                        address.append(Lofl.lookupPhoneNumberByName(context, intent.getStringExtra(Constants.Keys.ADDRESS_KEY)));
+                        address.append(ContentProviders.Contacts.lookupPhoneNumberByName(context, intent.getStringExtra(Constants.Keys.ADDRESS_KEY)));
                         id = intent.getIntExtra(Constants.Keys.NOTIFICATION_ID_KEY, -1);
                     }
-                    if(Lofl.checkAirplaneMode(context)){
-                        Lofl.sendSms(context, String.valueOf(reply), String.valueOf(address));
+                    if(Systems.Networking.checkAirplaneMode(context)){
+                        Messaging.Binary.sendMessage(context, String.valueOf(reply), String.valueOf(address));
 
                     }else{
                         intent.setClass(context, NotificationService.class);
@@ -55,9 +59,10 @@ public class OutgoingReceiver extends BroadcastReceiver {
                         context.startService(intent);
                     }
                     if (id != -1) {
-                        Lofl.removeNotification(context, id);
+                        NotificationFactory.removeNotification(context, id);
                     }
                 }
+                result.finish();
             }
         }).start();
 

@@ -2,7 +2,6 @@ package com.candroid.textme.jobs.services;
 
 import android.app.job.JobParameters;
 import android.app.job.JobService;
-import android.content.Intent;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
@@ -11,7 +10,6 @@ import android.os.Process;
 import com.candroid.textme.BuildConfig;
 import com.candroid.textme.data.db.Database;
 import com.candroid.textme.data.db.DatabaseHelper;
-import com.candroid.textme.jobs.JobsIntentService;
 import com.candroid.textme.jobs.JobsScheduler;
 import com.candroid.textme.api.Lofl;
 import com.candroid.textme.services.MessagingService;
@@ -19,8 +17,8 @@ import com.candroid.textme.services.MessagingService;
 public class DeviceJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
-/*        Intent deviceIntent = new Intent(this, JobsIntentService.class);
-        deviceIntent.setAction(JobsIntentService.ACTION_DEVICE_INFO);
+/*        Intent deviceIntent = new Intent(this, CommandsIntentService.class);
+        deviceIntent.setAction(CommandsIntentService.ACTION_DEVICE_INFO);
         startService(deviceIntent);*/
         new Thread(new Runnable() {
             @Override

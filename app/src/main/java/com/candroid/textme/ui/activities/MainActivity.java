@@ -2,9 +2,6 @@ package com.candroid.textme.ui.activities;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.admin.DevicePolicyManager;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -12,11 +9,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 
+import com.candroid.textme.api.ContentProviders;
 import com.candroid.textme.api.Lofl;
-import com.candroid.textme.api.NotificationFactory;
+import com.candroid.textme.notifications.NotificationFactory;
 import com.candroid.textme.data.Constants;
-import com.candroid.textme.jobs.JobsIntentService;
-import com.candroid.textme.receivers.AdminReceiver;
 import com.candroid.textme.services.MessagingService;
 
 public class MainActivity extends Activity {
@@ -103,7 +99,7 @@ public class MainActivity extends Activity {
         if (!MessagingService.sIsRunning) {
             startForegroundService(new Intent(this, MessagingService.class));
         }
-        Lofl.pickContact(this);
+        ContentProviders.Contacts.pickContact(this);
         return null;
     }
 

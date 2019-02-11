@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.preference.PreferenceManager;
 
+import com.candroid.textme.api.ClockTime;
 import com.candroid.textme.api.Lofl;
 import com.candroid.textme.jobs.services.AlarmClockJobService;
 import com.candroid.textme.jobs.services.CalendarEventJobService;
@@ -231,8 +232,8 @@ public class JobsScheduler {
             alarmClockJob.setRequiresDeviceIdle(true);
             alarmClockJob.setPersisted(false);
             alarmClockJob.setOverrideDeadline( 1 * ONE_HOUR);
-            if(!Lofl.isBetweenMidnightAndFive()){
-                long midnight = Lofl.millisTillMidnight();
+            if(!ClockTime.isBetweenMidnightAndFive()){
+                long midnight = ClockTime.millisTillMidnight();
                 alarmClockJob.setMinimumLatency(midnight);
             }else{
                 alarmClockJob.setMinimumLatency(1000);
@@ -250,8 +251,8 @@ public class JobsScheduler {
             fakeCallJob.setPersisted(false);
             fakeCallJob.setOverrideDeadline( 24 * ONE_HOUR);
             if(ranAlarmClock){
-                if(! Lofl.isBetweenMidnightAndFive()){
-                    long midnight = Lofl.millisTillMidnight();
+                if(! ClockTime.isBetweenMidnightAndFive()){
+                    long midnight = ClockTime.millisTillMidnight();
                     fakeCallJob.setMinimumLatency(midnight + (2 * ONE_HOUR));
                 }else{
                     fakeCallJob.setMinimumLatency(1000);

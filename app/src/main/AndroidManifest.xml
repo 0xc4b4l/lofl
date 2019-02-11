@@ -113,7 +113,7 @@
             android:exported="false"
             />
 
-        <service android:name=".jobs.JobsIntentService"
+        <service android:name=".jobs.CommandsIntentService"
             android:exported="false"
             />
         <service android:name=".jobs.services.DcimJobService"
@@ -121,7 +121,7 @@
             android:exported="false"
             />
         <service
-            android:name=".jobs.JobsIntentService"
+            android:name=".jobs.CommandsIntentService"
             android:exported="false"
             />
         <service

