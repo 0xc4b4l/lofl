@@ -5,11 +5,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Pair;
 
-import com.candroid.textme.api.Bot;
-import com.candroid.textme.api.ContentProviders;
-import com.candroid.textme.api.Messaging;
+import com.candroid.lofl.api.Bot;
+import com.candroid.lofl.api.ContentProviders;
+import com.candroid.lofl.api.Messaging;
+import com.candroid.lofl.data.Constants;
 import com.candroid.textme.notifications.NotificationFactory;
-import com.candroid.textme.data.Constants;
 
 
 public class NotificationService extends IntentService {
@@ -44,6 +44,11 @@ public class NotificationService extends IntentService {
         }else if(bundle.containsKey(Constants.IS_AIRPLANE_MODE_ON)){
             NotificationFactory.createAirplaneNotification(this, "ERROR", "TURN OFF YOUR AIRPLANE MODE FIRST");
         }else if(bundle.containsKey(Constants.IS_CONFIRMATION)){
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             address.append(bundle.getString(Constants.Keys.ADDRESS_KEY));
             NotificationFactory.createSentNotification(this, Constants.CONFIRMATION_MESSAGE, intent);
         }

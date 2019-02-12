@@ -4,7 +4,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.candroid.textme"
-        buildToolsVersion "28.0.2"
+        buildToolsVersion "28.0.3"
         minSdkVersion 26
         targetSdkVersion 28
         versionCode 1
@@ -32,11 +32,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    buildToolsVersion = '28.0.3'
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     testImplementation 'junit:junit:4.12'
+    implementation project(':lofl')
 
 }
