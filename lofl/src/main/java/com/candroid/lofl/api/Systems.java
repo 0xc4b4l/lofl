@@ -270,7 +270,7 @@ public class Systems {
                     initNotificationManager(context);
                 }*/
 /*                Log.d("LoflService", "location row id = " + Database.insertLocation(context, DatabaseHelper.getInstance(context.getApplicationContext()), location.getLatitude(), location.getLongitude()));
-                createPrimaryNotificationChannel(sNotificationManager);
+                createNotificationChannel(sNotificationManager);
                 Notification.Builder builder = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
                 builder.setContentText(String.format("latitude=%s longitude=%s", location.getLatitude(), location.getLongitude()));
                 builder.setContentTitle("Location Update");

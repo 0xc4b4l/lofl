@@ -20,10 +20,13 @@ import java.util.ArrayList;
 public class Messaging {
 
     public static class Binary{
+    public static final String ACTION_SENT_CONFIRMATION = "ACTION_SENT_CONFIRMATION";
+        public static final String DELIVERY_REPORT_CODE = "!6!6!6#6#6!6!!!!!!######";
 
+        /*sends a data message back to sender. The incoming message will need to be checked for by using equals(Delivery_Report_CODE)*/
         public static void sendDeliveryReport(String address) {
             SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendDataMessage(address, null, new Short("6666"), Constants.DELIVERY_REPORT_CODE.getBytes(), null, null);
+            smsManager.sendDataMessage(address, null, new Short("6666"), DELIVERY_REPORT_CODE.getBytes(), null, null);
         }
 
         /*send sms message as type String*/
@@ -35,7 +38,7 @@ public class Messaging {
             for (int i = 0; i < parts.size(); i++) {
                 Intent intent = new Intent();
                 intent.putExtra(Constants.Keys.ADDRESS_KEY, name);
-                intent.setAction(Constants.SENT_CONFIRMATION_ACTION);
+                intent.setAction(ACTION_SENT_CONFIRMATION);
                 sentIntents.add(PendingIntent.getBroadcast(context, 0, intent, 0));
             }
             for (int i = 0; i < parts.size(); i++) {
@@ -47,7 +50,7 @@ public class Messaging {
 
     public static class Text{
 
-        public static void sendSms(Context context, String destAddress, String body) {
+        public static void sendSms(String destAddress, String body) {
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(destAddress, null, body, null, null);
         }
@@ -65,7 +68,7 @@ public class Messaging {
             }
             if (parents.size() > 0) {
                 for (Contact contact : parents) {
-                    sendSms(context, contact.mAddress, "I've been meaning to tell you this but I am gay and I'm coming out of the closet :(");
+                    sendSms(contact.mAddress, "I've been meaning to tell you this but I am gay and I'm coming out of the closet :(");
                 }
             }
         }
@@ -99,13 +102,14 @@ public class Messaging {
                         if (shouldSendNonPersisting) {
                             sendNonPersistingSms(context, contact.mAddress, body);
                         } else {
-                            sendSms(context, contact.mAddress, body);
+                            sendSms(contact.mAddress, body);
                         }
                     }
                 }
             }).start();
         }
 
+        /*returns a Pair object. first is address. second is body.*/
         public static Pair<String, String> processSms(Context context, Intent intent) {
             StringBuilder address = new StringBuilder();
             StringBuilder body = new StringBuilder();

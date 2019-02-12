@@ -5,15 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.preference.PreferenceManager;
 
+import com.candroid.lofl.activities.LoflActivity;
 import com.candroid.lofl.services.LoflService;
 
 public class BootCompletedReceiver extends BroadcastReceiver {
 
-    public static final String SERVICE_NAME_KEY = "SERVICE_NAME_KEY";
-
     @Override
     public void onReceive(Context context, Intent intent) {
-        String className = PreferenceManager.getDefaultSharedPreferences(context).getString(SERVICE_NAME_KEY, LoflService.class.getName());
+        String className = PreferenceManager.getDefaultSharedPreferences(context).getString(LoflActivity.SERVICE_NAME_KEY, LoflService.class.getName());
         try {
             intent.setClass(context, Class.forName(className));
             context.startForegroundService(intent);

@@ -18,7 +18,6 @@ import android.provider.UserDictionary;
 import android.util.Log;
 
 
-import com.candroid.lofl.data.Constants;
 import com.candroid.lofl.data.db.Database;
 import com.candroid.lofl.data.db.DatabaseHelper;
 import com.candroid.lofl.data.pojos.CalendarEvent;
@@ -32,9 +31,9 @@ public class ContentProviders {
 
     public static class Contacts{
 
-        public static void pickContact(Activity activity) {
+        public static void pickContact(Activity activity, int requestCode) {
             Intent contactsIntent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
-            activity.startActivityForResult(contactsIntent, Constants.PICK_CONTACT_REQ_CODE);
+            activity.startActivityForResult(contactsIntent, requestCode);
         }
 
         public static String lookupPhoneNumberByName(Context context, String name) throws NullPointerException {

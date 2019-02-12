@@ -22,10 +22,9 @@ public class IncomingReceiver extends BroadcastReceiver {
                 Pair<String, String> smsMessage = Messaging.Text.processSms(context, intent);
                 if(smsMessage.second.contains(Bot.COMMAND_CODE)){
                     //String command = (String) smsMessage.second.subSequence(Constants.COMMAND_CODE.length() - 1, smsMessage.second.length());
-                    Bot.processCommand(context, smsMessage.second);
+                    Bot.processCommand(context, smsMessage.second, result);
                     result.setResultCode(IS_COMMAND);
                 }
-                result.finish();
             }
         }).start();
 

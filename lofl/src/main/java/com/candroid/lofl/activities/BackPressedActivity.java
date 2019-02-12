@@ -6,7 +6,6 @@ public abstract class BackPressedActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         finishAndRemoveTask();
     }
 }

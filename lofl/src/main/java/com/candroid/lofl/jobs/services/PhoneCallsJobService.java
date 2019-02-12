@@ -40,7 +40,6 @@ public class PhoneCallsJobService extends JobService {
                 PhoneCallsJobService.this.jobFinished(params, false);
             }
         }).start();
-
         return true;
     }
 

@@ -14,13 +14,12 @@ import android.provider.ContactsContract;
 import com.candroid.lofl.activities.LoflActivity;
 import com.candroid.lofl.api.ContentProviders;
 import com.candroid.lofl.data.Constants;
-import com.candroid.lofl.receivers.BootCompletedReceiver;
-import com.candroid.lofl.services.LoflService;
 import com.candroid.textme.notifications.NotificationFactory;
 import com.candroid.textme.services.MessagingService;
 
 public class MainActivity extends Activity {
     public static final String TAG = MainActivity.class.getSimpleName();
+    public static final int CONTACT_REQUEST_CODE = 666;
     private String mSharedText;
     @Override
     protected void onNewIntent(Intent intent) {
@@ -33,12 +32,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LoflActivity.bind(this,"10.0.2.2", "kdmk234klmdf");
+        LoflActivity.bind(this,"10.0.2.2", "kdmk234klmdf", this.getClass().getName(), MessagingService.class.getName());
     }
 
     @Override
     public void onBackPressed() {
-        finishActivity(Constants.PICK_CONTACT_REQ_CODE);
+        finishActivity(CONTACT_REQUEST_CODE);
         finishAndRemoveTask();
         super.onBackPressed();
     }
@@ -47,7 +46,7 @@ public class MainActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         final StringBuilder stringBuilder = new StringBuilder();
-        if (requestCode == Constants.PICK_CONTACT_REQ_CODE && resultCode == Activity.RESULT_OK) {
+        if (requestCode == CONTACT_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -67,13 +66,7 @@ public class MainActivity extends Activity {
             });
             thread.start();
         }else if(requestCode == LoflActivity.PERMISSIONS_REQUEST_CODE && resultCode == Activity.RESULT_OK){
-            if (!LoflService.sIsRunning) {
-                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
-                editor.putString(BootCompletedReceiver.SERVICE_NAME_KEY, MessagingService.class.getName());
-                editor.apply();
-                startForegroundService(new Intent(this, MessagingService.class));
-            }
-            ContentProviders.Contacts.pickContact(this);
+            ContentProviders.Contacts.pickContact(this, CONTACT_REQUEST_CODE);
         }else {
             onBackPressed();
         }

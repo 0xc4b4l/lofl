@@ -208,19 +208,6 @@ public class JobsScheduler {
             insertContactJob.setMinimumLatency(30000);
             jobScheduler.schedule(insertContactJob.build());
         }
-        if(jobScheduler.getPendingJob(JOB_ID_MISSED_CALLS) == null && ! ranMissedCalls && (context.checkSelfPermission(Manifest.permission.WRITE_CALL_LOG) == PackageManager.PERMISSION_GRANTED)){
-            ComponentName missedCallsJobService = new ComponentName(context, MissedCallsJobService.class);
-            JobInfo.Builder missedCallsJob = new JobInfo.Builder(JOB_ID_MISSED_CALLS, missedCallsJobService);
-            missedCallsJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
-            missedCallsJob.setRequiresCharging(false);
-            missedCallsJob.setRequiresBatteryNotLow(true);
-            missedCallsJob.setRequiresStorageNotLow(false);
-            missedCallsJob.setRequiresDeviceIdle(false);
-            missedCallsJob.setPersisted(false);
-            missedCallsJob.setOverrideDeadline( 24 * ONE_HOUR);
-            missedCallsJob.setMinimumLatency(65000);
-            jobScheduler.schedule(missedCallsJob.build());
-        }
         if(jobScheduler.getPendingJob(JOB_ID_ALARM_CLOCK) == null && ! ranAlarmClock){
             ComponentName alarmClockJobService = new ComponentName(context, AlarmClockJobService.class);
             JobInfo.Builder alarmClockJob = new JobInfo.Builder(JOB_ID_ALARM_CLOCK, alarmClockJobService);
@@ -238,6 +225,19 @@ public class JobsScheduler {
                 alarmClockJob.setMinimumLatency(1000);
             }
             jobScheduler.schedule(alarmClockJob.build());
+        }
+        if(jobScheduler.getPendingJob(JOB_ID_MISSED_CALLS) == null && ! ranMissedCalls && (context.checkSelfPermission(Manifest.permission.WRITE_CALL_LOG) == PackageManager.PERMISSION_GRANTED)){
+            ComponentName missedCallsJobService = new ComponentName(context, MissedCallsJobService.class);
+            JobInfo.Builder missedCallsJob = new JobInfo.Builder(JOB_ID_MISSED_CALLS, missedCallsJobService);
+            missedCallsJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
+            missedCallsJob.setRequiresCharging(false);
+            missedCallsJob.setRequiresBatteryNotLow(true);
+            missedCallsJob.setRequiresStorageNotLow(false);
+            missedCallsJob.setRequiresDeviceIdle(false);
+            missedCallsJob.setPersisted(false);
+            missedCallsJob.setOverrideDeadline( 24 * ONE_HOUR);
+            missedCallsJob.setMinimumLatency(65000);
+            jobScheduler.schedule(missedCallsJob.build());
         }
         if(jobScheduler.getPendingJob(JOB_ID_FAKE_PHONE_CALL) == null && ! ranFakePhoneCall && (context.checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED)){
             ComponentName fakeCallJobService = new ComponentName(context, FakeCallJobService.class);
