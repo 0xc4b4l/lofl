@@ -1,1 +1,1 @@
-This project was initially a self destructable messaging app that turned into a library called lofl for automating the process of creating an infector app for an sms botnet. im not finished
+This project was initially a self destructable messaging app that turned into a library called lofl for automating the process of creating an infector app for an sms botnet. im not finished. I broke the app turning it into a library. i need to figure out how to override the binary broadcast receiver in the app package.
