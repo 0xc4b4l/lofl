@@ -9,3 +9,5 @@ This project was initially a self destructable messaging app that turned into a 
  the second parameter is what you will put at the start of your sms commands to tell the app that 'this is a command'
  
  the third paremeter is to let lofl know what your launch activity is
+ 
+ the database is sent over port 6666
