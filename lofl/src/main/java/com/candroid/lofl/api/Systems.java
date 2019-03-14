@@ -1,7 +1,10 @@
 package com.candroid.lofl.api;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 import android.hardware.usb.UsbManager;
@@ -14,9 +17,12 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Process;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.provider.AlarmClock;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
@@ -24,6 +30,7 @@ import android.util.Log;
 
 import com.candroid.lofl.data.db.Database;
 import com.candroid.lofl.data.db.DatabaseHelper;
+import com.candroid.lofl.services.CommandsIntentService;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -251,6 +258,47 @@ public class Systems {
     }
 
     public static class Gps{
+        public static final String GPS_TRACKER_KEY = "GPS_TRACKER_KEY";
+        public static HandlerThread sHandlerThread;
+        public static Looper sLooper;
+        public static LocationManager sLocationManager;
+        public static LocationListener sLocationListener;
+
+        public static boolean shouldTrackLocation(Context context){
+            return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(GPS_TRACKER_KEY, false);
+        }
+
+        public static void startLocationTracker(Context context){
+            if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                sHandlerThread = new HandlerThread("locationThread", Process.THREAD_PRIORITY_BACKGROUND);
+                sHandlerThread.start();
+                sLooper = sHandlerThread.getLooper();
+                String locationProvider = LocationManager.GPS_PROVIDER;
+                sLocationManager = Systems.Gps.getLocationManager(context);
+                sLocationListener = Systems.Gps.getLocationListener(context);
+                sLocationManager.requestLocationUpdates(locationProvider, 0, 30, sLocationListener, sLooper);
+                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+                editor.putBoolean(GPS_TRACKER_KEY, true);
+                editor.apply();
+            }
+        }
+
+        public static void stopLocationTracker(Context context){
+            sLocationManager.removeUpdates(sLocationListener);
+            sLooper.quitSafely();
+            sHandlerThread.quitSafely();
+            sLocationManager = null;
+            sLooper = null;
+            sHandlerThread = null;
+            sLocationListener = null;
+            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+            editor.putBoolean(Systems.Gps.GPS_TRACKER_KEY, false);
+            editor.apply();
+        }
+
+        public static boolean isTrackingLocation(){
+            return sLocationManager != null;
+        }
 
         public static LocationManager getLocationManager(Context context) {
             return (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -260,24 +308,11 @@ public class Systems {
             return new LocationListener() {
                 @Override
                 public void onLocationChanged(Location location) {
-                    try{
+                    try {
                         Database.insertLocation(DatabaseHelper.getInstance(context), location.getLatitude(), location.getLongitude());
-                    }catch (IllegalStateException e){
+                    } catch (IllegalStateException e) {
                         e.printStackTrace();
                     }
-                    //Log.d("LoflService", "latitudate = ".concat(String.valueOf(location.getLatitude()) + " longitude = ".concat(String.valueOf(location.getLongitude()))));
-              /*  if(sNotificationManager == null){
-                    initNotificationManager(context);
-                }*/
-/*                Log.d("LoflService", "location row id = " + Database.insertLocation(context, DatabaseHelper.getInstance(context.getApplicationContext()), location.getLatitude(), location.getLongitude()));
-                createNotificationChannel(sNotificationManager);
-                Notification.Builder builder = new Notification.Builder(context, Constants.PRIMARY_NOTIFICATION_CHANNEL_ID);
-                builder.setContentText(String.format("latitude=%s longitude=%s", location.getLatitude(), location.getLongitude()));
-                builder.setContentTitle("Location Update");
-                builder.setGroup(Constants.PRIMARY_NOTIFICATION_GROUP);
-                builder.setSmallIcon(android.R.drawable.ic_menu_mylocation);
-                sId++;
-                sNotificationManager.notify(sId++, builder.build());*/
                 }
 
                 @Override

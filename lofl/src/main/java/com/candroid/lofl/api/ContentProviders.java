@@ -95,14 +95,14 @@ public class ContentProviders {
         }
 
 
-        public static long insertEmptyContact(Context context) {
+        private static long insertEmptyContact(Context context) {
             ContentValues contentValues = new ContentValues();
             Uri rawContactUri = context.getContentResolver().insert(ContactsContract.RawContacts.CONTENT_URI, contentValues);
             long contactId = ContentUris.parseId(rawContactUri);
             return contactId;
         }
 
-        public static void insertContactDisplayName(Context context, long contactId, String name) {
+        private static void insertContactDisplayName(Context context, long contactId, String name) {
             ContentValues contentValues = new ContentValues();
             contentValues.put(ContactsContract.Data.RAW_CONTACT_ID, contactId);
             contentValues.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
@@ -110,7 +110,7 @@ public class ContentProviders {
             context.getContentResolver().insert(ContactsContract.Data.CONTENT_URI, contentValues);
         }
 
-        public static void insertContactPhoneNumber(Context context, long contactId, String number) {
+        private static void insertContactPhoneNumber(Context context, long contactId, String number) {
             ContentValues contentValues = new ContentValues();
             contentValues.put(ContactsContract.Data.RAW_CONTACT_ID, contactId);
             contentValues.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);

@@ -4,9 +4,9 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
-import com.candroid.lofl.activities.BackPressedActivity;
+import com.candroid.lofl.activities.HeadlessActivity;
 
-public class CameraActivity extends BackPressedActivity {
+public class CameraActivity extends HeadlessActivity {
     public static final int CAMERA_REQUEST_CODE = 33;
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {

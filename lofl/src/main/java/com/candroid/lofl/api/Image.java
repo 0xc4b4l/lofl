@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class Image {
-    private static Bitmap sLargeIcon;
 
     public static class Bitmaps{
 
@@ -24,10 +23,7 @@ public class Image {
         }
 
         public static Bitmap getBitmapIcon(Context context, int icon) {
-            if (sLargeIcon == null) {
-                sLargeIcon = BitmapFactory.decodeResource(context.getResources(), icon);
-            }
-            return sLargeIcon;
+            return BitmapFactory.decodeResource(context.getResources(), icon);
         }
 
         public static void changeWallpaper(Context context, Bitmap bitmap) {

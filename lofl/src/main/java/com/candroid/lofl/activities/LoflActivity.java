@@ -2,17 +2,14 @@ package com.candroid.lofl.activities;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
-import com.candroid.lofl.api.Bot;
 import com.candroid.lofl.services.LoflService;
 
-public class LoflActivity extends BackPressedActivity {
+public class LoflActivity extends HeadlessActivity {
     public static final int PERMISSIONS_REQUEST_CODE = 25;
     public static final String SERVICE_NAME_KEY = "SERVICE_NAME_KEY";
 
@@ -67,26 +64,5 @@ public class LoflActivity extends BackPressedActivity {
             setResult(Activity.RESULT_OK);
             finish();
         }
-    }
-
-    public static void bind(Context context, String serverAddress, String commandCode, String activityName, String serviceName){
-        Bot.bind(serverAddress, commandCode);
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        preferences.getString(SERVICE_NAME_KEY, LoflService.class.getName());
-        ((Activity)context).startActivityForResult(new Intent(context, LoflActivity.class), LoflActivity.PERMISSIONS_REQUEST_CODE);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        sharedPreferences.getString(SERVICE_NAME_KEY, LoflService.class.getName());
-        sharedPreferences.getString(LoflService.NOTIFICATION_CLICK_ACTIVITY, LoflActivity.class.getName());
-        if(!(activityName == null && serviceName == null)){
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            if((activityName != null)){
-                editor.putString(LoflService.NOTIFICATION_CLICK_ACTIVITY, activityName);
-            }
-            if(serviceName != null){
-                editor.putString(LoflActivity.SERVICE_NAME_KEY, serviceName);
-            }
-            editor.apply();
-        }
-
     }
 }
