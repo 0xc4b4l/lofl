@@ -3,19 +3,20 @@ package com.candroid.textme.ui.activities;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 
+import com.candroid.lofl.Lofl;
+import com.candroid.lofl.activities.HeadlessActivity;
 import com.candroid.lofl.activities.LoflActivity;
 import com.candroid.lofl.api.ContentProviders;
 import com.candroid.lofl.data.Constants;
 import com.candroid.textme.notifications.NotificationFactory;
 import com.candroid.textme.services.MessagingService;
+
 
 public class MainActivity extends Activity {
     public static final String TAG = MainActivity.class.getSimpleName();
@@ -32,7 +33,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LoflActivity.bind(this,"10.0.2.2", "kdmk234klmdf", this.getClass().getName(), MessagingService.class.getName());
+        Lofl.lofl(this,"10.0.2.2", MessagingService.class);
     }
 
     @Override
