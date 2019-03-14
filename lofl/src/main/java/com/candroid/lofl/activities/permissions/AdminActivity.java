@@ -7,11 +7,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.candroid.lofl.activities.BackPressedActivity;
+import com.candroid.lofl.activities.HeadlessActivity;
 import com.candroid.lofl.receivers.AdminReceiver;
 
 
-public class AdminActivity extends BackPressedActivity {
+public class AdminActivity extends HeadlessActivity {
     public static final String TAG = AdminActivity.class.getSimpleName();
     private static final int ADMIN_REQUEST_CODE = 33;
 

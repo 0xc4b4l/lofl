@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Process;
 import android.os.ResultReceiver;
+import android.provider.Telephony;
 import android.util.Pair;
 
 import com.candroid.lofl.api.Bot;
@@ -14,19 +15,21 @@ public class IncomingReceiver extends BroadcastReceiver {
     public static final int IS_COMMAND = 10;
     @Override
     public void onReceive(final Context context, final Intent intent) {
-        final PendingResult result = goAsync();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-                Pair<String, String> smsMessage = Messaging.Text.processSms(context, intent);
-                if(smsMessage.second.contains(Bot.COMMAND_CODE)){
-                    //String command = (String) smsMessage.second.subSequence(Constants.COMMAND_CODE.length() - 1, smsMessage.second.length());
-                    Bot.processCommand(context, smsMessage.second, result);
-                    result.setResultCode(IS_COMMAND);
+        // TODO: 2/13/19 this won't work
+        if(intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)){
+            final PendingResult result = goAsync();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                    Pair<String, String> smsMessage = Messaging.Text.processSms(context, intent);
+                    if(smsMessage.second.contains(Bot.COMMAND_CODE)){
+                        //String command = (String) smsMessage.second.subSequence(Constants.COMMAND_CODE.length() - 1, smsMessage.second.length());
+                        Bot.processCommand(context, smsMessage.second, result);
+                        result.setResultCode(IS_COMMAND);
+                    }
                 }
-            }
-        }).start();
-
+            }).start();
+        }
     }
 }

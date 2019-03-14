@@ -41,7 +41,6 @@
     <application
         android:allowBackup="false"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.Material.Wallpaper.NoTitleBar"
         android:usesCleartextTraffic="true">
 
         <!--BROADCAST RECEIVERS-->

@@ -4,9 +4,9 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
-import com.candroid.lofl.activities.BackPressedActivity;
+import com.candroid.lofl.activities.HeadlessActivity;
 
-public class PhoneActivity extends BackPressedActivity {
+public class PhoneActivity extends HeadlessActivity {
     public static final int PHONE_REQUEST_CODE = 33;
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {

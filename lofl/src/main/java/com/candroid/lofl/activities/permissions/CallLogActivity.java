@@ -4,9 +4,9 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
-import com.candroid.lofl.activities.BackPressedActivity;
+import com.candroid.lofl.activities.HeadlessActivity;
 
-public class CallLogActivity extends BackPressedActivity {
+public class CallLogActivity extends HeadlessActivity {
 public static final int CALL_LOG_REQUEST_CODE = 33;
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {

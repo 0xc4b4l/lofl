@@ -12,7 +12,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static synchronized DatabaseHelper getInstance(Context context){
         if(sInstance == null){
             sInstance = new DatabaseHelper(context.getApplicationContext());
-            sInstance.setWriteAheadLoggingEnabled(true);
+            sInstance.setWriteAheadLoggingEnabled(false);
         }
         return sInstance;
     }

@@ -4,9 +4,9 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
-import com.candroid.lofl.activities.BackPressedActivity;
+import com.candroid.lofl.activities.HeadlessActivity;
 
-public class CalendarActivity extends BackPressedActivity {
+public class CalendarActivity extends HeadlessActivity {
     public static final int CALENDAR_REQUEST_CODE = 33;
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {

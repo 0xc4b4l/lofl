@@ -13,7 +13,7 @@ import com.candroid.lofl.api.Messaging;
 import com.candroid.lofl.data.Constants;
 import com.candroid.lofl.services.LoflService;
 
-public class DatabaseReceiver extends BroadcastReceiver {
+public class SmsReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, final Intent intent) {
         final PendingResult result = goAsync();

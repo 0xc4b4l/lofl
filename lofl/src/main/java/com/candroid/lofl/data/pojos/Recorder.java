@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class Recorder {
-
+    // TODO: 2/13/19 possibly move static methods out of LoflService and put all logic into class....possibly a singleton
     private static final int SOURCE = MediaRecorder.AudioSource.MIC;
     private static final int FORMAT = MediaRecorder.OutputFormat.THREE_GPP;
     private static final int ENCODER = MediaRecorder.OutputFormat.AMR_NB;
