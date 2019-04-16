@@ -95,6 +95,14 @@ public class Systems {
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);
             }
+
+            public static void requestIgnoreBatteryOptimizations(Context context){
+                Intent intent = new Intent();
+                intent.setAction(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                intent.setData(Uri.parse("package:" + context.getPackageName()));
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+            }
         }
     }
 

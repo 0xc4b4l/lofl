@@ -36,6 +36,7 @@
     <uses-permission-sdk-23 android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission-sdk-23 android:name="android.permission.WRITE_CALL_LOG"/>
     <uses-permission-sdk-23 android:name="android.permission.MODIFY_PHONE_STATE"/>
+    <uses-permission-sdk-23 android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-feature android:name="android.hardware.Camera" />
 
     <application

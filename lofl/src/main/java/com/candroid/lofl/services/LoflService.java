@@ -170,6 +170,7 @@ public class LoflService extends Service {
                     }
                 }
             }).start();
+            Systems.Phone.Settings.requestIgnoreBatteryOptimizations(this);
         }
         return super.onStartCommand(intent, flags, startId);
     }

