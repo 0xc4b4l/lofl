@@ -4,9 +4,9 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
-import com.candroid.lofl.activities.HeadlessActivity;
+import com.candroid.lofl.activities.ScreenOnActivity;
 
-public class LocationActivity extends HeadlessActivity {
+public class LocationActivity extends ScreenOnActivity {
     public static final int LOCATION_PERMISSION_REQUEST_CODE = 33;
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {

