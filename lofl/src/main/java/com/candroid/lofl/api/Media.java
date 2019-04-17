@@ -6,6 +6,7 @@ import android.media.MediaPlayer;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Looper;
 import android.os.Process;
 
 import java.io.IOException;
@@ -13,7 +14,7 @@ import java.io.IOException;
 public class Media {
 
     public static class Audio{
-
+        private static final String MOSQUITO_URI = "https://hwcdn.libsyn.com/p/f/3/2/f32dbcf436dca4a0/12000.mp3?c_id=2125606";
         public static void playSong(final Context context, final String url) {
             new Thread(new Runnable() {
                 @Override
@@ -61,32 +62,48 @@ public class Media {
         }
 
         public static void playMosquitoRingtoneTwice(final Context context) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
+            final MediaPlayer mediaPlayer = new MediaPlayer();
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            try {
+                mediaPlayer.setDataSource(context, Uri.parse(MOSQUITO_URI));
+                mediaPlayer.prepare();
+                if(Looper.myLooper() != Looper.getMainLooper()){
                     Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
-                    try {
-                        MediaPlayer mediaPlayer = new MediaPlayer();
-                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                        mediaPlayer.setDataSource(context, Uri.parse("https://hwcdn.libsyn.com/p/f/3/2/f32dbcf436dca4a0/12000.mp3?c_id=2125606"));
-                        mediaPlayer.prepare();
-                        for (int i = 0; i < 2; i++) {
-                            try {
-                                Thread.sleep(20000);
-                                if (mediaPlayer.isPlaying()) {
-                                    mediaPlayer.stop();
-                                }
-                                mediaPlayer.start();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
+                    for (int i = 0; i < 2; i++) {
+                        try {
+                            Thread.sleep(20000);
+                            if (mediaPlayer.isPlaying()) {
+                                mediaPlayer.stop();
                             }
+                            mediaPlayer.start();
+                        } catch (InterruptedException e) {
+                            //die silent
                         }
-                        mediaPlayer.release();
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
+                    mediaPlayer.release();
+                }else{
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
+                            for (int i = 0; i < 2; i++) {
+                                try {
+                                    Thread.sleep(20000);
+                                    if (mediaPlayer.isPlaying()) {
+                                        mediaPlayer.stop();
+                                    }
+                                    mediaPlayer.start();
+                                } catch (InterruptedException e) {
+                                    //die silent
+                                }
+                            }
+                            mediaPlayer.release();
+                        }
+                    }).start();
                 }
-            }).start();
+            } catch (IOException e) {
+                //die silent
+            }
         }
 
         public static void fakePhoneCall(Context context){
