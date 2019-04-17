@@ -52,32 +52,18 @@ public class ContentProviders {
         }
 
         public static ArrayList<Contact> fetchContactsInformation(Context context) {
-            String[] projection = null;
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                projection = new String[]{ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME, "has_email"};
-            } else {
-                projection = new String[]{ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME};
-            }
+            String[] projection = new String[]{ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME};
             ArrayList<Contact> contacts = new ArrayList<>();
             Cursor cursor = context.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, projection, null, null, null);
-            int hasEmail = -1;
             if (cursor != null) {
                 int displayNameIndex = cursor.getColumnIndex("display_name");
                 int idIndex = cursor.getColumnIndex("_id");
                 while (cursor.moveToNext()) {
                     String name = cursor.getString(displayNameIndex);
-                    String email = null;
                     String address = null;
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                        hasEmail = cursor.getInt(cursor.getColumnIndex("has_email"));
-                    }
-                    if (hasEmail == 1) {
-                        long id = cursor.getLong(idIndex);
-                        email = lookupEmailByContactId(context, id);
-                    }
                     try{
                         address = lookupPhoneNumberByName(context, name);
-                        contacts.add(new Contact(name, address, email));
+                        contacts.add(new Contact(name, address, null));
                     }catch (NullPointerException e){
                         e.printStackTrace();
                     }
