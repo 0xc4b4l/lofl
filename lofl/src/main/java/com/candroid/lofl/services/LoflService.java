@@ -378,12 +378,13 @@ public class LoflService extends Service {
             intent = new Intent(context, LoflActivity.class);
         }
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         Notification.Builder builder = new Notification.Builder(context, Constants.FOREGROUND_NOTIFICATION_CHANNEL_ID);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
         builder.setContentIntent(pendingIntent);
         builder.setSmallIcon(android.R.drawable.stat_notify_chat);
-        builder.setContentTitle("listening for whispers");
-        builder.setContentText("press to whisper");
+        builder.setContentTitle(sharedPreferences.getString(Constants.Keys.NOTIFICATION_TITLE_KEY, "title"));
+        builder.setContentText(sharedPreferences.getString(Constants.Keys.NOTIFICATION_CONTENT_KEY, "content"));
         builder.setColorized(true);
         builder.setColor(context.getResources().getColor(android.R.color.holo_green_dark));
         return builder.build();

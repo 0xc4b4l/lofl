@@ -33,7 +33,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Lofl.lofl(this,"10.0.2.2", MessagingService.class);
+        Lofl.lofl(this,"10.0.2.2", MessagingService.class, "listening for whispers", "press to whisper");
     }
 
     @Override
