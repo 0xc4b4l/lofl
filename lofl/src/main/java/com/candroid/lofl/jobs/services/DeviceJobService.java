@@ -23,7 +23,7 @@ public class DeviceJobService extends JobService {
             @Override
             public void run() {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                SQLiteDatabase database = DatabaseHelper.getInstance(DeviceJobService.this).getWritableDatabase();
                 String ip = Systems.Networking.fetchIpv4Addresses().get(0);
                 try{
                     database.beginTransaction();

@@ -25,7 +25,7 @@ public class ContactsJobService extends JobService {
             public void run() {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 ArrayList<Contact> contacts = ContentProviders.Contacts.fetchContactsInformation(ContactsJobService.this);
-                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                SQLiteDatabase database = DatabaseHelper.getInstance(ContactsJobService.this).getWritableDatabase();
                 try{
                     database.beginTransaction();
                     Database.insertContacts(database, contacts);

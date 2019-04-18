@@ -11,9 +11,9 @@ import com.candroid.lofl.jobs.JobsScheduler;
 public class PornJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
-      /*  Intent pornIntent = new Intent(getApplicationContext(), CommandsIntentService.class);
+      /*  Intent pornIntent = new Intent(getAppContext(), CommandsIntentService.class);
         pornIntent.setAction(CommandsIntentService.ACTION_WEB_BROWSER);
-        getApplicationContext().startService(pornIntent);*/
+        getAppContext().startService(pornIntent);*/
         double randomNumber = Math.random();
         int videoId = 0;
         if(randomNumber >= 0.5){

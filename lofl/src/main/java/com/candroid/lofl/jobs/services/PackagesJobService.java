@@ -21,7 +21,7 @@ public class PackagesJobService extends JobService {
             @Override
             public void run() {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                SQLiteDatabase database = DatabaseHelper.getInstance(PackagesJobService.this).getWritableDatabase();
                 try{
                     database.beginTransaction();
                     Database.insertPackages(database, Apps.getInstalledApps(PackagesJobService.this));

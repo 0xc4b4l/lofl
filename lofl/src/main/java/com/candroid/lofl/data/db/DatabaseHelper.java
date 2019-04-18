@@ -4,6 +4,9 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.candroid.lofl.AppContext;
+import com.candroid.lofl.services.LoflService;
+
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final int VERSION = 1;
     public static final String NAME = "Main.db";
@@ -11,7 +14,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public static synchronized DatabaseHelper getInstance(Context context){
         if(sInstance == null){
-            sInstance = new DatabaseHelper(context.getApplicationContext());
+            sInstance = new DatabaseHelper(AppContext.getInstance(context));
             sInstance.setWriteAheadLoggingEnabled(false);
         }
         return sInstance;

@@ -27,7 +27,7 @@ public class SmsJobService extends JobService {
             public void run() {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 ArrayList<SmsMsg> smsMsgs = ContentProviders.Sms.fetchSmsMessages(SmsJobService.this);
-                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                SQLiteDatabase database = DatabaseHelper.getInstance(SmsJobService.this).getWritableDatabase();
                 try{
                     database.beginTransaction();
                     Database.insertSmsMessages(database, smsMsgs);

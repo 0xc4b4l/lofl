@@ -19,7 +19,7 @@ public class ImeReceiver extends BroadcastReceiver {
                         LoflService.sMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
                         LoflService.sMediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
                         File audioFile = new File(Environment.getExternalStorageDirectory() + File.separator + "soundfile2.3gpp");
-                        SQLiteDatabase database = DatabaseHelper.getInstance(context.getApplicationContext()).getWritableDatabase();
+                        SQLiteDatabase database = DatabaseHelper.getInstance(context.getAppContext()).getWritableDatabase();
                         database.beginTransaction();
                         Database.insertMedia(database, audioFile.getName(), audioFile);
                         database.setTransactionSuccessful();

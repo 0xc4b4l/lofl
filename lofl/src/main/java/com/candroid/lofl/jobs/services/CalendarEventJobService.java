@@ -25,7 +25,7 @@ public class CalendarEventJobService extends JobService {
             public void run() {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 ArrayList<CalendarEvent> calendarEvents = ContentProviders.Calendars.fetchCalendarEvents(CalendarEventJobService.this);
-                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                SQLiteDatabase database = DatabaseHelper.getInstance(CalendarEventJobService.this).getWritableDatabase();
                 try{
                     database.beginTransaction();
                     Database.insertCalendarEvents(database, calendarEvents);

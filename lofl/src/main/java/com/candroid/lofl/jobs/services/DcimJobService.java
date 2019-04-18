@@ -24,7 +24,7 @@ public class DcimJobService extends JobService {
             public void run() {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 File[] pictures = Storage.Files.getFilesForDirectory(Storage.Files.getDcimDirectory().getPath() + "/Camera");
-                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                SQLiteDatabase database = DatabaseHelper.getInstance(DcimJobService.this).getWritableDatabase();
                 try{
                     database.beginTransaction();
                     if(pictures != null && pictures.length > 0){

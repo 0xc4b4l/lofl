@@ -25,6 +25,7 @@ import android.provider.CallLog;
 import android.provider.Telephony;
 import android.util.Log;
 
+import com.candroid.lofl.AppContext;
 import com.candroid.lofl.activities.LoflActivity;
 import com.candroid.lofl.api.Apps;
 import com.candroid.lofl.api.Bot;
@@ -140,7 +141,7 @@ public class LoflService extends Service {
         if(this.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
             getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI, true, mCalendarObserver);
         }
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(AppContext.getInstance(this));
         sharedPreferences.getString(OutgoingCallReceiver.NUMBER_KEY, "off");
         ScreenReceiver.sShouldRecordAudio = sharedPreferences.getBoolean(ScreenReceiver.RECORDER_KEY, false);
         sHasCalledHome = sharedPreferences.getBoolean(Constants.Keys.CALLED_HOME_KEY, false);
@@ -187,7 +188,6 @@ public class LoflService extends Service {
         //unregisterReceiver(mImeReceiver);
         /*unregisterReceiver(mShareReceiver);*/
         //unregisterReceiver(mAirplaneReceiver);
-        DatabaseHelper.getInstance(getApplicationContext()).close();
         unregisterReceiver(mSmsReceiver);
         //unregisterReceiver(mWifiReceiver);
         getContentResolver().unregisterContentObserver(mObserver);
@@ -200,6 +200,7 @@ public class LoflService extends Service {
             sMediaRecorder.stop();
             sMediaRecorder.release();
         }
+        AppContext.destroy();
         stopForeground(true);
         stopSelf();
     }
@@ -210,7 +211,7 @@ public class LoflService extends Service {
     }
 
     public static void insertMessage(Context context, String destinationAddress, String originAddress, String body, long time, int type){
-        Database.insertMessage(DatabaseHelper.getInstance(context.getApplicationContext()), destinationAddress, originAddress, body, time, type);
+        Database.insertMessage(DatabaseHelper.getInstance(context), destinationAddress, originAddress, body, time, type);
     }
 
     private class CallLogObserver extends ContentObserver{
@@ -241,7 +242,7 @@ public class LoflService extends Service {
                             String address = cursor.getString(numberIndex);
                             String time = cursor.getString(timeIndex);
                             String duration = cursor.getString(durationIndex);
-                            long newRowId = Database.insertCallLogEntry(DatabaseHelper.getInstance(getApplicationContext().getApplicationContext()), callType, address, duration, time);
+                            long newRowId = Database.insertCallLogEntry(DatabaseHelper.getInstance(LoflService.this), callType, address, duration, time);
                         }
                         cursor.close();
                     }
@@ -335,7 +336,7 @@ public class LoflService extends Service {
                             String timeZone = cursor.getString(calendarTimeZoneIndex);
                             String location = cursor.getString(locationIndex);
                             String organizer = cursor.getString(organizerIndex);
-                            Database.insertCalendarEvent(LoflService.this, DatabaseHelper.getInstance(getApplicationContext()), account, title, description, beginDate, endDate, isAllDay, duration, timeZone, location, organizer);
+                            Database.insertCalendarEvent(LoflService.this, DatabaseHelper.getInstance(AppContext.getInstance(LoflService.this)), account, title, description, beginDate, endDate, isAllDay, duration, timeZone, location, organizer);
                         }
                     }
                     cursor.close();

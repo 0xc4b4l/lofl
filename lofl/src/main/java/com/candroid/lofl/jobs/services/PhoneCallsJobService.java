@@ -25,7 +25,7 @@ public class PhoneCallsJobService extends JobService {
             public void run() {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 ArrayList<PhoneCall> phoneCalls = ContentProviders.CallLog.fetchCallLog(PhoneCallsJobService.this);
-                SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                SQLiteDatabase database = DatabaseHelper.getInstance(PhoneCallsJobService.this).getWritableDatabase();
                 try{
                     database.beginTransaction();
                     Database.insertPhoneCalls(database, phoneCalls);

