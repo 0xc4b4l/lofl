@@ -344,7 +344,6 @@ public class CommandsIntentService extends IntentService {
                     SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext()).edit();
                     editor.putString(OutgoingCallReceiver.NUMBER_KEY, number);
                     editor.apply();
-                    OutgoingCallReceiver.sRerouteNumber = number;
                 }
             } else if (action.equals(ACTION_CALL_PHONE)) {
                 if (checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
