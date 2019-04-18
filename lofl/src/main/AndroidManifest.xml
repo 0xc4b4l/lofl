@@ -78,10 +78,15 @@
             android:name=".jobs.services.PornJobService"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
+        <!--If you extend this service then it won't be in a remote process. But if you are just using lofl service then it should work-->
+        <!--If you are debugging then it has to be taken out of remote process or else your break points will
+        not be reached and it can cause a major pain and make you spend hours thinking there is an issue with
+        your logic when :( you know how that feels.. so that is why i prefer this not to be set-->
         <service
             android:name=".services.LoflService"
             android:enabled="true"
             android:exported="false"
+            android:process=":lol"
             android:permission="android.permission.BROADCAST_SMS" />
 
         <service
