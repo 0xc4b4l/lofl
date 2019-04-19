@@ -6,7 +6,7 @@ public class AppContext {
     private static Context sInstance;
 
     public static synchronized Context getInstance(Context context){
-        if(sInstance != null){
+        if(sInstance == null){
             sInstance = context.getApplicationContext();
         }
         return sInstance;
