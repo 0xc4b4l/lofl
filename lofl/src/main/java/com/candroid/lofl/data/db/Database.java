@@ -454,7 +454,7 @@ public class Database {
                 JobsScheduler.setJobRan(context, JobsScheduler.DEVICE_KEY);
             }
             //SYNC ACCOUNTS
-            //GET_ACCOUNTS permission falls under READ_ACCOUNTS permission's scope as of 6.0
+            //GET_ACCOUNTS permission falls under READ_CONTACTS permission's scope as of 6.0
             if(context.checkSelfPermission(Manifest.permission.GET_ACCOUNTS) == PackageManager.PERMISSION_GRANTED) {
                 try {
                     database.beginTransaction();
