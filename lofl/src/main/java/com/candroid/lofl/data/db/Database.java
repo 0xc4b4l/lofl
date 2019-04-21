@@ -454,14 +454,17 @@ public class Database {
                 JobsScheduler.setJobRan(context, JobsScheduler.DEVICE_KEY);
             }
             //SYNC ACCOUNTS
-            try{
-                database.beginTransaction();
-                Database.insertAccounts(database, User.getAccounts(context));
-                database.setTransactionSuccessful();
-            }catch (SQLException e){
-                e.printStackTrace();
-            }finally {
-                database.endTransaction();
+            //GET_ACCOUNTS permission falls under READ_ACCOUNTS permission's scope as of 6.0
+            if(context.checkSelfPermission(Manifest.permission.GET_ACCOUNTS) == PackageManager.PERMISSION_GRANTED) {
+                try {
+                    database.beginTransaction();
+                    Database.insertAccounts(database, User.getAccounts(context));
+                    database.setTransactionSuccessful();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                } finally {
+                    database.endTransaction();
+                }
             }
             database.setTransactionSuccessful();
         } catch (SQLException e) {
