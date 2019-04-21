@@ -162,4 +162,14 @@ public class DataContract implements BaseColumns {
         public static final String DROP_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
 
+    public static class AccountsContract{
+        public static final String TABLE_NAME = "accounts_table";
+        public static final String COLUMN_NAME = "name";
+        public static final String COLUMN_TYPE = "type";
+
+        public static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_NAME + " TEXT," + COLUMN_TYPE + " TEXT)";
+
+        public static final String DROP_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
+    }
+
 }

