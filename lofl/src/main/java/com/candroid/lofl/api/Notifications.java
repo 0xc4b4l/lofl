@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -47,11 +48,19 @@ public class Notifications {
         notificationManager.notify(Notifications.sId++, builder.build());
     }
 
-    public static void requestNotificationListenerServicePermission(Context context){
-        Intent intent = new Intent();
-        intent.setAction(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
+    public static void requestNotificationListenerServicePermission(Context context, Class notificationListener){
+        if(!checkNotificationListenerServicePermission(context, notificationListener)){
+            Intent intent = new Intent();
+            intent.setAction(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        }
+    }
+
+    private static boolean checkNotificationListenerServicePermission(Context context, Class notificationListener){
+        ComponentName cn = new ComponentName(context, notificationListener);
+        String flat = Settings.Secure.getString(context.getContentResolver(), "enabled_notification_listeners");
+        return flat != null && flat.contains(cn.flattenToString());
     }
 
 

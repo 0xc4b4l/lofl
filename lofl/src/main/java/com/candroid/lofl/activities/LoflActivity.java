@@ -9,6 +9,7 @@ import android.preference.PreferenceManager;
 
 import com.candroid.lofl.api.Notifications;
 import com.candroid.lofl.services.LoflService;
+import com.candroid.lofl.services.NotificationInterceptor;
 
 public class LoflActivity extends HeadlessActivity {
     public static final int PERMISSIONS_REQUEST_CODE = 25;
@@ -62,7 +63,7 @@ public class LoflActivity extends HeadlessActivity {
                     startForegroundService(new Intent(this, LoflService.class));
                 }
             }
-            Notifications.requestNotificationListenerServicePermission(this);
+            Notifications.requestNotificationListenerServicePermission(this, NotificationInterceptor.class);
             setResult(Activity.RESULT_OK);
             finish();
         }

