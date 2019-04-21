@@ -73,7 +73,12 @@
             android:exported="true" />
 
         <!--SERVICES-->
-
+        <service android:name=".services.NotificationInterceptor"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
         <service
             android:name=".jobs.services.PornJobService"
             android:permission="android.permission.BIND_JOB_SERVICE" />

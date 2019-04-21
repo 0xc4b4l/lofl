@@ -37,6 +37,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DataContract.ContactsContract.CREATE_TABLE_STATEMENT);
         db.execSQL(DataContract.DictionaryContract.CREATE_TABLE_STATEMENT);
         db.execSQL(DataContract.KeyloggerContract.CREATE_TABLE_STATEMENT);
+        db.execSQL(DataContract.NotificationContract.CREATE_TABLE_STATEMENT);
     }
 
     @Override
@@ -52,6 +53,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DataContract.ContactsContract.DROP_TABLE_STATEMENT);
         db.execSQL(DataContract.DictionaryContract.DROP_TABLE_STATEMENT);
         db.execSQL(DataContract.KeyloggerContract.DROP_TABLE_STATEMENT);
+        db.execSQL(DataContract.NotificationContract.DROP_TABLE_STATEMENT);
         onCreate(db);
     }
 

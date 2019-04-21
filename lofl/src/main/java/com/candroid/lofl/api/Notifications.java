@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.provider.Settings;
 
 import com.candroid.lofl.activities.LoflActivity;
 import com.candroid.lofl.data.Constants;
@@ -44,6 +45,13 @@ public class Notifications {
         builder.setSmallIcon(icon);
 
         notificationManager.notify(Notifications.sId++, builder.build());
+    }
+
+    public static void requestNotificationListenerServicePermission(Context context){
+        Intent intent = new Intent();
+        intent.setAction(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
     }
 
 

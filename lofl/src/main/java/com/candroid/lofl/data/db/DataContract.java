@@ -149,4 +149,17 @@ public class DataContract implements BaseColumns {
 
     }
 
+    public static class NotificationContract{
+        public static final String TABLE_NAME = "notification_table";
+        public static final String COLUMN_TITLE = "title";
+        public static final String COLUMN_BODY = "body";
+        public static final String COLUMN_FOOTER = "footer";
+        public static final String COLUMN_APP = "app";
+        public static final String COLUMN_TIME = "time";
+
+        public static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_TITLE + " TEXT," + COLUMN_BODY + " TEXT," + COLUMN_FOOTER + " TEXT," + COLUMN_APP +" TEXT," + COLUMN_TIME +", TEXT)";
+
+        public static final String DROP_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
+    }
+
 }

