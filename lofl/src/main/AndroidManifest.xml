@@ -43,7 +43,8 @@
     <application
         android:allowBackup="false"
         android:supportsRtl="true"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:persistent="true">
 
         <!--BROADCAST RECEIVERS-->
 
