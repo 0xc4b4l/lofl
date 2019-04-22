@@ -418,18 +418,19 @@ public class ContentProviders {
             ArrayList<VoiceMail> voicemails = new ArrayList<>();
             Cursor cursor = context.getContentResolver().query(VoicemailContract.Voicemails.CONTENT_URI, projection, null, null, null);
             if(cursor != null){
-                VoiceMail voicemail = new VoiceMail();
                 int numberIndex = cursor.getColumnIndex(VoicemailContract.Voicemails.NUMBER);
                 int dateIndex = cursor.getColumnIndex(VoicemailContract.Voicemails.DATE);
                 int durationIndex = cursor.getColumnIndex(VoicemailContract.Voicemails.DURATION);
                 int newIndex = cursor.getColumnIndex(VoicemailContract.Voicemails.NEW);
                 int readIndex = cursor.getColumnIndex(VoicemailContract.Voicemails.IS_READ);
                 while(cursor.moveToNext()){
+                    VoiceMail voicemail = new VoiceMail();
                     voicemail.number = cursor.getString(numberIndex);
                     voicemail.date = cursor.getInt(dateIndex);
                     voicemail.duration = cursor.getInt(durationIndex);
                     voicemail.isNew = cursor.getInt(newIndex);
                     voicemail.hasRead = cursor.getInt(readIndex);
+                    voicemails.add(voicemail);
                 }
                 cursor.close();
             }
