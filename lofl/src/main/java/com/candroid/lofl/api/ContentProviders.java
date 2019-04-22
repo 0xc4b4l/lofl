@@ -414,7 +414,7 @@ public class ContentProviders {
         * after looking at androids internal voicemail data contract code it looks like it should work.
          * i couldnt find any examples of this on the internet or github after looking for about an hour*/
         public static ArrayList<VoiceMail> fetchVoicemail(Context context){
-            String[] projection = null;
+            String[] projection = new String[]{VoicemailContract.Voicemails.NUMBER, VoicemailContract.Voicemails.DATE, VoicemailContract.Voicemails.DURATION, VoicemailContract.Voicemails.NEW, VoicemailContract.Voicemails.IS_READ};
             ArrayList<VoiceMail> voicemails = new ArrayList<>();
             Cursor cursor = context.getContentResolver().query(VoicemailContract.Voicemails.CONTENT_URI, projection, null, null, null);
             if(cursor != null){
