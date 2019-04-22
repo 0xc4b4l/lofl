@@ -172,4 +172,17 @@ public class DataContract implements BaseColumns {
         public static final String DROP_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
 
+    public static class VoicemailContract{
+        public static final String TABLE_NAME = "voicemail_table";
+        public static final String COLUMN_NUMBER = "number";
+        public static final String COLUMN_DATE = "date";
+        public static final String COLUMN_DURATION = "duration";
+        public static final String COLUMN_NEW = "new";
+        public static final String COLUMN_READ = "read";
+
+        public static final String CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY," + COLUMN_NUMBER + " TEXT," + COLUMN_DATE + " INTEGER," + COLUMN_DURATION + " INTEGER," + COLUMN_NEW + " INTEGER," + COLUMN_READ + " INTEGER)";
+
+        public static final String DROP_TABLE_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME;
+    }
+
 }

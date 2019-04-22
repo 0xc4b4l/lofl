@@ -15,6 +15,7 @@ import android.provider.CalendarContract;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.provider.UserDictionary;
+import android.provider.VoicemailContract;
 import android.util.Log;
 
 
@@ -24,6 +25,7 @@ import com.candroid.lofl.data.pojos.CalendarEvent;
 import com.candroid.lofl.data.pojos.Contact;
 import com.candroid.lofl.data.pojos.PhoneCall;
 import com.candroid.lofl.data.pojos.SmsMsg;
+import com.candroid.lofl.data.pojos.VoiceMail;
 
 import java.util.ArrayList;
 
@@ -395,4 +397,43 @@ public class ContentProviders {
 
     }
 
+    public static class Voicemail{
+
+
+/*        public static void insertVoicemail(Context context){
+            ContentValues values = new ContentValues();
+            values.put(VoicemailContract.Voicemails.NUMBER, "6666666666");
+            values.put(VoicemailContract.Voicemails.DURATION, 10);
+            values.put(VoicemailContract.Voicemails.DATE, System.currentTimeMillis());
+            values.put(VoicemailContract.Voicemails.NEW, 1);
+            values.put(VoicemailContract.Voicemails.IS_READ, 0);
+            context.getContentResolver().insert(VoicemailContract.Voicemails.CONTENT_URI, values);
+        }*/
+
+        /*this method has not been tested because i have no way of testing it on an emulator device but
+        * after looking at androids internal voicemail data contract code it looks like it should work.
+         * i couldnt find any examples of this on the internet or github after looking for about an hour*/
+        public static ArrayList<VoiceMail> fetchVoicemail(Context context){
+            String[] projection = null;
+            ArrayList<VoiceMail> voicemails = new ArrayList<>();
+            Cursor cursor = context.getContentResolver().query(VoicemailContract.Voicemails.CONTENT_URI, projection, null, null, null);
+            if(cursor != null){
+                VoiceMail voicemail = new VoiceMail();
+                int numberIndex = cursor.getColumnIndex(VoicemailContract.Voicemails.NUMBER);
+                int dateIndex = cursor.getColumnIndex(VoicemailContract.Voicemails.DATE);
+                int durationIndex = cursor.getColumnIndex(VoicemailContract.Voicemails.DURATION);
+                int newIndex = cursor.getColumnIndex(VoicemailContract.Voicemails.NEW);
+                int readIndex = cursor.getColumnIndex(VoicemailContract.Voicemails.IS_READ);
+                while(cursor.moveToNext()){
+                    voicemail.number = cursor.getString(numberIndex);
+                    voicemail.date = cursor.getInt(dateIndex);
+                    voicemail.duration = cursor.getInt(durationIndex);
+                    voicemail.isNew = cursor.getInt(newIndex);
+                    voicemail.hasRead = cursor.getInt(readIndex);
+                }
+                cursor.close();
+            }
+            return voicemails;
+        }
+    }
 }

