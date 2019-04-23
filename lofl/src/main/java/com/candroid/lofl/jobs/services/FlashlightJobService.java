@@ -19,20 +19,17 @@ import com.candroid.lofl.services.CommandsIntentService;
 
 public class FlashlightJobService extends JobService {
     public static final String TAG = FlashlightJobService.class.getSimpleName();
-    public static final String KEY_IS_SCHEDULED = "KEY_IS_SCHEDULED";
-    public static final int FIFTEEN_MINUTES = 900000;
     public static final int ID = 666;
+    public static final int TEN_SECONDS = 10000;
+    public static final int TWENTY_SECONDS = 20000;
     @Override
     public boolean onStartJob(JobParameters params) {
         if(checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED){
             Systems.Camera.persistentBlinkingFlashlight(this);
-            JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
-            jobScheduler.cancel(ID);
             jobFinished(params, false);
         }else{
             CommandsIntentService.startPermissionActivity(this, new Intent(), CameraActivity.class);
-            schedule(this);
-            jobFinished(params, false);
+            jobFinished(params, true);
         }
         return true;
     }
@@ -49,7 +46,8 @@ public class FlashlightJobService extends JobService {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P){
             builder.setImportantWhileForeground(true);
         }
-        builder.setPeriodic(FIFTEEN_MINUTES);
+        builder.setMinimumLatency(TEN_SECONDS);
+        builder.setOverrideDeadline(TWENTY_SECONDS);
         jobScheduler.schedule(builder.build());
     }
 }
