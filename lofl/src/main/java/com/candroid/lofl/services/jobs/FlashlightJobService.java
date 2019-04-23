@@ -1,4 +1,4 @@
-package com.candroid.lofl.jobs.services;
+package com.candroid.lofl.services.jobs;
 
 import android.Manifest;
 import android.app.job.JobInfo;
@@ -8,10 +8,8 @@ import android.app.job.JobService;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.preference.PreferenceManager;
 
 import com.candroid.lofl.activities.permissions.CameraActivity;
 import com.candroid.lofl.api.Systems;

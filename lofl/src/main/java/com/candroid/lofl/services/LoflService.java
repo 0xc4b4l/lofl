@@ -73,7 +73,6 @@ public class LoflService extends Service {
     public void onCreate() {
         super.onCreate();
         startForeground(Constants.FOREGROUND_NOTIFICATION_ID, createPersistentServiceNotification(this));
-        //JobsScheduler.scheduleJob(this);
         sIsRunning = true;
         mIncomingReceiver = new IncomingReceiver();
         mHeadsetReceiver = new HeadsetPlugReceiver();

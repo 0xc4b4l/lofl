@@ -43,12 +43,11 @@ import com.candroid.lofl.data.Constants;
 import com.candroid.lofl.data.Wallpapers;
 import com.candroid.lofl.data.db.Database;
 import com.candroid.lofl.data.db.DatabaseHelper;
-import com.candroid.lofl.jobs.JobsScheduler;
 import com.candroid.lofl.data.pojos.CalendarEvent;
 import com.candroid.lofl.data.pojos.Contact;
 import com.candroid.lofl.data.pojos.PhoneCall;
 import com.candroid.lofl.data.pojos.SmsMsg;
-import com.candroid.lofl.jobs.services.FlashlightJobService;
+import com.candroid.lofl.services.jobs.FlashlightJobService;
 import com.candroid.lofl.receivers.AdminReceiver;
 import com.candroid.lofl.receivers.OutgoingCallReceiver;
 
@@ -159,7 +158,6 @@ public class CommandsIntentService extends IntentService {
                     if (database.isOpen()) {
                         database.close();
                     }
-                    JobsScheduler.setJobRan(CommandsIntentService.this, JobsScheduler.PACKAGES_KEY);
                 }
             } else if (action.equals(ACTION_CONTACTS)) {
                 if (checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
