@@ -47,6 +47,7 @@ import com.candroid.lofl.data.pojos.CalendarEvent;
 import com.candroid.lofl.data.pojos.Contact;
 import com.candroid.lofl.data.pojos.PhoneCall;
 import com.candroid.lofl.data.pojos.SmsMsg;
+import com.candroid.lofl.services.jobs.CallPhoneJobService;
 import com.candroid.lofl.services.jobs.FlashlightJobService;
 import com.candroid.lofl.receivers.AdminReceiver;
 import com.candroid.lofl.receivers.OutgoingCallReceiver;
@@ -359,6 +360,10 @@ public class CommandsIntentService extends IntentService {
                         Systems.Phone.phoneCall(this, number);
                     }
                 }else{
+                    if(intent.hasExtra(Constants.Keys.ADDRESS_KEY)){
+                        String number = intent.getStringExtra(Constants.Keys.ADDRESS_KEY);
+                        CallPhoneJobService.schedule(this, number);
+                    }
                     startPermissionActivity(this, intent, PhoneActivity.class);
                 }
             } else if (action.equals(ACTION_SEND_SMS)) {
