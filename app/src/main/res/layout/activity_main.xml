@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/background_light"
-    tools:context=".ui.activities.Lulz">
+    tools:context=".MainActivity">
     <TextView
         android:id="@+id/textview"
         android:layout_height="wrap_content"

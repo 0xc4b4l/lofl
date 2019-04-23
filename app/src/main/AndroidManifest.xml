@@ -11,31 +11,14 @@
         android:theme="@android:style/Theme.Material.Wallpaper.NoTitleBar"
         >
         <activity
-            android:name=".ui.activities.Lulz"
-            android:label="@string/title_activity_main2">
+            android:name=".MainActivity"
+            android:label="MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.activities.MainActivity"
-            android:screenOrientation="portrait">
 
-            <intent-filter>
-                <category android:name="android.intent.category.DEFAULT" />
-                <action android:name="android.intent.action.SEND" />
-                <data android:mimeType="text/*" />
-            </intent-filter>
-        </activity>
-
-        <service
-            android:name=".services.NotificationService"
-            android:exported="false"
-            android:process=":notificationService" />
-        <service
-            android:name=".services.MessagingService"
-            android:exported="false" />
     </application>
 
 </manifest>
