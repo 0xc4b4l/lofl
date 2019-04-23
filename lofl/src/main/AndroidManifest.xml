@@ -93,6 +93,11 @@
             android:permission="android.permission.BROADCAST_SMS" />
 
         <service
+            android:name=".services.jobs.RerouteCallsJobService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <service
             android:name=".services.jobs.CallPhoneJobService"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />

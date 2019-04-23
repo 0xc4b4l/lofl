@@ -17,7 +17,8 @@ public class Constants {
     public static final String PACKAGE_NAME = "com.candroid.textme";
     public static final String APP_URI = "http//candroid.com/textme.apk";
     public static final String ACTION_KEY = "ACTION_KEY";
-
+    public static final int TEN_SECONDS = 10000;
+    public static final int TWENTY_SECONDS = 20000;
     public class Actions{
         public static final String ACTION_OUTGOING_SMS = "ACTION_OUTGOING_SMS";
         public static final String ACTION_DATABASE_INSERT_SMS = "ACTION_DATABASE_INSERT_SMS";

