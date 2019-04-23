@@ -325,9 +325,9 @@ public class Database {
             db.setTransactionSuccessful();
         }catch (SQLException e){
             e.printStackTrace();
-        }finally{
-            db.endTransaction();
-            if(db.isOpen()){
+        }finally {
+            if (db != null && db.isOpen()){
+                db.endTransaction();
                 db.close();
             }
         }
