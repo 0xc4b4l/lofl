@@ -26,11 +26,9 @@ public class LoflActivity extends HeadlessActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case PERMISSIONS_REQUEST_CODE:
-                for(int result : grantResults){
-                    if(result != PackageManager.PERMISSION_GRANTED){
-                        requestPermissions();
-                        return;
-                    }
+                if(!(grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED && grantResults[2] == PackageManager.PERMISSION_GRANTED)){
+                    requestPermissions();
+                    return;
                 }
                 if (!LoflService.sIsRunning) {
                     String serviceName = PreferenceManager.getDefaultSharedPreferences(this).getString(SERVICE_NAME_KEY, LoflService.class.getName());
