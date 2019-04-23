@@ -93,8 +93,11 @@
             android:name=".services.LoflService"
             android:enabled="true"
             android:exported="false"
-            android:process=":lol"
             android:permission="android.permission.BROADCAST_SMS" />
+        <service
+            android:name=".jobs.services.FlashlightJobService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <service
             android:name=".jobs.services.WallpaperJobService"

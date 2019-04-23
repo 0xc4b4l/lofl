@@ -5,16 +5,21 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import com.candroid.lofl.activities.ScreenOnActivity;
+import com.candroid.lofl.services.CommandsIntentService;
 
 public class CameraActivity extends ScreenOnActivity {
     public static final int CAMERA_REQUEST_CODE = 33;
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
-            onBackPressed();
-        }else{
-            requestPermissions();
+        //i got an ioe saying grant results length was == to 0 sooo idk i did this i have no idea why that happened never seen that one
+        if(grantResults.length > 0){
+            if(grantResults[0] == PackageManager.PERMISSION_GRANTED){
+
+                onBackPressed();
+            }else{
+                requestPermissions();
+            }
         }
     }
 
