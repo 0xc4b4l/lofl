@@ -17,6 +17,7 @@ import android.net.Network;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -73,6 +74,10 @@ public class Systems {
     }
 
     public static class Phone{
+
+        public static boolean isNotEmulator(){
+            return !Build.DEVICE.equals("generic");
+        }
 
         public static void phoneCall(Context context, String address) {
             Intent callIntent = new Intent(Intent.ACTION_CALL);
