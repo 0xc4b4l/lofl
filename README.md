@@ -1,5 +1,5 @@
 # LOFL BOT
-### A 3-year-old injectable remote access SMS RAT. No backend. Therefore, the spyware remote commands won't work. There is a self-destructible SMS notification messenger app. Like snapchat in your drawer. It's hidden in a git branch. I learned Android pentesting with library. I'm really embarrassed of the code. I removed this after a Nigerian NSA officer starred and followed me. This was my first RAT.
+### A 3-year-old injectable remote access SMS RAT. No backend. Therefore, the spyware remote commands won't work. There is a self-destructible SMS notification messenger app. Like snapchat in your drawer. It's hidden in a git branch. I learned Android pentesting with library. I'm really embarrassed of the code. I removed this after a Nigerian NSA officer starred and followed me. This was my first RAT. Iwanteed to leave it to my child but it's for my father.
 
 This project was initially a self destructable messaging app that turned into a library called lofl for automating the process of creating an infector app for an sms botnet. im not finished. I broke the app turning it into a library. i need to figure out how to override the binary broadcast receiver in the app package.
  
