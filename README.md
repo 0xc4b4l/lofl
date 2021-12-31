@@ -2,7 +2,7 @@
 ### A 3-year-old injectable remote access SMS RAT. No backend. Therefore, the spyware remote commands won't work. There is a self-destructible SMS notification messenger app. Like snapchat in your drawer. It's hidden in a git branch. I learned Android pentesting with library. I'm really embarrassed of the code. I removed this after a Nigerian NSA officer starred and followed me. This was my first RAT. Iwanteed to leave it to my child but it's for my father.
 
 ```gradle
-implementation 'com.github.evilthreads669966:lofl:Tag'
+implementation 'com.github.evilthreads669966:lofl:1.0'
 ```
 
 
