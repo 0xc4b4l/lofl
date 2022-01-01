@@ -1,4 +1,3 @@
-## I have a reward for my beta law document. $30
 # LOFL BOT
 ### A 3-year-old injectable SMS RAT. No backend. Therefore, the spyware remote commands won't work. I learned Android pentesting with library. I'm really embarrassed of the code and design. I removed this after a Nigerian NSA officer starred and followed me. This was my first RAT. Iwanteed to leave it to my child but it's for my father.
 
