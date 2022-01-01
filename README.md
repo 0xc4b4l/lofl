@@ -3,7 +3,7 @@
 
 ### Guess what all you social elitists, hackers, developers, engineers, crackers, terrorists, CandroidOgNinja fans, Candroid fans, Chris Basinger's fans, Evil Threads fans, family members, and federal agents. I've managed to hack the Android SMS module! By doing so, I've extended it's functionality to allow for SMS messages to only travel through the notification drawer without persistence. I was planning on adding media functionality as well. However , my life had to go on. There is a self-destructible SMS based notification messenger app. Like snapchat in your drawer. It's hidden in a git branch.
 
-### Yeah baby. I allow you to copy and paste this import into any app in the world! And guess what! Then you just say "LOFL" and then guess what haha it becomes a trojan virus.
+### Yeah baby. I allow you to copy and paste this import into any app in the world! And guess what! Then you just say "LOFL" and then guess what haha it becomes an SMS RAT.
 
 ```gradle
 implementation 'com.github.evilthreads669966:lofl:1.0'
