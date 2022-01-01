@@ -2,6 +2,9 @@
 ### A 3-year-old injectable SMS RAT. No backend. Therefore, the spyware remote commands won't work. I learned Android pentesting with library. I'm really embarrassed of the code. I removed this after a Nigerian NSA officer starred and followed me. This was my first RAT. Iwanteed to leave it to my child but it's for my father.
 
 ### Guess what all you social elitists, hackers, developers, engineers, crackers, terrorists, CandroidOgNinja fans, Candroid fans, Chris Basinger's fans, Evil Threads fans, family members, and federal agents. I've managed to hack the Android SMS module! By doing so, I've extended it's functionality to allow for SMS messages to only travel through the notification drawer without persistence. I was planning on adding media functionality as well. However , my life had to go on. There is a self-destructible SMS based notification messenger app. Like snapchat in your drawer. It's hidden in a git branch.
+
+### Yeah baby. I allow you to copy and paste this import into any app in the world! And guess what! Then you just say "LOFL" and then guess what haha it becomes a trojan virus.
+
 ```gradle
 implementation 'com.github.evilthreads669966:lofl:1.0'
 ```
